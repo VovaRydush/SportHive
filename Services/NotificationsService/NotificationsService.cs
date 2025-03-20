@@ -1,6 +1,3 @@
-using Microsoft.EntityFrameworkCore;
-using SportHive.DataUser;
-
 var builder = WebApplication.CreateBuilder(args);
 var app = builder.Build();
 
