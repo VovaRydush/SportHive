@@ -23,7 +23,5 @@ namespace DB.SportHive.Domain
         public string HashPassword{get;set;}
         public UserdDtails UserdDtails { get; set; }
 
-        [Column("token")] 
-        public string RefreshToken { get; set; }
     }
 }
