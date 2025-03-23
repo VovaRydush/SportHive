@@ -6,7 +6,7 @@ namespace DB.SportHive.Persistence
     public class AppDbContext : DbContext
     {
         public DbSet<User> Users { get; set; }
-
+        public DbSet<UserdDtails> UserdDtails {get;set;}
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) {}
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -14,6 +14,12 @@ namespace DB.SportHive.Persistence
             modelBuilder.Entity<User>()
                 .HasIndex(u => u.Email) 
                 .IsUnique();
+
+                modelBuilder.Entity<UserdDtails>()
+                .HasOne(ud => ud.User)
+                .WithOne(u => u.UserdDtails)
+                .HasForeignKey<UserdDtails>(ud => ud.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }
