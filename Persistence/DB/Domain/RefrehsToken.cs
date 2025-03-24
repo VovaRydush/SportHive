@@ -16,7 +16,9 @@ namespace DB.SportHive.Domain
         [Column("token")]
         public string refreshToken { get; set; }
 
-        
+        [Column("expires")]
+        public DateTime Expires { get; set; }
+
         [ForeignKey("UserId")]
         public User User { get; set; }
 

@@ -21,7 +21,15 @@ namespace DB.SportHive.Domain
         [Required]
         [Column("HashPassword")] 
         public string HashPassword{get;set;}
-        public UserdDtails UserdDtails { get; set; }
+
+        [Required]
+        [Column("EmailConfirmed")]
+        public bool isEmailConfirmed {get;set;}
+
+        [Required]
+        [Column("refreshToken")]
+        public string tempToken{get;set;}
+        public UserdDtails? UserdDtails { get; set; }
 
     }
 }
