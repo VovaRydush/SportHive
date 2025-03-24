@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using SportHive.Services.Implementations;
 using DB.SportHive.Domain;
 using SportHive.Services.Interfaces;
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<AppDbContext>(options =>
