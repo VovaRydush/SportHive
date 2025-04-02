@@ -1,13 +1,12 @@
 using DB.SportHive.Domain;
 using DB.SportHive.Persistence;
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using SportHive.Services.Interfaces;
 using System.Net;
 using System.Net.Mail;
 
 
-namespace SportHive.Services.Implementations
+namespace SportHive.Implementations
 {
     public class UserService : IUserService
     {
