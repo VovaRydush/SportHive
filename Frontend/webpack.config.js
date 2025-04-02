@@ -1,39 +1,46 @@
-const path = require('path');  
-const HtmlWebpackPlugin = require('html-webpack-plugin');  
+const path = require('path');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 
-module.exports = {  
-    mode: 'development', // або 'production'  
-    entry: './src/index.ts', // Ваша точка входу  
-    output: {  
-        filename: 'bundle.js', // Ім'я вихідного файлу  
-        path: path.resolve(__dirname, 'dist'), // Директорія для виходу  
-        clean: true, // Очищення директорії dist перед кожною збіркою  
-    },  
-    module: {  
-        rules: [  
-            {  
-                test: /\.js$/, // Обробка .js файлів  
-                exclude: /node_modules/, // Ігнорувати node_modules  
-                use: {  
-                    loader: 'babel-loader', // Використання Babel для трансляції  
-                    options: {  
-                        presets: ['@babel/preset-env'], // Пресет для ES6+  
-                    },  
-                },  
-            },  
-        ],  
-    },  
-    plugins: [  
-        new HtmlWebpackPlugin({  
-            template: './src/index.html', // Шаблон HTML-файлу  
-        }),  
-    ],  
-    devtool: 'inline-source-map', // Генерація source maps  
+module.exports = {
+    mode: 'development',
+    entry: './src/index.ts',
+    output: {
+        filename: 'bundle.js',
+        path: path.resolve(__dirname, 'dist'),
+        clean: true,
+    },
+    module: {
+        rules: [
+            {
+                test: /\.ts$/,
+                exclude: /node_modules/,
+                use: 'ts-loader',
+            },
+            {
+                test: /\.js$/,
+                exclude: /node_modules/,
+                use: {
+                    loader: 'babel-loader',
+                    options: {
+                        presets: ['@babel/preset-env'],
+                    },
+                },
+            },
+        ],
+    },
+    resolve: {
+        extensions: ['.ts', '.js'],
+    },
+    plugins: [
+        new HtmlWebpackPlugin({
+            template: './src/index.html',
+        }),
+    ],
+    devtool: 'inline-source-map',
     devServer: {
         static: {
-          directory: path.join(__dirname, 'dist'), // ✅ Правильний варіант
+            directory: path.join(__dirname, 'dist'),
         },
         port: 3000,
-      }
-      ,  
-};  
+    },
+};
