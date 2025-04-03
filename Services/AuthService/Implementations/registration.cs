@@ -1,7 +1,9 @@
 using DB.SportHive.Domain;
 using DB.SportHive.Persistence;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using SportHive.Services.Interfaces;
+using StackExchange.Redis;
 using System.Net;
 using System.Net.Mail;
 
@@ -11,9 +13,10 @@ namespace SportHive.Implementations
     public class UserService : IUserService
     {
         private readonly AppDbContext _context;
-
-        public UserService(AppDbContext context)
+        private readonly IRedisService _redis;
+        public UserService(AppDbContext context, IRedisService database)
         {
+            _redis = database;
             _context = context;
         }
 
@@ -30,7 +33,8 @@ namespace SportHive.Implementations
             {
                 throw new Exception("Користувач з таким email вже існує.");
             }
-
+            Random random = new Random();
+            string code = random.Next(100000, 1000000).ToString();
             using (var context = _context)
             {
                 var user = new User
@@ -41,18 +45,19 @@ namespace SportHive.Implementations
                     tempToken = Guid.NewGuid().ToString()
                 };
 
+                await _redis.SetVerifacionCode(email, code);
                 context.Users.Add(user);
                 await _context.SaveChangesAsync();
-                await SendEmailConfirmed(email, user.tempToken);
+                await SendEmailConfirmed(email, code);
             }
         }
-        public async Task SendEmailConfirmed(string email, string refreshToken)
+        public async Task SendEmailConfirmed(string email, string code)
         {
-            var verifyUrl = $"http://localhost:5154/verify?token={refreshToken}";
+
             var message = new MailMessage("vadimrudis7@gmail.com", email)
             {
                 Subject = "Підтвердження email",
-                Body = $"Натисніть <a href='{verifyUrl}'>тут</a> для підтвердження email.",
+                Body = $"Ваш код: {code} для підтвердження email.",
                 IsBodyHtml = true
             };
 
@@ -66,7 +71,7 @@ namespace SportHive.Implementations
                 };
 
                 await smtp.SendMailAsync(message);
-        
+
             }
             catch (Exception ex)
             {
@@ -75,15 +80,21 @@ namespace SportHive.Implementations
 
         }
 
-        public async Task VeryfyEmail(string tempToken)
+        public async Task VeryfyEmail(UserVerificationDto info)
         {
-            var existToken = await _context.Users.FirstOrDefaultAsync(u => u.tempToken == tempToken);
-            if (existToken != null)
+            string veryfyCode = await _redis.GetVerifacionCode(info.Email);
+            if (info.Code == veryfyCode)
             {
-                existToken.isEmailConfirmed = true;
-                await _context.SaveChangesAsync();
+                var Email = await _context.Users.FirstOrDefaultAsync(u => u.Email == info.Email);
+                if (Email != null)
+                {
+                    await _redis.DeleteVerifacionCode(info.Email);
+                    Email.isEmailConfirmed = true;
+                    await _context.SaveChangesAsync();
+                }
             }
-            else throw new Exception("Токен не дійсний");
+            else throw new Exception("Код не правельний!");
         }
+
     }
 }
