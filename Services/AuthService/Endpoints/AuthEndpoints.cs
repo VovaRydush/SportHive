@@ -15,13 +15,13 @@ namespace AuthService.Endpoints
                 return Results.Ok("User registered successfully!");
             });
 
-            route.MapGet("/users", async (IUserService userService) =>
+            route.MapGet("/users", async ([FromServices] IUserService userService) =>
             {
                 List<User> users = await userService.GetAllUsers();
                 return Results.Ok(users);
             });
 
-            route.MapGet("/verify", async (UserVerificationDto info, IUserService userService) =>
+            route.MapGet("/verify", async ([FromBody] UserVerificationDto info, IUserService userService) =>
             {
                 await userService.VeryfyEmail(info);
                 return Results.Ok("Верефікація пройшла успішно!");

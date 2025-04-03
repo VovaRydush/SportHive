@@ -1,9 +1,7 @@
 using DB.SportHive.Domain;
 using DB.SportHive.Persistence;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
 using SportHive.Services.Interfaces;
-using StackExchange.Redis;
 using System.Net;
 using System.Net.Mail;
 
