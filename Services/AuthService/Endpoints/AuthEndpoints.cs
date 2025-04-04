@@ -18,7 +18,7 @@ namespace AuthService.Endpoints
             route.MapGet("/verify", async ([FromBody] UserVerificationDto info, IUserRegistration userService) =>
             {
                 await userService.VeryfyEmail(info);
-                return Results.Ok("Верефікація пройшла успішно!");
+                return Results.Ok();
             });
         }
     }

@@ -26,7 +26,7 @@ namespace SportHive.Implementations
         }
         public async Task SetVerifacionCode(string key, string value)
         {
-            await _database.StringSetAsync(key, value, TimeSpan.FromMinutes(3));
+            await _database.StringSetAsync(key, value);
         }
     }
 }
