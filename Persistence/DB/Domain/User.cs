@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
 namespace DB.SportHive.Domain
 {
@@ -18,6 +19,7 @@ namespace DB.SportHive.Domain
         public string Email { get; set; }
         
         [Required]
+        [MaxLength(255)]
         [Column("HashPassword")] 
         public string HashPassword{get;set;}
 
@@ -26,9 +28,9 @@ namespace DB.SportHive.Domain
         public bool isEmailConfirmed {get;set;}
 
         [Required]
+        [MaxLength(512)]
         [Column("refreshToken")]
-        public string tempToken{get;set;}
-        public UserdDtails? UserdDtails { get; set; }
+        public string refreshToken{get;set;}
 
     }
 }

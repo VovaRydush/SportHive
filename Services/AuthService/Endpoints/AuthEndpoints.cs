@@ -9,19 +9,13 @@ namespace AuthService.Endpoints
         public static void UserRegisterEndpoint(this IEndpointRouteBuilder route)
         {
            
-            route.MapPost("/registr", async (UserInfoDto user, IUserService userService) =>
+            route.MapPost("/registr", async (UserInfoDto user, IUserRegistration userService) =>
             {
                 await userService.Registration(user.Email, user.Password);
                 return Results.Ok("User registered successfully!");
             });
 
-            route.MapGet("/users", async ([FromServices] IUserService userService) =>
-            {
-                List<User> users = await userService.GetAllUsers();
-                return Results.Ok(users);
-            });
-
-            route.MapGet("/verify", async ([FromBody] UserVerificationDto info, IUserService userService) =>
+            route.MapGet("/verify", async ([FromBody] UserVerificationDto info, IUserRegistration userService) =>
             {
                 await userService.VeryfyEmail(info);
                 return Results.Ok("Верефікація пройшла успішно!");

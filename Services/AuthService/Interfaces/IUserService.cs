@@ -2,10 +2,9 @@
 
  namespace SportHive.Services.Interfaces
  {
- public interface IUserService
+ public interface IUserRegistration
     {
         Task Registration(string email, string password);
-        Task<List<User>> GetAllUsers();
         Task VeryfyEmail(UserVerificationDto info);
     }
  }
