@@ -27,10 +27,9 @@ namespace DB.SportHive.Domain
         [Column("EmailConfirmed")]
         public bool isEmailConfirmed {get;set;}
 
-        [Required]
         [MaxLength(512)]
         [Column("refreshToken")]
-        public string refreshToken{get;set;}
+        public string? refreshToken{get;set;}
 
         [Required]
         [Column("Role")]

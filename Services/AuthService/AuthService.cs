@@ -22,17 +22,16 @@ builder.Services.AddScoped<IRedisService, RedisService>();
 builder.Services.AddScoped<IUserRegistration, UserRegistration>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IPhotoProcessing, PhotoProcessing>();
-builder.Services.AddAntiforgery(options =>
-{
-    options.HeaderName = "X-Ignore-Antiforgery";
-});
+builder.Services.AddScoped<IJWTService,JWTService>();
+builder.Services.AddScoped<ILoginService,LoginService>();
+
 var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-app.UseAntiforgery(); 
+
 app.UseStaticFiles();
 app.MapAuthEndpoints();
 
