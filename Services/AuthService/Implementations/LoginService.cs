@@ -31,6 +31,7 @@ namespace SportHive.Implementations
             throw new NotImplementedException();
         }
 
+
         public  Task SetRefreshTokenCookie(HttpContext httpContext, string refreshToken)
         {
             httpContext.Response.Cookies.Append(

@@ -5,6 +5,7 @@ namespace SportHive.Extensions{
         public static void MapAuthEndpoints(this IEndpointRouteBuilder app){
             app.UserRegisterEndpoint();
             app.UserLoginEndpoint();
+            app.UserManipuleteEndpoint();
         }
     }
 }
