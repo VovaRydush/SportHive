@@ -26,9 +26,6 @@ namespace DB.SportHive.Domain
         [MaxLength(60)]
         public string TypeOrganozation{get;set;}
 
-        [Column("ProfilePhoto")]
-        public string ProfilePhoto{get;set;}
-
         [Column("Description")]
         public string Description{get;set;}
 

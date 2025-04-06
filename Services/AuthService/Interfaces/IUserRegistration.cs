@@ -6,5 +6,8 @@
     {
         Task Registration(UserInfoDto user);
         Task VeryfyEmail(UserVerificationDto info);
+        Task ComplitePrifile(RoleInfoDto entity);
+        Task ComplitePrifileOrganization(OrganizationInfoDto entity);
+
     }
  }

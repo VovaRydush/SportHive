@@ -26,9 +26,6 @@ namespace DB.SportHive.Domain
         [MaxLength(60)]
         public string LastName{get;set;}
 
-        [Column("ProfilePhoto")]
-        public string ProfilePhoto{get;set;}
-
         [Column("DataBirth")]
         public DateTime DataBirth{get;set;}
 

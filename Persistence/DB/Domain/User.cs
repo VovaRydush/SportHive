@@ -32,5 +32,9 @@ namespace DB.SportHive.Domain
         [Column("refreshToken")]
         public string refreshToken{get;set;}
 
+        [Required]
+        [Column("Role")]
+        public string Role {get;set;}
+
     }
 }

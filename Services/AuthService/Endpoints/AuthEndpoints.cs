@@ -1,5 +1,6 @@
 using DB.SportHive.Domain;
 using Microsoft.AspNetCore.Mvc;
+using SportHive.Extensions;
 using SportHive.Services.Interfaces;
 
 namespace AuthService.Endpoints
@@ -14,6 +15,16 @@ namespace AuthService.Endpoints
                 await userService.Registration(user);
                 return Results.Ok("User registered successfully!");
             });
+            
+            route.MapPost("/complite-profile", async([FromForm] RoleInfoDto user,IUserRegistration userService)=>{
+                await userService.ComplitePrifile(user);
+                return Results.Ok();
+            }).AllowAnonymous().DisableAntiforgery(); ;
+
+            route.MapPost("/complite-profile-organization", async([FromForm] OrganizationInfoDto user,IUserRegistration userService)=>{
+                await userService.ComplitePrifileOrganization(user);
+                return Results.Ok();
+            }).AllowAnonymous().DisableAntiforgery(); ;
 
             route.MapGet("/verify", async ([FromBody] UserVerificationDto info, IUserRegistration userService) =>
             {
