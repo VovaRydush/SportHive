@@ -2,6 +2,7 @@ namespace SportHive.Services.Interfaces
 {
  public interface IJWTService
  { 
-     Task Generate(string email, string role);
+    Task<List<string>> GenerateTokens(string userId);
+    Task UpdatateAccsesToken(string refreshToken);
  }
 }
