@@ -1,5 +1,4 @@
 using SportHive.Services.Interfaces;
-using DB.SportHive.Persistence;
 
 namespace SportHive.Implementations
 {

@@ -1,3 +1,4 @@
+using System.Net.Mail;
 using DB.SportHive.Domain;
 using DB.SportHive.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -33,9 +34,10 @@ namespace SportHive.Implementations
             {
                 photoPath = await _photoprocessing.SavePhotoAsync(entity.ProfilePhoto);
             }
-            _context.UserPhotos.Add(new UserPhoto{
-                    Id = user.Id,
-                    ProfilePhoto = photoPath
+            _context.UserPhotos.Add(new UserPhoto
+            {
+                Id = user.Id,
+                ProfilePhoto = photoPath
             });
             switch (user.Role)
             {
@@ -87,17 +89,18 @@ namespace SportHive.Implementations
             {
                 photoPath = await _photoprocessing.SavePhotoAsync(entity.ProfilePhoto);
             }
-            _context.UserPhotos.Add(new UserPhoto{
-                    Id = user.Id,
-                    ProfilePhoto = photoPath
+            _context.UserPhotos.Add(new UserPhoto
+            {
+                Id = user.Id,
+                ProfilePhoto = photoPath
             });
-             _context.Organizations.Add(new Organization
-                    {
-                        Id = user.Id,
-                        TypeOrganozation = entity.TypeOrganozation,
-                        NameOrganization = entity.NameOrganization,
-                        Description = entity.Description
-                    });
+            _context.Organizations.Add(new Organization
+            {
+                Id = user.Id,
+                TypeOrganozation = entity.TypeOrganozation,
+                NameOrganization = entity.NameOrganization,
+                Description = entity.Description
+            });
             await _context.SaveChangesAsync();
         }
 
@@ -126,7 +129,14 @@ namespace SportHive.Implementations
                 context.Users.Add(user);
                 await _context.SaveChangesAsync();
                 await _redis.SetVerifacionCode(entity.Email, code);
-                await _emailService.SendEmailConfirmed(entity.Email, code);
+                
+                await _emailService.SendEmail(
+                     new MailMessage("vadimrudis7@gmail.com", entity.Email)
+                     {
+                         Subject = "Підтвердження email",
+                         Body = $"Ваш код: {code} для підтвердження email.",
+                         IsBodyHtml = true
+                     });
             }
         }
 
