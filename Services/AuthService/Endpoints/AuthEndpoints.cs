@@ -11,7 +11,7 @@ namespace AuthService.Endpoints
            
             route.MapPost("/registr", async (UserInfoDto user, IUserRegistration userService) =>
             {
-                await userService.Registration(user.Email, user.Password);
+                await userService.Registration(user);
                 return Results.Ok("User registered successfully!");
             });
 

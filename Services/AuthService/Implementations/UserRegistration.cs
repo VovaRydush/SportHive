@@ -18,33 +18,31 @@ namespace SportHive.Implementations
             _context = context;
         }
 
-        public async Task Registration(string email, string password)
+        public async Task Registration(UserInfoDto entity)
         {
             var existingUser = await _context
                                     .Users
                                     .AsNoTracking()
-                                    .FirstOrDefaultAsync(u => u.Email == email);
+                                    .FirstOrDefaultAsync(u => u.Email == entity.Email);
 
-            if (existingUser != null)
-            {
-                throw new Exception("Користувач з таким email вже існує.");
-            }
+            if (existingUser != null) throw new Exception("Користувач з таким email вже існує.");
+            
             Random random = new Random();
             string code = random.Next(100000, 1000000).ToString();
             using (var context = _context)
             {
                 var user = new User
                 {
-                    Email = email,
-                    HashPassword = BCrypt.Net.BCrypt.HashPassword(password),
+                    Email = entity.Email,
+                    HashPassword = BCrypt.Net.BCrypt.HashPassword(entity.Password),
                     isEmailConfirmed = false,
                     refreshToken = Guid.NewGuid().ToString()
                 };
-
-                await _redis.SetVerifacionCode(email, code);
+                
                 context.Users.Add(user);
                 await _context.SaveChangesAsync();
-                await _emailService.SendEmailConfirmed(email, code);
+                await _redis.SetVerifacionCode(entity.Email, code);
+                await _emailService.SendEmailConfirmed(entity.Email, code);
             }
         }
 

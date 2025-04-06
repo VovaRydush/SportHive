@@ -4,7 +4,7 @@
  {
  public interface IUserRegistration
     {
-        Task Registration(string email, string password);
+        Task Registration(UserInfoDto user);
         Task VeryfyEmail(UserVerificationDto info);
     }
  }
