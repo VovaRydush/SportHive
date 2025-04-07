@@ -13,10 +13,6 @@ namespace SportHive.Implementations
                                        config["WebRootPath"] ?? "wwwroot");
              Console.WriteLine($"WebRootPath: {_webRootPath}"); 
         }
-        public Task GetPhotoAsync(string path)
-        {
-            throw new NotImplementedException();
-        }
 
         public async Task<string> SavePhotoAsync(IFormFile file)
         {

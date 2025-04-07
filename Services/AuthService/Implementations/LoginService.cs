@@ -10,7 +10,7 @@ namespace SportHive.Implementations
         private readonly AppDbContext _dbcontext;
         private readonly IJWTService _jWTService;
 
-        public LoginService(AppDbContext context,IJWTService jWTService)
+        public LoginService(AppDbContext context, IJWTService jWTService)
         {
             _jWTService = jWTService;
             _dbcontext = context;
@@ -26,13 +26,22 @@ namespace SportHive.Implementations
             return await _jWTService.GenerateTokens(entity.Email);
         }
 
-        public Task LogOut()
+        public async Task LogOut(string Email, string refreshToken)
         {
-            throw new NotImplementedException();
+            var user = await _dbcontext.Users.FirstOrDefaultAsync(u => u.Email == Email);
+            if (refreshToken == user.refreshToken)
+            {
+                user.refreshToken = null;
+                await _dbcontext.SaveChangesAsync();
+            }
+            else
+            {
+                throw new Exception("Чел ти хто?");
+            }
         }
 
 
-        public  Task SetRefreshTokenCookie(HttpContext httpContext, string refreshToken)
+        public Task SetRefreshTokenCookie(HttpContext httpContext, string refreshToken)
         {
             httpContext.Response.Cookies.Append(
                     "refreshToken",

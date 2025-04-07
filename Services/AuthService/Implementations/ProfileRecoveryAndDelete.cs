@@ -10,15 +10,12 @@ namespace SportHive.Implementations
         private readonly AppDbContext _dbcontext;
         private readonly IEmailService _emailService;
         private readonly IRedisService _redisService;
+        
         public ProfileManipulete(AppDbContext dbContext, IEmailService emailService,IRedisService redisService)
         {
             _redisService = redisService;
             _dbcontext = dbContext;
             _emailService = emailService;
-        }
-        public Task DeleteProfile(string Email)
-        {
-            throw new NotImplementedException();
         }
 
         public async Task PasswordRecovery(string Email,string newPassword)

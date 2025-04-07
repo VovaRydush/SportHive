@@ -4,6 +4,5 @@ namespace SportHive.Services.Interfaces
  {
     Task PasswordRecovery(string Email,string newPassword);
     Task SendVereficationCode(string Email);
-    Task DeleteProfile(string Email);
  }
 }

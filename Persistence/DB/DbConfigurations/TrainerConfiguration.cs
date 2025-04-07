@@ -13,7 +13,8 @@ namespace SportHive.DbConfiguration
             builder
              .HasOne(a => a.User)
              .WithOne()
-             .HasForeignKey<Trainer>(a => a.Id);
+             .HasForeignKey<Trainer>(a => a.Id)
+             .OnDelete(DeleteBehavior.NoAction);
         }
     }
 }

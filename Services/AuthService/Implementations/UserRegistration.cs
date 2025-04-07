@@ -128,6 +128,7 @@ namespace SportHive.Implementations
 
                 context.Users.Add(user);
                 await _context.SaveChangesAsync();
+                
                 await _redis.SetVerifacionCode(entity.Email, code);
                 
                 await _emailService.SendEmail(
