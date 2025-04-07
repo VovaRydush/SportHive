@@ -1,7 +1,9 @@
+using System.Net.Mail;
+
 namespace SportHive.Services.Interfaces
 {
  public interface IEmailService
  { 
-     Task SendEmailConfirmed(string email, string code);
+     Task SendEmail(MailMessage message);
  }
 }
