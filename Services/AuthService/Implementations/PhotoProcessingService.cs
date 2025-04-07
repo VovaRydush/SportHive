@@ -1,5 +1,4 @@
 using SportHive.Services.Interfaces;
-using DB.SportHive.Persistence;
 
 namespace SportHive.Implementations
 {
@@ -13,10 +12,6 @@ namespace SportHive.Implementations
             _webRootPath = Path.Combine(env.ContentRootPath,
                                        config["WebRootPath"] ?? "wwwroot");
              Console.WriteLine($"WebRootPath: {_webRootPath}"); 
-        }
-        public Task GetPhotoAsync(string path)
-        {
-            throw new NotImplementedException();
         }
 
         public async Task<string> SavePhotoAsync(IFormFile file)

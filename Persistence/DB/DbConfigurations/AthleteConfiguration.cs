@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore;
 using DB.SportHive.Domain;
+using Microsoft.AspNetCore.Mvc;
 
 namespace SportHive.DbConfiguration
 {
@@ -13,7 +14,8 @@ namespace SportHive.DbConfiguration
             builder
              .HasOne(a => a.User)
              .WithOne()
-             .HasForeignKey<Athlete>(a => a.Id);
+             .HasForeignKey<Athlete>(a => a.Id)
+             .OnDelete(DeleteBehavior.NoAction);
         }
     }
 }

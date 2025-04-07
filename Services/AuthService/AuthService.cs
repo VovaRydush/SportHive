@@ -24,6 +24,7 @@ builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IPhotoProcessing, PhotoProcessing>();
 builder.Services.AddScoped<IJWTService,JWTService>();
 builder.Services.AddScoped<ILoginService,LoginService>();
+builder.Services.AddScoped<IProfileManipulete,ProfileManipulete>();
 
 var app = builder.Build();
 if (app.Environment.IsDevelopment())
