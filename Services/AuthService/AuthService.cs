@@ -1,4 +1,5 @@
 using DB.SportHive.Persistence;
+using OperateExseption;
 using SportHive.Implementations;
 using SportHive.Services.Interfaces;
 using SportHive.Extensions;
@@ -18,6 +19,7 @@ builder.Services.AddControllers().AddJsonOptions(options =>
     options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
 });
 builder.Services.AddSingleton<IWebHostEnvironment>(builder.Environment);
+
 builder.Services.AddScoped<IRedisService, RedisService>();
 builder.Services.AddScoped<IUserRegistration, UserRegistration>();
 builder.Services.AddScoped<IEmailService, EmailService>();
@@ -32,7 +34,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseStaticFiles();
 app.MapAuthEndpoints();
 

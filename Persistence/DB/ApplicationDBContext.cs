@@ -15,7 +15,7 @@ namespace DB.SportHive.Persistence
         public DbSet<UserPhoto> UserPhotos {get;set;}
 
         private readonly IConfiguration _configuration;
-        public AppDbContext(DbContextOptions<AppDbContext> options, IConfiguration configuration) : base(options) 
+        public AppDbContext(IConfiguration configuration)
         {
             _configuration = configuration;
         }

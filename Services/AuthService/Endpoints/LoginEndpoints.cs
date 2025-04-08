@@ -21,8 +21,8 @@ namespace AuthService.Endpoints
                 if (await jWTService.CheckRefreshToken(Email))
                 {
                     List<string> tokens = await jWTService.GenerateTokens(Email);
-                    await loginService.SetRefreshTokenCookie(httpContext, tokens[0]);
-                    return Results.Ok(tokens[1]);
+                    await loginService.SetRefreshTokenCookie(httpContext, tokens[1]);
+                    return Results.Ok(tokens[0]);
                 }
                 return Results.Json(new
                 {

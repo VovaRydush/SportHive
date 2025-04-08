@@ -2,6 +2,7 @@ using System.Net.Mail;
 using DB.SportHive.Domain;
 using DB.SportHive.Persistence;
 using Microsoft.EntityFrameworkCore;
+using SportHive.Exceptions;
 using SportHive.Services.Interfaces;
 
 
@@ -27,7 +28,7 @@ namespace SportHive.Implementations
                                      .FirstOrDefaultAsync(u => u.Email == entity.Email);
 
             if (user == null)
-                throw new Exception("User not found");
+                throw new NotFoundException("Not Found");
 
             string photoPath = null;
             if (entity.ProfilePhoto != null)
@@ -70,7 +71,7 @@ namespace SportHive.Implementations
                     break;
 
                 default:
-                    throw new Exception("Unknown role");
+                    throw new NotFoundException("Unknown role");
             }
 
             await _context.SaveChangesAsync();
@@ -82,7 +83,7 @@ namespace SportHive.Implementations
                                      .AsNoTracking()
                                      .FirstOrDefaultAsync(u => u.Email == entity.Email);
             if (user == null)
-                throw new Exception("User not found");
+                throw new NotFoundException("User not found");
 
             string photoPath = null;
             if (entity.ProfilePhoto != null)
@@ -153,9 +154,9 @@ namespace SportHive.Implementations
                     Email.isEmailConfirmed = true;
                     await _context.SaveChangesAsync();
                 }
-                else throw new Exception("Щось пішло не так!");
+                
             }
-            else throw new Exception("Код не правельний!");
+            else throw new NotFoundException("Код не правельний!");
         }
 
     }
