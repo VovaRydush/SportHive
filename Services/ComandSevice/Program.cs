@@ -1,4 +1,9 @@
+using JwtAuthentication;
+
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddJwtAuthentication();
+
 
 var app = builder.Build();
 

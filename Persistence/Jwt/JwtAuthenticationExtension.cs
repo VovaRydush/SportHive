@@ -2,30 +2,32 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-
-public static class JwtAuthenticationExtension
+namespace JwtAuthentication
 {
-    public static IServiceCollection AddJwtAuthentication(this IServiceCollection services)
+    public static class JwtAuthenticationExtension
     {
-    
-        var secretKey = "U675$%^Gubd@#$%4fhg9GHFH7%&4657^%d";
-        var issuer = "sporthive.club";
+        public static IServiceCollection AddJwtAuthentication(this IServiceCollection services)
+        {
 
-        services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-            .AddJwtBearer(options =>
-            {
-                options.TokenValidationParameters = new TokenValidationParameters
+            var secretKey = "U675$%^Gubd@#$%4fhg9GHFH7%&4657^%d";
+            var issuer = "sporthive.club";
+
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(options =>
                 {
-                    ValidateIssuer = true,
-                    ValidIssuer = issuer,
-                    ValidateAudience = true,
-                    ValidateLifetime = true,
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey)),
-                    ClockSkew = TimeSpan.Zero
-                };
-            });
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidIssuer = issuer,
+                        ValidateAudience = true,
+                        ValidateLifetime = true,
+                        ValidateIssuerSigningKey = true,
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey)),
+                        ClockSkew = TimeSpan.Zero
+                    };
+                });
 
-        return services;
+            return services;
+        }
     }
 }
