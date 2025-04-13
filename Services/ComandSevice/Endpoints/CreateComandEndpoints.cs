@@ -17,6 +17,11 @@ namespace Command.Endpoints
                 await teamService.CreateTeamAsync(team);
             })
                 .RequireAuthorization(new AuthorizeAttribute { Roles = "Trainer,Organization" });
+            
+             route.MapPost("/add-athletes", async([FromBody] List<TeamAthleteDto> athleteDtos, [FromServices] ITeamOperateService teamService)=>{
+                await teamService.AddAthletes(athleteDtos);
+            })
+                .RequireAuthorization(new AuthorizeAttribute { Roles = "Trainer,Organization" });
         }
     }
 }

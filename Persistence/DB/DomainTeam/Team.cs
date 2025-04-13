@@ -13,7 +13,7 @@ namespace DB.SportHive.Domain
         public string TeamName { get; set; } = null!;
 
         [Required]
-        [Column("IdTraine")]
+        [Column("LoginTrainer")]
         public string LoginTrainer { get; set; } = null!;
 
         public Trainer Trainer { get; set; } = null!;

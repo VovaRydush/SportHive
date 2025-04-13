@@ -13,6 +13,21 @@ namespace SportHive.Implementations
         {
             _context = context;
         }
+
+        public async Task AddAthletes(List<TeamAthleteDto> athleteDto)
+        {
+            var entities = athleteDto.Select(d => new TeamAthlete
+            {
+                NameTeam = d.NameTeam,
+                loginAthlets = d.loginAthlets,
+                AthleteStatus = d.AthleteStatus
+            }).ToList();
+
+            _context.teamAthletes.AddRange(entities);
+
+            await _context.SaveChangesAsync();
+        }
+
         public async Task CreateTeamAsync(TeamModelDto team)
         {
             var NameTeam = await _context.Teams.AsNoTracking().FirstOrDefaultAsync(nt => nt.TeamName == team.NameTeam);
