@@ -14,6 +14,7 @@ namespace DB.SportHive.Persistence
         public DbSet<Judge> Judges { get; set; }
         public DbSet<UserPhoto> UserPhotos { get; set; }
         public DbSet<OrganizationJudge> OrginizationJudges { get; set; }
+        public DbSet<OrganizationTeam> OrganizationTeams{get;set;}
         public DbSet<Team> Teams { get; set; }
         public DbSet<TeamAthlete> teamAthletes { get; set; }
 
@@ -32,6 +33,7 @@ namespace DB.SportHive.Persistence
             modelBuilder.ApplyConfiguration(new OrganizationJudgeConfiguration());
             modelBuilder.ApplyConfiguration(new TeamConfiguration());
             modelBuilder.ApplyConfiguration(new TeamAthleteConfiguration());
+            modelBuilder.ApplyConfiguration(new OrganizationTeamConfigration());
         }
 
     }

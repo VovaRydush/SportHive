@@ -38,5 +38,8 @@ namespace DB.SportHive.Domain
         [Column("Judges")]
         public List<OrganizationJudge> OrganizationJudge { get; set; } = null!;
 
+        [Column("Teams")]
+        public List<OrganizationTeam>? Teams{get;set;} = null!;
+
     }
 }

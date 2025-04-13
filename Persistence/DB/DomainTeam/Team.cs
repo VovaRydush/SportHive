@@ -8,7 +8,6 @@ namespace DB.SportHive.Domain
     {
 
         [Required]
-        [Unique]
         [Column("TeamName")]
         public string TeamName { get; set; } = null!;
 
@@ -24,9 +23,9 @@ namespace DB.SportHive.Domain
         [Column("TypeSport")]
         [MaxLength(100)]
         public string TypeSport { get; set; } = null!;
+
+        [Column("Organization")]
+        public List<OrganizationTeam>? OrganizationTeam{get;set;} = null!;
     }
 
-    internal class UniqueAttribute : Attribute
-    {
-    }
 }

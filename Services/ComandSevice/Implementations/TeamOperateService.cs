@@ -54,5 +54,15 @@ namespace SportHive.Implementations
             await _context.SaveChangesAsync();
 
         }
+
+        public async Task LinkOrganizationTeam(OrganizationTeamDto entity)
+        {
+            var OrgTeam = new OrganizationTeam{
+                LoginOrganization = entity.LoginOrganization,
+                NameComand = entity.NameTeam
+            };
+            _context.OrganizationTeams.Add(OrgTeam);
+            await _context.SaveChangesAsync();
+        }
     }
 }

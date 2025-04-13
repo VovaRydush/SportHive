@@ -5,5 +5,6 @@ namespace SportHive.Services.Interfaces
  { 
     Task CreateTeamAsync(TeamModelDto team);
     Task AddAthletes(List<TeamAthleteDto> athleteDto);
+    Task LinkOrganizationTeam(OrganizationTeamDto dto);
  }
 }
