@@ -8,13 +8,13 @@ namespace DB.SportHive.Domain
         public void Configure(EntityTypeBuilder<TeamAthlete> builder)
         {
             
-            builder.HasKey(ta => new { ta.IdTeam, ta.loginAthlets });
+            builder.HasKey(ta => new { ta.NameTeam, ta.loginAthlets });
 
             
             builder
                 .HasOne(ta => ta.Team)
                 .WithMany(t => t.TeamAthletes) 
-                .HasForeignKey(ta => ta.IdTeam) 
+                .HasForeignKey(ta => ta.NameTeam) 
                 .OnDelete(DeleteBehavior.Cascade); 
 
             builder

@@ -6,11 +6,9 @@ namespace DB.SportHive.Domain
     [Table("Team")]
     public class Team
     {
-        [Column("Id")]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public long Id { get; set; }
 
         [Required]
+        [Unique]
         [Column("TeamName")]
         public string TeamName { get; set; } = null!;
 
@@ -26,5 +24,9 @@ namespace DB.SportHive.Domain
         [Column("TypeSport")]
         [MaxLength(100)]
         public string TypeSport { get; set; } = null!;
+    }
+
+    internal class UniqueAttribute : Attribute
+    {
     }
 }

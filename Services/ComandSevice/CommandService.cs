@@ -5,6 +5,7 @@ using Extensions;
 using SportHive.Services.Interfaces;
 using SportHive.Implementations;
 using Microsoft.OpenApi.Models;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -37,7 +38,9 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddAuthorization();
 builder.Services.AddJwtAuthentication();
 builder.Services.AddAuthorization();
-builder.Services.AddDbContext<AppDbContext>();
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("Primary")));
+
 
 builder.Services.AddScoped<ITeamOperateService,TeamOperateService>();
 

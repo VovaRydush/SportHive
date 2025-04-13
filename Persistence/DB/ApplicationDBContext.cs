@@ -12,14 +12,13 @@ namespace DB.SportHive.Persistence
         public DbSet<Trainer> Trainers { get; set; }
         public DbSet<Organization> Organizations { get; set; }
         public DbSet<Judge> Judges { get; set; }
-        public DbSet<UserPhoto> UserPhotos {get;set;}
-        public DbSet<OrganizationJudge> OrginizationJudges {get;set;}
-        public DbSet<Team> Teams{get;set;}
-        public DbSet<TeamAthlete> teamAthletes{get;set;}
-        private readonly IConfiguration _configuration;
-        public AppDbContext(IConfiguration configuration)
+        public DbSet<UserPhoto> UserPhotos { get; set; }
+        public DbSet<OrganizationJudge> OrginizationJudges { get; set; }
+        public DbSet<Team> Teams { get; set; }
+        public DbSet<TeamAthlete> teamAthletes { get; set; }
+
+        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
         {
-            _configuration = configuration;
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -35,9 +34,5 @@ namespace DB.SportHive.Persistence
             modelBuilder.ApplyConfiguration(new TeamAthleteConfiguration());
         }
 
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            optionsBuilder.UseNpgsql(_configuration.GetConnectionString("Primary"));
-        }
     }
 }

@@ -9,13 +9,35 @@ namespace SportHive.Implementations
     {
         private readonly AppDbContext _context;
 
-        public TeamOperateService(AppDbContext context){
+        public TeamOperateService(AppDbContext context)
+        {
             _context = context;
         }
-        public async Task CreateTeamAsync(TeamModelDto Team)
+        public async Task CreateTeamAsync(TeamModelDto team)
         {
-          var NameTeam = await _context.Teams.FirstOrDefaultAsync(nt => nt.TeamName == Team.NameTeam);
-          if(NameTeam!=null) throw new NotFoundException("Команда з такою назвою вже існує");
+            var NameTeam = await _context.Teams.AsNoTracking().FirstOrDefaultAsync(nt => nt.TeamName == team.NameTeam);
+            if (NameTeam != null) throw new NotFoundException("Команда з такою назвою вже існує");
+
+            var Command = new Team
+            {
+                TeamName = team.NameTeam,
+                LoginTrainer = team.LoginTrainer,
+                TypeSport = team.TypeSport
+            };
+            _context.Teams.Add(Command);
+
+           
+            var entities = team.athlets.Select(d => new TeamAthlete
+            {
+                NameTeam = d.NameTeam,
+                loginAthlets = d.loginAthlets,
+                AthleteStatus = d.AthleteStatus
+            }).ToList();
+
+            _context.teamAthletes.AddRange(entities);
+
+            await _context.SaveChangesAsync();
+
         }
     }
 }

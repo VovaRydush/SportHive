@@ -8,7 +8,7 @@ namespace SportHive.DbConfiguration
     {
         public void Configure(EntityTypeBuilder<Team> builder)
         {
-            builder.HasKey(t => t.Id);
+            builder.HasKey(t => t.TeamName);
             
             builder
             .HasOne(t => t.Trainer)

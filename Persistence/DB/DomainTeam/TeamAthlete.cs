@@ -6,8 +6,8 @@ namespace DB.SportHive.Domain
     [Table("TeamAthlete")]
     public class TeamAthlete
     {
-        [Column("IdTeam")]
-        public long IdTeam { get; set; }
+        [Column("NameTeam")]
+        public string NameTeam { get; set; }
 
         [ForeignKey("IdTeam")]
         public Team Team { get; set; }=null!;
@@ -16,6 +16,7 @@ namespace DB.SportHive.Domain
         public string  loginAthlets { get; set; } =  null!;
 
         public Athlete Athlete { get; set; }=null!;
+        
         [MaxLength(100)]
         public string AthleteStatus { get; set; }=null!;
     }

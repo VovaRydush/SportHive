@@ -15,7 +15,8 @@ namespace Command.Endpoints
             
             route.MapPost("/create-team", async([FromBody] TeamModelDto team, [FromServices] ITeamOperateService teamService)=>{
                 await teamService.CreateTeamAsync(team);
-            });
+            })
+                .RequireAuthorization(new AuthorizeAttribute { Roles = "Trainer,Organization" });
         }
     }
 }
