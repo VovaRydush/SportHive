@@ -3,10 +3,10 @@ using Microsoft.AspNetCore.Http;
 namespace DB.SportHive.Domain
 {
     public class RoleInfoDto{
-        public string FistName{get;set;}
-        public string LastName{get;set;}
-        public string Email{get;set;}
-        public IFormFile ProfilePhoto{get;set;}
+        public string FistName{get;set;} = null!;
+        public string LastName{get;set;} = null!;
+        public string Email{get;set;} = null!;
+        public IFormFile ProfilePhoto{get;set;} = null!;
         public string TypeSport{get;set;} = null!;
       
     } 

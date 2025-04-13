@@ -15,9 +15,9 @@ namespace DB.SportHive.Domain
         public long IdJudge { get; set; }  
 
         [Column("Organization")]
-        public Organization Organization {get;set;}
+        public Organization Organization {get;set;} = null!;
 
         [Column("Judge")]
-        public Judge Judge{get;set;}
+        public Judge Judge{get;set;} = null!;
     }
 }

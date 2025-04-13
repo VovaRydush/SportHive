@@ -1,7 +1,7 @@
 namespace DB.SportHive.Domain
 {
     public class UserVerificationDto{
-        public string Email{get;set;}
-        public string Code{get;set;}
+        public string Email{get;set;} = null!;
+        public string Code{get;set;} = null!;
     } 
 }

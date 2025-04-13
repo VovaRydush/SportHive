@@ -9,9 +9,8 @@ namespace DB.SportHive.Domain
     {
         
         [Column("User")]
-        public User User { get; set; }  
+        public User User { get; set; } = null!;
        
-        [Key] 
         [Column("Id")]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long Id { get; set; }
@@ -19,12 +18,12 @@ namespace DB.SportHive.Domain
         [Column("FirsName")]
         [Required]
         [MaxLength(60)]
-        public string FirsName{get;set;}
+        public string FirsName{get;set;}=null!;
 
         [Column("LastName")]
         [Required]
         [MaxLength(60)]
-        public string LastName{get;set;}
+        public string LastName{get;set;}=null!;
 
         [Column("DataBirth")]
         public DateTime DataBirth{get;set;}
@@ -32,7 +31,9 @@ namespace DB.SportHive.Domain
         [Required]
         [Column("TypeSport")]
         [MaxLength(100)]
-        public string TypeSport{get;set;}
+        public string TypeSport{get;set;}=null!;
+
+        public List<TeamAthlete>? TeamAthletes { get; set; }
 
     }
 }

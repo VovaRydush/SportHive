@@ -14,7 +14,7 @@ namespace DB.SportHive.Domain
         public long Id { get; set; }  
         
         [Column("User")]
-        public User User { get; set; }  
+        public User User { get; set; } = null!;
 
         [Column("ProfilePhoto")]
         public string? ProfilePhoto{get;set;}
