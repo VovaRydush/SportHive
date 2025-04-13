@@ -9,10 +9,10 @@ namespace DB.SportHive.Domain
     {
          
         [Column("LoginOrganization")]
-        public string LoginOrganization { get; set; }  
+        public string LoginOrganization { get; set; } = null!;
         
         [Column("LoginJudge")]
-        public string LoginJudge { get; set; }  
+        public string LoginJudge { get; set; } = null!;
 
         [Column("Organization")]
         public Organization Organization {get;set;} = null!;

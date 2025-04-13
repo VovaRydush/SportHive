@@ -10,7 +10,7 @@ namespace DB.SportHive.Domain
 
         [Column("Login")]
         [Key]
-        public string login { get; set; }
+        public string login { get; set; } = null!;
 
         [Column("User")]
         public User User { get; set; } = null!;
