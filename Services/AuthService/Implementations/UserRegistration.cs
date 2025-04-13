@@ -100,8 +100,23 @@ namespace SportHive.Implementations
                 Id = user.Id,
                 TypeOrganozation = entity.TypeOrganozation,
                 NameOrganization = entity.NameOrganization,
+                Country = entity.Country,
                 Description = entity.Description
             });
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task LinkOrganizationJudge(OrganizationJudgeDto entity)
+        {
+            var organization = await _context.Users.FirstOrDefaultAsync(e => e.Email == entity.EmailOrganization);
+            var judge = await _context.Users.FirstOrDefaultAsync(e => e.Email == entity.EmailJudge);
+            
+            var organizationJudge = new OrganizationJudge
+            {
+                IdOrganization = organization.Id,
+                IdJudge = judge.Id
+            };
+            _context.OrginizationJudges.Add(organizationJudge);
             await _context.SaveChangesAsync();
         }
 
@@ -129,9 +144,9 @@ namespace SportHive.Implementations
 
                 context.Users.Add(user);
                 await _context.SaveChangesAsync();
-                
+
                 await _redis.SetVerifacionCode(entity.Email, code);
-                
+
                 await _emailService.SendEmail(
                      new MailMessage("vadimrudis7@gmail.com", entity.Email)
                      {
@@ -154,7 +169,7 @@ namespace SportHive.Implementations
                     Email.isEmailConfirmed = true;
                     await _context.SaveChangesAsync();
                 }
-                
+
             }
             else throw new NotFoundException("Код не правельний!");
         }

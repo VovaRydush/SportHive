@@ -36,6 +36,8 @@ namespace DB.SportHive.Domain
 
         [Column("DateFoundation")]
         public DateTime DateFoundation{get;set;}
+        [Column("Judges")]
+        public List<OrganizationJudge> OrganizationJudge{get;set;}
 
     }
 }

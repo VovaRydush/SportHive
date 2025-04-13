@@ -8,6 +8,7 @@
         Task VeryfyEmail(UserVerificationDto info);
         Task ComplitePrifile(RoleInfoDto entity);
         Task ComplitePrifileOrganization(OrganizationInfoDto entity);
+        Task LinkOrganizationJudge(OrganizationJudgeDto entity);
 
     }
  }

@@ -29,5 +29,8 @@ namespace DB.SportHive.Domain
         [Column("DataBirth")]
         public DateTime DataBirth{get;set;}
 
+        [Column("Organization")]
+        public List<OrganizationJudge> OrganizationJudge{get;set;}
+
     }
 }
