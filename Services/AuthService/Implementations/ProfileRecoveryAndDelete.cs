@@ -18,9 +18,9 @@ namespace SportHive.Implementations
             _emailService = emailService;
         }
 
-        public async Task PasswordRecovery(string Email,string newPassword)
+        public async Task PasswordRecovery(string login,string newPassword)
         {
-           var user = await _dbcontext.Users.FirstOrDefaultAsync(u => u.Email == Email);
+           var user = await _dbcontext.Users.FirstOrDefaultAsync(u => u.login == login);
            user.HashPassword = BCrypt.Net.BCrypt.HashPassword(newPassword);
            await _dbcontext.SaveChangesAsync();
         }

@@ -13,7 +13,7 @@ namespace DB.SportHive.Domain
         public Team Team { get; set; }=null!;
 
         [Column("IdAthlete")]
-        public long IdAthlete { get; set; }
+        public string  loginAthlets { get; set; } =  null!;
 
         public Athlete Athlete { get; set; }=null!;
         [MaxLength(100)]

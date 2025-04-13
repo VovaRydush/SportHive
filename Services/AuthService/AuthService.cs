@@ -2,7 +2,7 @@ using DB.SportHive.Persistence;
 using OperateExseption;
 using SportHive.Implementations;
 using SportHive.Services.Interfaces;
-using SportHive.Extensions;
+using AuthService.Extensions;
 using StackExchange.Redis;
 using System.Text.Json;
 

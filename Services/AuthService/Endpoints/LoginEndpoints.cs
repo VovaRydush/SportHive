@@ -1,6 +1,6 @@
 using DB.SportHive.Domain;
 using Microsoft.AspNetCore.Mvc;
-using SportHive.Extensions;
+using AuthService.Extensions;
 using SportHive.Services.Interfaces;
 
 namespace AuthService.Endpoints
@@ -16,11 +16,11 @@ namespace AuthService.Endpoints
                 return Results.Ok(tokens[0]);
             });
 
-            route.MapGet("/refresh-token", async (string Email, IJWTService jWTService, ILoginService loginService, HttpContext httpContext) =>
+            route.MapGet("/refresh-token", async (string login, IJWTService jWTService, ILoginService loginService, HttpContext httpContext) =>
             {
-                if (await jWTService.CheckRefreshToken(Email))
+                if (await jWTService.CheckRefreshToken(login))
                 {
-                    List<string> tokens = await jWTService.GenerateTokens(Email);
+                    List<string> tokens = await jWTService.GenerateTokens(login);
                     await loginService.SetRefreshTokenCookie(httpContext, tokens[1]);
                     return Results.Ok(tokens[0]);
                 }
@@ -32,9 +32,9 @@ namespace AuthService.Endpoints
 
             });
 
-            route.MapDelete("/logout", async ([FromBody] string Email, ILoginService prorile, HttpContext httpContext) =>
+            route.MapDelete("/logout", async ([FromBody] string login, ILoginService prorile, HttpContext httpContext) =>
             {
-                await prorile.LogOut(Email, httpContext.Request.Cookies["refreshToken"]);
+                await prorile.LogOut(login, httpContext.Request.Cookies["refreshToken"]);
                 return Results.Ok();
             });
 

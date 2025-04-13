@@ -8,17 +8,19 @@ namespace SportHive.DbConfiguration
     {
         public void Configure(EntityTypeBuilder<OrganizationJudge> builder)
         {
-            builder.HasKey(ta => new { ta.IdJudge, ta.IdOrganization });
+            builder.HasKey(ta => new { ta.LoginJudge, ta.LoginOrganization });
 
             builder
                 .HasOne(org => org.Organization)
                 .WithMany(o => o.OrganizationJudge)
-                .HasForeignKey(fk => fk.IdOrganization);
+                .HasForeignKey(fk => fk.LoginOrganization)
+                .OnDelete(DeleteBehavior.Cascade);
             
             builder
                 .HasOne(j => j.Judge)
                 .WithMany(jo => jo.OrganizationJudge)
-                .HasForeignKey(j => j.IdJudge);
+                .HasForeignKey(j => j.LoginJudge)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

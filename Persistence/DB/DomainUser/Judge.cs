@@ -11,10 +11,9 @@ namespace DB.SportHive.Domain
         [Column("User")]
         public User User { get; set; } = null!;
        
-        [Key] 
-        [Column("Id")]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public long Id { get; set; } 
+        [Column("Login")]
+        [Key]
+        public string login { get; set; }
         
         [Column("FirsName")]
         [Required]

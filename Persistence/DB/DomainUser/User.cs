@@ -7,7 +7,7 @@ namespace DB.SportHive.Domain
     [Table("user")]
     public class User
     {
-        [Key]
+      
         [Column("id")]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)] 
         public long Id { get; set; }  
@@ -17,6 +17,12 @@ namespace DB.SportHive.Domain
         [EmailAddress]
         [MaxLength(100)]
         public string Email { get; set; } = null!;
+        
+        [Key]
+        [Column("login")]
+        [Required]
+        [MaxLength(40)]
+        public string login { get; set; } = null!;
         
         [Required]
         [MaxLength(255)]

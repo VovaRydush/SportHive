@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+
 namespace JwtAuthentication
 {
     public static class JwtAuthenticationExtension
@@ -19,12 +20,13 @@ namespace JwtAuthentication
                     {
                         ValidateIssuer = true,
                         ValidIssuer = issuer,
-                        ValidateAudience = true,
+                        ValidateAudience = false,
                         ValidateLifetime = true,
                         ValidateIssuerSigningKey = true,
                         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey)),
                         ClockSkew = TimeSpan.Zero
                     };
+                    
                 });
 
             return services;

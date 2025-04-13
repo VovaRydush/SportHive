@@ -17,18 +17,18 @@ namespace SportHive.Implementations
         }
         public async Task<List<string>> Login(UserInfoDto entity)
         {
-            var user = await _dbcontext.Users.FirstOrDefaultAsync(u => u.Email == entity.Email);
+            var user = await _dbcontext.Users.FirstOrDefaultAsync(u => u.login == entity.Login);
             if (user == null || !BCrypt.Net.BCrypt.Verify(entity.Password, user.HashPassword))
                 throw new Exception("Невірний email або пароль.");
 
             if (!user.isEmailConfirmed)
                 throw new Exception("Підтвердіть email.");
-            return await _jWTService.GenerateTokens(entity.Email);
+            return await _jWTService.GenerateTokens(entity.Login);
         }
 
-        public async Task LogOut(string Email, string refreshToken)
+        public async Task LogOut(string login, string refreshToken)
         {
-            var user = await _dbcontext.Users.FirstOrDefaultAsync(u => u.Email == Email);
+            var user = await _dbcontext.Users.FirstOrDefaultAsync(u => u.login == login);
             if (refreshToken == user.refreshToken)
             {
                 user.refreshToken = null;

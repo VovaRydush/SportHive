@@ -1,6 +1,6 @@
 using AuthService.Endpoints;
 
-namespace SportHive.Extensions{
+namespace AuthService.Extensions{
     public static class EndpointExtensions{
         public static void MapAuthEndpoints(this IEndpointRouteBuilder app){
             app.UserRegisterEndpoint();

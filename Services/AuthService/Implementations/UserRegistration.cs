@@ -25,7 +25,7 @@ namespace SportHive.Implementations
         {
             var user = await _context.Users
                                      .AsNoTracking()
-                                     .FirstOrDefaultAsync(u => u.Email == entity.Email);
+                                     .FirstOrDefaultAsync(u => u.login == entity.Login);
 
             if (user == null)
                 throw new NotFoundException("Not Found");
@@ -37,7 +37,7 @@ namespace SportHive.Implementations
             }
             _context.UserPhotos.Add(new UserPhoto
             {
-                Id = user.Id,
+                login = user.login,
                 ProfilePhoto = photoPath
             });
             switch (user.Role)
@@ -45,17 +45,17 @@ namespace SportHive.Implementations
                 case "Athlete":
                     _context.Athletes.Add(new Athlete
                     {
-                        Id = user.Id,
+                        login = user.login,
                         FirsName = entity.FistName,
                         LastName = entity.LastName,
-                        TypeSport = entity.TypeSport
+                        TypeSport = entity.TypeSport 
                     });
                     break;
 
                 case "Trainer":
                     _context.Trainers.Add(new Trainer
                     {
-                        Id = user.Id,
+                        login = user.login,
                         FirsName = entity.FistName,
                         LastName = entity.LastName,
                     });
@@ -64,7 +64,7 @@ namespace SportHive.Implementations
                 case "Judge":
                     _context.Judges.Add(new Judge
                     {
-                        Id = user.Id,
+                        login = user.login,
                         FirsName = entity.FistName,
                         LastName = entity.LastName,
                     });
@@ -92,12 +92,12 @@ namespace SportHive.Implementations
             }
             _context.UserPhotos.Add(new UserPhoto
             {
-                Id = user.Id,
+                login = user.login,
                 ProfilePhoto = photoPath
             });
             _context.Organizations.Add(new Organization
             {
-                Id = user.Id,
+                login = user.login,
                 TypeOrganozation = entity.TypeOrganozation,
                 NameOrganization = entity.NameOrganization,
                 Country = entity.Country,
@@ -108,13 +108,13 @@ namespace SportHive.Implementations
 
         public async Task LinkOrganizationJudge(OrganizationJudgeDto entity)
         {
-            var organization = await _context.Users.FirstOrDefaultAsync(e => e.Email == entity.EmailOrganization);
-            var judge = await _context.Users.FirstOrDefaultAsync(e => e.Email == entity.EmailJudge);
+            var organization = await _context.Users.FirstOrDefaultAsync(e => e.login == entity.LoginOrganization);
+            var judge = await _context.Users.FirstOrDefaultAsync(e => e.login == entity.LoginJudge);
             
             var organizationJudge = new OrganizationJudge
             {
-                IdOrganization = organization.Id,
-                IdJudge = judge.Id
+                LoginOrganization = organization.login,
+                LoginJudge = judge.login
             };
             _context.OrginizationJudges.Add(organizationJudge);
             await _context.SaveChangesAsync();
@@ -127,7 +127,7 @@ namespace SportHive.Implementations
                                     .AsNoTracking()
                                     .FirstOrDefaultAsync(u => u.Email == entity.Email);
 
-            if (existingUser != null) throw new Exception("Користувач з таким email вже існує.");
+            if (existingUser != null) throw new Exception("Користувач з таким email або логіном вже існує.");
 
             Random random = new Random();
             string code = random.Next(100000, 1000000).ToString();
@@ -139,6 +139,7 @@ namespace SportHive.Implementations
                     HashPassword = BCrypt.Net.BCrypt.HashPassword(entity.Password),
                     isEmailConfirmed = false,
                     Role = entity.Role,
+                    login = entity.Login,
                     refreshToken = Guid.NewGuid().ToString()
                 };
 

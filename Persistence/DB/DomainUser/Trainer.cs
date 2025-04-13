@@ -8,10 +8,9 @@ namespace DB.SportHive.Domain
     public class Trainer
     {
 
-        [Column("id")]
+        [Column("Login")]
         [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public long Id { get; set; }
+        public string login { get; set; }
 
         [Column("User")]
         public User User { get; set; } = null!;

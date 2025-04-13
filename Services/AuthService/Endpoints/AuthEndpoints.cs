@@ -1,6 +1,6 @@
 using DB.SportHive.Domain;
 using Microsoft.AspNetCore.Mvc;
-using SportHive.Extensions;
+using AuthService.Extensions;
 using SportHive.Services.Interfaces;
 
 namespace AuthService.Endpoints

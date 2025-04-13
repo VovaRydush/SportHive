@@ -8,11 +8,11 @@ namespace DB.SportHive.Domain
     public class OrganizationJudge
     {
          
-        [Column("IdOrganization")]
-        public long IdOrganization { get; set; }  
+        [Column("LoginOrganization")]
+        public string LoginOrganization { get; set; }  
         
-        [Column("IdJudge")]
-        public long IdJudge { get; set; }  
+        [Column("LoginJudge")]
+        public string LoginJudge { get; set; }  
 
         [Column("Organization")]
         public Organization Organization {get;set;} = null!;

@@ -12,19 +12,19 @@ namespace DB.SportHive.Domain
 
         [Required]
         [Column("TeamName")]
-        public string TeamName { get; set; }=null!;
+        public string TeamName { get; set; } = null!;
 
         [Required]
         [Column("IdTraine")]
-        public long IdTraine { get; set; }
+        public string LoginTrainer { get; set; } = null!;
 
-        public Trainer Trainer { get; set; }=null!;
+        public Trainer Trainer { get; set; } = null!;
 
         public List<TeamAthlete> TeamAthletes { get; set; } = new();
 
         [Required]
         [Column("TypeSport")]
         [MaxLength(100)]
-        public string TypeSport { get; set; }=null!;
+        public string TypeSport { get; set; } = null!;
     }
 }

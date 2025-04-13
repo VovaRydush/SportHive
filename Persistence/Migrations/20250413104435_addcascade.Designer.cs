@@ -3,6 +3,7 @@ using System;
 using DB.SportHive.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Persistence.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250413104435_addcascade")]
+    partial class addcascade
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -24,9 +27,10 @@ namespace Persistence.Migrations
 
             modelBuilder.Entity("DB.SportHive.Domain.Athlete", b =>
                 {
-                    b.Property<string>("login")
-                        .HasColumnType("character varying(40)")
-                        .HasColumnName("Login");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("Id");
 
                     b.Property<DateTime>("DataBirth")
                         .HasColumnType("timestamp with time zone")
@@ -50,16 +54,17 @@ namespace Persistence.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("TypeSport");
 
-                    b.HasKey("login");
+                    b.HasKey("Id");
 
                     b.ToTable("Athlete");
                 });
 
             modelBuilder.Entity("DB.SportHive.Domain.Judge", b =>
                 {
-                    b.Property<string>("login")
-                        .HasColumnType("character varying(40)")
-                        .HasColumnName("Login");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("Id");
 
                     b.Property<DateTime>("DataBirth")
                         .HasColumnType("timestamp with time zone")
@@ -77,16 +82,17 @@ namespace Persistence.Migrations
                         .HasColumnType("character varying(60)")
                         .HasColumnName("LastName");
 
-                    b.HasKey("login");
+                    b.HasKey("Id");
 
                     b.ToTable("Judge");
                 });
 
             modelBuilder.Entity("DB.SportHive.Domain.Organization", b =>
                 {
-                    b.Property<string>("login")
-                        .HasColumnType("character varying(40)")
-                        .HasColumnName("Login");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("Id");
 
                     b.Property<string>("Country")
                         .IsRequired()
@@ -115,7 +121,7 @@ namespace Persistence.Migrations
                         .HasColumnType("character varying(60)")
                         .HasColumnName("TypeOrganozation");
 
-                    b.HasKey("login");
+                    b.HasKey("Id");
 
                     b.HasIndex("NameOrganization");
 
@@ -124,17 +130,17 @@ namespace Persistence.Migrations
 
             modelBuilder.Entity("DB.SportHive.Domain.OrganizationJudge", b =>
                 {
-                    b.Property<string>("LoginJudge")
-                        .HasColumnType("character varying(40)")
-                        .HasColumnName("LoginJudge");
+                    b.Property<long>("IdJudge")
+                        .HasColumnType("bigint")
+                        .HasColumnName("IdJudge");
 
-                    b.Property<string>("LoginOrganization")
-                        .HasColumnType("character varying(40)")
-                        .HasColumnName("LoginOrganization");
+                    b.Property<long>("IdOrganization")
+                        .HasColumnType("bigint")
+                        .HasColumnName("IdOrganization");
 
-                    b.HasKey("LoginJudge", "LoginOrganization");
+                    b.HasKey("IdJudge", "IdOrganization");
 
-                    b.HasIndex("LoginOrganization");
+                    b.HasIndex("IdOrganization");
 
                     b.ToTable("OrganizationJudge");
                 });
@@ -148,9 +154,8 @@ namespace Persistence.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
-                    b.Property<string>("LoginTrainer")
-                        .IsRequired()
-                        .HasColumnType("character varying(40)")
+                    b.Property<long>("IdTraine")
+                        .HasColumnType("bigint")
                         .HasColumnName("IdTraine");
 
                     b.Property<string>("TeamName")
@@ -158,8 +163,8 @@ namespace Persistence.Migrations
                         .HasColumnType("text")
                         .HasColumnName("TeamName");
 
-                    b.Property<string>("Trainerlogin")
-                        .HasColumnType("character varying(40)");
+                    b.Property<long?>("TrainerId")
+                        .HasColumnType("bigint");
 
                     b.Property<string>("TypeSport")
                         .IsRequired()
@@ -169,10 +174,10 @@ namespace Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("LoginTrainer")
+                    b.HasIndex("IdTraine")
                         .IsUnique();
 
-                    b.HasIndex("Trainerlogin");
+                    b.HasIndex("TrainerId");
 
                     b.ToTable("Team");
                 });
@@ -183,8 +188,8 @@ namespace Persistence.Migrations
                         .HasColumnType("bigint")
                         .HasColumnName("IdTeam");
 
-                    b.Property<string>("loginAthlets")
-                        .HasColumnType("character varying(40)")
+                    b.Property<long>("IdAthlete")
+                        .HasColumnType("bigint")
                         .HasColumnName("IdAthlete");
 
                     b.Property<string>("AthleteStatus")
@@ -192,18 +197,19 @@ namespace Persistence.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
-                    b.HasKey("IdTeam", "loginAthlets");
+                    b.HasKey("IdTeam", "IdAthlete");
 
-                    b.HasIndex("loginAthlets");
+                    b.HasIndex("IdAthlete");
 
                     b.ToTable("TeamAthlete");
                 });
 
             modelBuilder.Entity("DB.SportHive.Domain.Trainer", b =>
                 {
-                    b.Property<string>("login")
-                        .HasColumnType("character varying(40)")
-                        .HasColumnName("Login");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
 
                     b.Property<DateTime>("DataBirth")
                         .HasColumnType("timestamp with time zone")
@@ -221,17 +227,19 @@ namespace Persistence.Migrations
                         .HasColumnType("character varying(60)")
                         .HasColumnName("LastName");
 
-                    b.HasKey("login");
+                    b.HasKey("Id");
 
                     b.ToTable("Trainer");
                 });
 
             modelBuilder.Entity("DB.SportHive.Domain.User", b =>
                 {
-                    b.Property<string>("login")
-                        .HasMaxLength(40)
-                        .HasColumnType("character varying(40)")
-                        .HasColumnName("login");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
                     b.Property<string>("Email")
                         .IsRequired()
@@ -244,13 +252,6 @@ namespace Persistence.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)")
                         .HasColumnName("HashPassword");
-
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
                     b.Property<string>("Role")
                         .IsRequired()
@@ -266,9 +267,9 @@ namespace Persistence.Migrations
                         .HasColumnType("character varying(512)")
                         .HasColumnName("refreshToken");
 
-                    b.HasKey("login");
+                    b.HasKey("Id");
 
-                    b.HasIndex("login")
+                    b.HasIndex("Email")
                         .IsUnique();
 
                     b.ToTable("user");
@@ -276,16 +277,16 @@ namespace Persistence.Migrations
 
             modelBuilder.Entity("DB.SportHive.Domain.UserPhoto", b =>
                 {
-                    b.Property<string>("login")
+                    b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("character varying(40)")
-                        .HasColumnName("login");
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
 
                     b.Property<string>("ProfilePhoto")
                         .HasColumnType("text")
                         .HasColumnName("ProfilePhoto");
 
-                    b.HasKey("login");
+                    b.HasKey("Id");
 
                     b.ToTable("UserPhoto");
                 });
@@ -294,7 +295,7 @@ namespace Persistence.Migrations
                 {
                     b.HasOne("DB.SportHive.Domain.User", "User")
                         .WithOne()
-                        .HasForeignKey("DB.SportHive.Domain.Athlete", "login")
+                        .HasForeignKey("DB.SportHive.Domain.Athlete", "Id")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
@@ -305,7 +306,7 @@ namespace Persistence.Migrations
                 {
                     b.HasOne("DB.SportHive.Domain.User", "User")
                         .WithOne()
-                        .HasForeignKey("DB.SportHive.Domain.Judge", "login")
+                        .HasForeignKey("DB.SportHive.Domain.Judge", "Id")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
@@ -316,7 +317,7 @@ namespace Persistence.Migrations
                 {
                     b.HasOne("DB.SportHive.Domain.User", "User")
                         .WithOne()
-                        .HasForeignKey("DB.SportHive.Domain.Organization", "login")
+                        .HasForeignKey("DB.SportHive.Domain.Organization", "Id")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
@@ -327,13 +328,13 @@ namespace Persistence.Migrations
                 {
                     b.HasOne("DB.SportHive.Domain.Judge", "Judge")
                         .WithMany("OrganizationJudge")
-                        .HasForeignKey("LoginJudge")
+                        .HasForeignKey("IdJudge")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("DB.SportHive.Domain.Organization", "Organization")
                         .WithMany("OrganizationJudge")
-                        .HasForeignKey("LoginOrganization")
+                        .HasForeignKey("IdOrganization")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -346,28 +347,28 @@ namespace Persistence.Migrations
                 {
                     b.HasOne("DB.SportHive.Domain.Trainer", "Trainer")
                         .WithOne()
-                        .HasForeignKey("DB.SportHive.Domain.Team", "LoginTrainer")
+                        .HasForeignKey("DB.SportHive.Domain.Team", "IdTraine")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("DB.SportHive.Domain.Trainer", null)
                         .WithMany("Teams")
-                        .HasForeignKey("Trainerlogin");
+                        .HasForeignKey("TrainerId");
 
                     b.Navigation("Trainer");
                 });
 
             modelBuilder.Entity("DB.SportHive.Domain.TeamAthlete", b =>
                 {
-                    b.HasOne("DB.SportHive.Domain.Team", "Team")
+                    b.HasOne("DB.SportHive.Domain.Athlete", "Athlete")
                         .WithMany("TeamAthletes")
-                        .HasForeignKey("IdTeam")
+                        .HasForeignKey("IdAthlete")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("DB.SportHive.Domain.Athlete", "Athlete")
+                    b.HasOne("DB.SportHive.Domain.Team", "Team")
                         .WithMany("TeamAthletes")
-                        .HasForeignKey("loginAthlets")
+                        .HasForeignKey("IdTeam")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -380,7 +381,7 @@ namespace Persistence.Migrations
                 {
                     b.HasOne("DB.SportHive.Domain.User", "User")
                         .WithOne()
-                        .HasForeignKey("DB.SportHive.Domain.Trainer", "login")
+                        .HasForeignKey("DB.SportHive.Domain.Trainer", "Id")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
@@ -391,7 +392,7 @@ namespace Persistence.Migrations
                 {
                     b.HasOne("DB.SportHive.Domain.User", "User")
                         .WithOne()
-                        .HasForeignKey("DB.SportHive.Domain.UserPhoto", "login")
+                        .HasForeignKey("DB.SportHive.Domain.UserPhoto", "Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

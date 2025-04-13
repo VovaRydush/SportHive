@@ -8,12 +8,12 @@ namespace SportHive.DbConfiguration
     {
         public void Configure(EntityTypeBuilder<Judge> builder)
         {
-            builder.HasKey(a => a.Id);
+            builder.HasKey(a => a.login);
             
             builder
              .HasOne(a => a.User)
              .WithOne()
-             .HasForeignKey<Judge>(a => a.Id)
+             .HasForeignKey<Judge>(a => a.login)
              .OnDelete(DeleteBehavior.NoAction);
         }
     }

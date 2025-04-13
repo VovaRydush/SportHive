@@ -9,7 +9,7 @@ namespace SportHive.DbConfiguration
         public void Configure(EntityTypeBuilder<User> builder)
         {
             builder
-                .HasIndex(u => u.Email)
+                .HasIndex(u => u.login)
                 .IsUnique();
         }
     }

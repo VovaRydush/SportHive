@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
 
 namespace DB.SportHive.Domain
@@ -11,9 +12,9 @@ namespace DB.SportHive.Domain
         [Column("User")]
         public User User { get; set; } = null!;
        
-        [Column("Id")]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public long Id { get; set; }
+        [Column("Login")]
+        [Required]
+        public string login { get; set; } = null!;
 
         [Column("FirsName")]
         [Required]
