@@ -40,6 +40,7 @@ namespace DB.SportHive.Domain
 
         [Column("Teams")]
         public List<OrganizationTeam>? Teams{get;set;} = null!;
+        public List<OrganizationTrainer>? OrganizationTrainer{get;set;} = null!;
 
     }
 }

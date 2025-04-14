@@ -31,11 +31,12 @@ namespace AuthService.Endpoints
                 await userService.VeryfyEmail(info);
                 return Results.Ok();
             });
-            route.MapPost("/link-judge", async ([FromBody] OrganizationJudgeDto info, IUserRegistration userService) =>
+            route.MapPost("/link-employee", async ([FromBody] OrganizationJudgeDto info, IUserRegistration userService) =>
             {
                 await userService.LinkOrganizationJudge(info);
                 return Results.Ok();
             });
+            
         }
     }
 }

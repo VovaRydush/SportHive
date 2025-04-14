@@ -29,6 +29,7 @@ namespace DB.SportHive.Domain
         public DateTime DataBirth { get; set; }
 
         public List<Team>? Teams { get; set; }
+        public List<OrganizationTrainer>? OrganizationTrainer{get;set;} = null!;
 
     }
 }

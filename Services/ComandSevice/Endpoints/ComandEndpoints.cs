@@ -23,6 +23,16 @@ namespace Command.Endpoints
                 await teamService.LinkOrganizationTeam(orgTeam);
             })
                 .RequireAuthorization(new AuthorizeAttribute { Roles = "Trainer,Organization" });
+            
+            route.MapPut("/change-status-athlet", async([FromBody] NewSatatusAthlete newSatatus, [FromServices] ITeamOperateService teamService)=>{
+                await teamService.ChangeStatusAthlete(newSatatus);
+            })
+                .RequireAuthorization(new AuthorizeAttribute { Roles = "Trainer,Organization" });
+            
+            route.MapDelete("/remove-athlet", async([FromBody] NewSatatusAthlete newSatatus, [FromServices] ITeamOperateService teamService)=>{
+                await teamService.RemoveAthlet(newSatatus);
+            })
+            .RequireAuthorization(new AuthorizeAttribute { Roles = "Trainer,Organization" });
         }
     }
 }

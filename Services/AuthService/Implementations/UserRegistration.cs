@@ -48,7 +48,7 @@ namespace SportHive.Implementations
                         login = user.login,
                         FirsName = entity.FistName,
                         LastName = entity.LastName,
-                        TypeSport = entity.TypeSport 
+                        TypeSport = entity.TypeSport
                     });
                     break;
 
@@ -108,15 +108,26 @@ namespace SportHive.Implementations
 
         public async Task LinkOrganizationJudge(OrganizationJudgeDto entity)
         {
-            var organization = await _context.Users.FirstOrDefaultAsync(e => e.login == entity.LoginOrganization);
-            var judge = await _context.Users.FirstOrDefaultAsync(e => e.login == entity.LoginJudge);
-            
-            var organizationJudge = new OrganizationJudge
+            var organization = await _context.Users.FirstAsync(e => e.login == entity.LoginOrganization);
+            var Entity = await _context.Users.FirstAsync(e => e.login == entity.LoginEntyty);
+            if (entity.Role == "Judge")
             {
-                LoginOrganization = organization.login,
-                LoginJudge = judge.login
-            };
-            _context.OrginizationJudges.Add(organizationJudge);
+                var organizationJudge = new OrganizationJudge
+                {
+                    LoginOrganization = organization.login,
+                    LoginJudge = Entity.login
+                };
+                _context.OrginizationJudges.Add(organizationJudge);
+            }
+            if (entity.Role == "Trainer")
+            {
+                var organizationTrainer = new OrganizationTrainer
+                {
+                    LoginOrganization = organization.login,
+                    LoginTraine = Entity.login
+                };
+                _context.OrganizationTrainers.Add(organizationTrainer);
+            }
             await _context.SaveChangesAsync();
         }
 
@@ -125,37 +136,37 @@ namespace SportHive.Implementations
             var existingUser = await _context
                                     .Users
                                     .AsNoTracking()
-                                    .FirstOrDefaultAsync(u => u.Email == entity.Email);
+                                    .FirstOrDefaultAsync(u => u.Email == entity.Email || u.login == entity.Login);
 
             if (existingUser != null) throw new Exception("Користувач з таким email або логіном вже існує.");
 
             Random random = new Random();
             string code = random.Next(100000, 1000000).ToString();
-            using (var context = _context)
+
+            var user = new User
             {
-                var user = new User
-                {
-                    Email = entity.Email,
-                    HashPassword = BCrypt.Net.BCrypt.HashPassword(entity.Password),
-                    isEmailConfirmed = false,
-                    Role = entity.Role,
-                    login = entity.Login,
-                    refreshToken = Guid.NewGuid().ToString()
-                };
+                Email = entity.Email,
+                HashPassword = BCrypt.Net.BCrypt.HashPassword(entity.Password),
+                isEmailConfirmed = false,
+                Role = entity.Role,
+                login = entity.Login,
+                refreshToken = Guid.NewGuid().ToString()
+            };
 
-                context.Users.Add(user);
-                await _context.SaveChangesAsync();
+            _context.Users.Add(user);
+            
 
-                await _redis.SetVerifacionCode(entity.Email, code);
+            await _context.SaveChangesAsync();
+            
+            _redis.SetVerifacionCode(entity.Email, code);
 
-                await _emailService.SendEmail(
-                     new MailMessage("vadimrudis7@gmail.com", entity.Email)
-                     {
-                         Subject = "Підтвердження email",
-                         Body = $"Ваш код: {code} для підтвердження email.",
-                         IsBodyHtml = true
-                     });
-            }
+            await _emailService.SendEmail(
+                 new MailMessage("vadimrudis7@gmail.com", entity.Email)
+                 {
+                     Subject = "Підтвердження email",
+                     Body = $"Ваш код: {code} для підтвердження email.",
+                     IsBodyHtml = true
+                 });
         }
 
         public async Task VeryfyEmail(UserVerificationDto info)
