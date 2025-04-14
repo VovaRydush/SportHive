@@ -43,6 +43,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 
 builder.Services.AddScoped<ITeamOperateService,TeamOperateService>();
+builder.Services.AddScoped<ITrainerAthletService,TrainerAthletService>();
 
 var app = builder.Build();
 if (app.Environment.IsDevelopment())

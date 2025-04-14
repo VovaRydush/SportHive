@@ -8,28 +8,35 @@ namespace Command.Endpoints
     public static class CommandService
     {
         public static void CreateCommandEndpoint(this IEndpointRouteBuilder route)
-        {  
-            route.MapPost("/create-team", async([FromBody] TeamModelDto team, [FromServices] ITeamOperateService teamService)=>{
+        {
+            var routeTeamGroup = route.MapGroup("/team");
+
+            routeTeamGroup.MapPost("/create-team", async ([FromBody] TeamModelDto team, [FromServices] ITeamOperateService teamService) =>
+            {
                 await teamService.CreateTeamAsync(team);
             })
                 .RequireAuthorization(new AuthorizeAttribute { Roles = "Trainer,Organization" });
-            
-             route.MapPost("/add-athletes", async([FromBody] List<TeamAthleteDto> athleteDtos, [FromServices] ITeamOperateService teamService)=>{
+
+            routeTeamGroup.MapPost("/add-athletes", async ([FromBody] List<TeamAthleteDto> athleteDtos, [FromServices] ITeamOperateService teamService) =>
+            {
                 await teamService.AddAthletes(athleteDtos);
             })
-                .RequireAuthorization(new AuthorizeAttribute { Roles = "Trainer,Organization" });
-            
-            route.MapPost("/link-team-organization", async([FromBody] OrganizationTeamDto orgTeam, [FromServices] ITeamOperateService teamService)=>{
+               .RequireAuthorization(new AuthorizeAttribute { Roles = "Trainer,Organization" });
+
+            routeTeamGroup.MapPost("/link-team-organization", async ([FromBody] OrganizationTeamDto orgTeam, [FromServices] ITeamOperateService teamService) =>
+            {
                 await teamService.LinkOrganizationTeam(orgTeam);
             })
                 .RequireAuthorization(new AuthorizeAttribute { Roles = "Trainer,Organization" });
-            
-            route.MapPut("/change-status-athlet", async([FromBody] NewSatatusAthlete newSatatus, [FromServices] ITeamOperateService teamService)=>{
+
+            routeTeamGroup.MapPut("/change-status-athlet", async ([FromBody] NewSatatusAthlete newSatatus, [FromServices] ITeamOperateService teamService) =>
+            {
                 await teamService.ChangeStatusAthlete(newSatatus);
             })
                 .RequireAuthorization(new AuthorizeAttribute { Roles = "Trainer,Organization" });
-            
-            route.MapDelete("/remove-athlet", async([FromBody] NewSatatusAthlete newSatatus, [FromServices] ITeamOperateService teamService)=>{
+
+            routeTeamGroup.MapDelete("/remove-athlet", async ([FromBody] NewSatatusAthlete newSatatus, [FromServices] ITeamOperateService teamService) =>
+            {
                 await teamService.RemoveAthlet(newSatatus);
             })
             .RequireAuthorization(new AuthorizeAttribute { Roles = "Trainer,Organization" });
