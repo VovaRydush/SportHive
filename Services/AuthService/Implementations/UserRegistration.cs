@@ -1,4 +1,5 @@
 using System.Net.Mail;
+using System.Text.Json;
 using DB.SportHive.Domain;
 using DB.SportHive.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -13,9 +14,11 @@ namespace SportHive.Implementations
         private readonly AppDbContext _context;
         private readonly IRedisService _redis;
         private readonly IEmailService _emailService;
+        private readonly ISaveDataDb _saveDataDb;
         private readonly IPhotoProcessing _photoprocessing;
-        public UserRegistration(AppDbContext context, IRedisService database, IEmailService emailService, IPhotoProcessing photo)
+        public UserRegistration(ISaveDataDb saveDataDb, AppDbContext context, IRedisService database, IEmailService emailService, IPhotoProcessing photo)
         {
+            _saveDataDb = saveDataDb;
             _photoprocessing = photo;
             _emailService = emailService;
             _redis = database;
@@ -35,46 +38,49 @@ namespace SportHive.Implementations
             {
                 photoPath = await _photoprocessing.SavePhotoAsync(entity.ProfilePhoto);
             }
-            _context.UserPhotos.Add(new UserPhoto
+
+            var jsonObJuserPhoto = JsonSerializer.Serialize(new UserPhoto
             {
                 login = user.login,
                 ProfilePhoto = photoPath
             });
+            _ = _saveDataDb.SaveDataToDb(jsonObJuserPhoto, "user-photo");
             switch (user.Role)
             {
                 case "Athlete":
-                    _context.Athletes.Add(new Athlete
+                    var jsonAthlet = JsonSerializer.Serialize(new Athlete
                     {
                         login = user.login,
                         FirsName = entity.FistName,
                         LastName = entity.LastName,
                         TypeSport = entity.TypeSport
                     });
+                    _ = _saveDataDb.SaveDataToDb(jsonAthlet, "user-athlete");
                     break;
 
                 case "Trainer":
-                    _context.Trainers.Add(new Trainer
+                    var jsonTrainer = JsonSerializer.Serialize(new Trainer
                     {
                         login = user.login,
                         FirsName = entity.FistName,
                         LastName = entity.LastName,
                     });
+                     _ = _saveDataDb.SaveDataToDb(jsonTrainer, "user-trainer");
                     break;
 
                 case "Judge":
-                    _context.Judges.Add(new Judge
+                     var jsonJudge = JsonSerializer.Serialize(new Judge
                     {
                         login = user.login,
                         FirsName = entity.FistName,
                         LastName = entity.LastName,
                     });
+                     _ = _saveDataDb.SaveDataToDb(jsonJudge, "user-Judge");
                     break;
 
                 default:
                     throw new NotFoundException("Unknown role");
             }
-
-            await _context.SaveChangesAsync();
         }
 
         public async Task ComplitePrifileOrganization(OrganizationInfoDto entity)
@@ -90,12 +96,14 @@ namespace SportHive.Implementations
             {
                 photoPath = await _photoprocessing.SavePhotoAsync(entity.ProfilePhoto);
             }
-            _context.UserPhotos.Add(new UserPhoto
+           var jsonObJuserPhoto = JsonSerializer.Serialize(new UserPhoto
             {
                 login = user.login,
                 ProfilePhoto = photoPath
             });
-            _context.Organizations.Add(new Organization
+            _ = _saveDataDb.SaveDataToDb(jsonObJuserPhoto, "user-photo");
+
+            var jsonOrganization = JsonSerializer.Serialize(new Organization
             {
                 login = user.login,
                 TypeOrganozation = entity.TypeOrganozation,
@@ -103,7 +111,7 @@ namespace SportHive.Implementations
                 Country = entity.Country,
                 Description = entity.Description
             });
-            await _context.SaveChangesAsync();
+            _ = _saveDataDb.SaveDataToDb(jsonOrganization,"user-organization");
         }
 
         public async Task LinkOrganizationJudge(OrganizationJudgeDto entity)
@@ -140,8 +148,7 @@ namespace SportHive.Implementations
 
             if (existingUser != null) throw new Exception("Користувач з таким email або логіном вже існує.");
 
-            Random random = new Random();
-            string code = random.Next(100000, 1000000).ToString();
+
 
             var user = new User
             {
@@ -153,20 +160,20 @@ namespace SportHive.Implementations
                 refreshToken = Guid.NewGuid().ToString()
             };
 
-            _context.Users.Add(user);
+            var jsonObj = JsonSerializer.Serialize(user);
+
+            _ = _saveDataDb.SaveDataToDb(jsonObj, "user_regist");
 
 
-            await _context.SaveChangesAsync();
 
-            await _redis.SetVerifacionCode(entity.Email, code);
-
-            await _emailService.SendEmail(new EmailMessageDto
+            _ = _emailService.SendEmail(new EmailMessageDto
             {
                 From = "vadimrudis7@gmail.com",
-                To = entity.Email, 
+                To = entity.Email,
                 Subject = "Підтвердження email",
-                Body = $"Ваш код: {code} для підтвердження email.",
+                Body = "Ваш код: ",
             });
+
         }
 
         public async Task VeryfyEmail(UserVerificationDto info)

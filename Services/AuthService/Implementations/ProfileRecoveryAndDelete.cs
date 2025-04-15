@@ -28,16 +28,13 @@ namespace SportHive.Implementations
 
         public async Task SendVereficationCode(string Email)
         {
-            Random random = new Random();
-            string code = random.Next(100000, 1000000).ToString();
             await _emailService.SendEmail(new EmailMessageDto
             {
                 From = "vadimrudis7@gmail.com",
                 To = Email, 
                 Subject = "Код відновлення:",
-                Body = $"Ваш код: {code} для відновлення паролю."
+                Body = "Ваш код: "
             });
-            await _redisService.SetVerifacionCode(Email, code);
         }
     }
 }
