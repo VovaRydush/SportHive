@@ -154,19 +154,19 @@ namespace SportHive.Implementations
             };
 
             _context.Users.Add(user);
-            
+
 
             await _context.SaveChangesAsync();
-            
-            _redis.SetVerifacionCode(entity.Email, code);
 
-            await _emailService.SendEmail(
-                 new MailMessage("vadimrudis7@gmail.com", entity.Email)
-                 {
-                     Subject = "Підтвердження email",
-                     Body = $"Ваш код: {code} для підтвердження email.",
-                     IsBodyHtml = true
-                 });
+            await _redis.SetVerifacionCode(entity.Email, code);
+
+            await _emailService.SendEmail(new EmailMessageDto
+            {
+                From = "vadimrudis7@gmail.com",
+                To = entity.Email, 
+                Subject = "Підтвердження email",
+                Body = $"Ваш код: {code} для підтвердження email.",
+            });
         }
 
         public async Task VeryfyEmail(UserVerificationDto info)

@@ -1,23 +1,89 @@
 namespace NotificationService;
-
-public class Worker : BackgroundService
+using Confluent.Kafka;
+using DB.SportHive.Domain;
+using System.Net;
+using System.Net.Mail;
+using System.Text.Json;
+using System.Threading;
+public class ConsumerEmail : BackgroundService
 {
-    private readonly ILogger<Worker> _logger;
+    private readonly ILogger<ConsumerEmail> _logger;
+    private ConsumerConfig config;
+    private IConsumer<Null, string> consumer;
 
-    public Worker(ILogger<Worker> logger)
+    public ConsumerEmail(ILogger<ConsumerEmail> logger)
     {
         _logger = logger;
+        config = new ConsumerConfig
+        {
+            BootstrapServers = "localhost:9093",
+            GroupId = "email-consumer",
+            AutoOffsetReset = AutoOffsetReset.Earliest,
+            EnableAutoCommit = false
+        };
+        consumer = new ConsumerBuilder<Null, string>(config).Build();
+        consumer.Subscribe("user_email");
+    }
+
+    public async Task SendEmail(EmailMessageDto message)
+    {
+        try
+        {
+            using var smtp = new SmtpClient("smtp.gmail.com")
+            {
+                Credentials = new NetworkCredential("vadimrudis7@gmail.com", "qtfo apob lfjd nqfp"),
+                EnableSsl = true,
+                Port = 587
+            };
+            var mail = new MailMessage
+            {
+                From = new MailAddress(message.From),
+                Subject = message.Subject,
+                Body = message.Body,
+                IsBodyHtml = true 
+            };
+
+            
+            foreach (var recipient in message.To.Split(',', StringSplitOptions.RemoveEmptyEntries))
+            {
+                mail.To.Add(recipient.Trim());
+            }
+
+            await smtp.SendMailAsync(mail);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Error sending email: {ex.Message}");
+        }
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        while (!stoppingToken.IsCancellationRequested)
+        try
         {
-            if (_logger.IsEnabled(LogLevel.Information))
+            while (!stoppingToken.IsCancellationRequested)
             {
-                _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
+                var cr = consumer.Consume(stoppingToken);
+                try
+                {
+                    EmailMessageDto message = JsonSerializer.Deserialize<EmailMessageDto>(cr.Message.Value);
+                    await SendEmail(message);
+                    consumer.Commit(cr);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError($"Error deserializing message: {ex.Message}");
+                }
             }
-            await Task.Delay(100, stoppingToken);
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.LogInformation("Consumer has been cancelled.");
+        }
+        finally
+        {
+            consumer.Close();
         }
     }
 }
+

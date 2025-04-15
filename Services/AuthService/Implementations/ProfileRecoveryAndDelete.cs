@@ -1,4 +1,5 @@
 using System.Net.Mail;
+using DB.SportHive.Domain;
 using DB.SportHive.Persistence;
 using Microsoft.EntityFrameworkCore;
 using SportHive.Services.Interfaces;
@@ -10,32 +11,33 @@ namespace SportHive.Implementations
         private readonly AppDbContext _dbcontext;
         private readonly IEmailService _emailService;
         private readonly IRedisService _redisService;
-        
-        public ProfileManipulete(AppDbContext dbContext, IEmailService emailService,IRedisService redisService)
+
+        public ProfileManipulete(AppDbContext dbContext, IEmailService emailService, IRedisService redisService)
         {
             _redisService = redisService;
             _dbcontext = dbContext;
             _emailService = emailService;
         }
 
-        public async Task PasswordRecovery(string login,string newPassword)
+        public async Task PasswordRecovery(string login, string newPassword)
         {
-           var user = await _dbcontext.Users.FirstOrDefaultAsync(u => u.login == login);
-           user.HashPassword = BCrypt.Net.BCrypt.HashPassword(newPassword);
-           await _dbcontext.SaveChangesAsync();
+            var user = await _dbcontext.Users.FirstOrDefaultAsync(u => u.login == login);
+            user.HashPassword = BCrypt.Net.BCrypt.HashPassword(newPassword);
+            await _dbcontext.SaveChangesAsync();
         }
 
         public async Task SendVereficationCode(string Email)
         {
             Random random = new Random();
             string code = random.Next(100000, 1000000).ToString();
-           await _emailService.SendEmail(new MailMessage("vadimrudis7@gmail.com", Email)
+            await _emailService.SendEmail(new EmailMessageDto
             {
+                From = "vadimrudis7@gmail.com",
+                To = Email, 
                 Subject = "Код відновлення:",
-                Body = $"Ваш код: {code} для відновлення паролю.",
-                IsBodyHtml = true
+                Body = $"Ваш код: {code} для відновлення паролю."
             });
-            await _redisService.SetVerifacionCode(Email,code);
+            await _redisService.SetVerifacionCode(Email, code);
         }
     }
 }

@@ -26,7 +26,7 @@ namespace SportHive.Implementations
         }
         public async Task SetVerifacionCode(string key, string value)
         {
-             _database.StringSet(key, value);
+             await _database.StringSetAsync(key, value);
         }
     }
 }
