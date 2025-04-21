@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Http;
+
 namespace SportHive.Services.Interfaces
 {
  public interface IPhotoProcessing

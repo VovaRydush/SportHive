@@ -3,14 +3,18 @@ using DB.SportHive.Domain;
 using DB.SportHive.Persistence;
 using Microsoft.EntityFrameworkCore;
 using SportHive.Exceptions;
+using System.Text.Json;
 namespace SportHive.Implementations
 {
     class TeamOperateService : ITeamOperateService
     {
         private readonly AppDbContext _context;
-
-        public TeamOperateService(AppDbContext context)
+        private readonly IPhotoProcessing _photoProcessing;
+        private readonly ISaveDataDb _saveDataDb;
+        public TeamOperateService(AppDbContext context,IPhotoProcessing photoProcessing,ISaveDataDb saveDataDb )
         {
+            _saveDataDb = saveDataDb;
+            _photoProcessing = photoProcessing;
             _context = context;
         }
 
@@ -19,7 +23,7 @@ namespace SportHive.Implementations
             var entities = athleteDto.Select(d => new TeamAthlete
             {
                 NameTeam = d.NameTeam,
-                loginAthlets = d.loginAthlets,
+                loginAthlets = d.LoginAthlets,
                 AthleteStatus = d.AthleteStatus
             }).ToList();
 
@@ -40,19 +44,33 @@ namespace SportHive.Implementations
             var NameTeam = await _context.Teams.AsNoTracking().FirstOrDefaultAsync(nt => nt.TeamName == team.NameTeam);
             if (NameTeam != null) throw new NotFoundException("Команда з такою назвою вже існує");
 
+            string photoPath = null;
+            if (team.Photo != null)
+            {
+                photoPath = await _photoProcessing.SavePhotoAsync(team.Photo);
+            }
+
+            var jsonObJuserPhoto = JsonSerializer.Serialize(new UserPhoto
+            {
+                login = team.NameTeam,
+                ProfilePhoto = photoPath
+            });
+           _ = _saveDataDb.SaveDataToDb(jsonObJuserPhoto, "user-photo");
+
             var Command = new Team
             {
                 TeamName = team.NameTeam,
                 LoginTrainer = team.LoginTrainer,
-                TypeSport = team.TypeSport
+                TypeSport = team.TypeSport,
+                TeamPhoto = photoPath
             };
             _context.Teams.Add(Command);
 
            
-            var entities = team.athlets.Select(d => new TeamAthlete
+            var entities = team.Athlets.Select(d => new TeamAthlete
             {
                 NameTeam = d.NameTeam,
-                loginAthlets = d.loginAthlets,
+                loginAthlets = d.LoginAthlets,
                 AthleteStatus = d.AthleteStatus
             }).ToList();
 

@@ -5,7 +5,7 @@ using SportHive.Services.Interfaces;
 
 namespace SportHive.Implementations
 {
-    class SaveDataDb : ISaveDataDb
+    public class SaveDataDb : ISaveDataDb
     {
         private readonly ProducerConfig _producerConfig;
         private IProducer<Null, string> _producer;

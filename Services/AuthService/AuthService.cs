@@ -6,6 +6,7 @@ using AuthService.Extensions;
 using StackExchange.Redis;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
+using Persistence.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
