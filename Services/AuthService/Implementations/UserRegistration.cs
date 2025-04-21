@@ -193,7 +193,7 @@ namespace SportHive.Implementations
 
         public async Task VeryfyEmail(UserVerificationDto info)
         {
-            string veryfyCode = await _redis.GetVerifacionCode(info.Email);
+            string veryfyCode = await _redis.GetEntity(info.Email);
             if (info.Code == veryfyCode)
             {
                 var Email = await _context.Users.FirstOrDefaultAsync(u => u.Email == info.Email);

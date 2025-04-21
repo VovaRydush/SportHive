@@ -5,6 +5,6 @@ namespace SportHive.Services.Interfaces
     public interface IGetInfoTeam
     {
        Task<List<AthleteTeamDto>> GetAthetesAsync(string NameTeam);
-       Task GetTeam();
+       Task<TeamInfoDto> GetTeamInfo(string NameTeam);
     }
 }
