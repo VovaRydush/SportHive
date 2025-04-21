@@ -17,68 +17,20 @@ namespace SportHive.Implementations
         }
         public async Task SaveDataToDb(string jsonObj, string topic)
         {
-            switch (topic)
+            List<string> topics = new List<string> { "user_regist", "user-athlete", "user-trainer", "user-judge", "user-organization", "user-photo" };
+            if (topics.Contains(topic))
             {
-                case "user_regist":
-                    await _producer.ProduceAsync("user_regist", new Message<Null, string>
-                    {
-                        Value = jsonObj,
-                        Headers = new Headers{
-                            {"save-only-data", Encoding.UTF8.GetBytes("save-only-data")}
-                        }
-                    });
-                    break;
 
-                case "user-athlete":
-                    await _producer.ProduceAsync("user-athlete", new Message<Null, string>
+                await _producer.ProduceAsync(topic, new Message<Null, string>
+                {
+                    Value = jsonObj,
+                    Headers = new Headers
                     {
-                        Value = jsonObj,
-                        Headers = new Headers{
-                            {"save-only-data", Encoding.UTF8.GetBytes("save-only-data")}
-                        }
-                    });
-                    break;
-
-                case "user-trainer":
-                    await _producer.ProduceAsync("user-trainer", new Message<Null, string>
-                    {
-                        Value = jsonObj,
-                         Headers = new Headers{
-                            {"save-only-data", Encoding.UTF8.GetBytes("save-only-data")}
-                        }
-                    });
-                    break;
-
-                case "user-judge":
-                    await _producer.ProduceAsync("user-judge", new Message<Null, string>
-                    {
-                        Value = jsonObj,
-                         Headers = new Headers{
-                            {"save-only-data", Encoding.UTF8.GetBytes("save-only-data")}
-                        }
-                    });
-                    break;
-
-                case "user-photo":
-                    await _producer.ProduceAsync("user-photo", new Message<Null, string>
-                    {
-                        Value = jsonObj,
-                         Headers = new Headers{
-                            {"save-only-data", Encoding.UTF8.GetBytes("save-only-data")}
-                        }
-                    });
-                    break;
-
-                case "user-organization":
-                    await _producer.ProduceAsync("user-organization", new Message<Null, string>
-                    {
-                        Value = jsonObj,
-                         Headers = new Headers{
-                            {"save-only-data", Encoding.UTF8.GetBytes("save-only-data")}
-                        }
-                    });
-                    break;
+                        {"save-only-data", Encoding.UTF8.GetBytes("save-only-data")}
+                    }
+                });
             }
+            throw new Exception("Not found topic");
         }
     }
 }

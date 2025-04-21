@@ -27,8 +27,10 @@ namespace SportHive.Implementations
         public async Task ComplitePrifile(RoleInfoDto entity)
         {
             var user = await _context.Users
-                                     .AsNoTracking()
-                                     .FirstOrDefaultAsync(u => u.login == entity.Login);
+                                    .AsNoTracking()
+                                    .Where(u => u.login == entity.Login)
+                                    .Select(u => new { u.login, u.Role })
+                                    .FirstOrDefaultAsync();
 
             if (user == null)
                 throw new NotFoundException("Not Found");
@@ -65,17 +67,17 @@ namespace SportHive.Implementations
                         FirsName = entity.FistName,
                         LastName = entity.LastName,
                     });
-                     _ = _saveDataDb.SaveDataToDb(jsonTrainer, "user-trainer");
+                    _ = _saveDataDb.SaveDataToDb(jsonTrainer, "user-trainer");
                     break;
 
                 case "Judge":
-                     var jsonJudge = JsonSerializer.Serialize(new Judge
+                    var jsonJudge = JsonSerializer.Serialize(new Judge
                     {
                         login = user.login,
                         FirsName = entity.FistName,
                         LastName = entity.LastName,
                     });
-                     _ = _saveDataDb.SaveDataToDb(jsonJudge, "user-Judge");
+                    _ = _saveDataDb.SaveDataToDb(jsonJudge, "user-Judge");
                     break;
 
                 default:
@@ -87,7 +89,9 @@ namespace SportHive.Implementations
         {
             var user = await _context.Users
                                      .AsNoTracking()
-                                     .FirstOrDefaultAsync(u => u.Email == entity.Email);
+                                     .Where(u => u.Email == entity.Email)
+                                     .Select(u => new { u.login })
+                                     .FirstOrDefaultAsync();
             if (user == null)
                 throw new NotFoundException("User not found");
 
@@ -96,7 +100,7 @@ namespace SportHive.Implementations
             {
                 photoPath = await _photoprocessing.SavePhotoAsync(entity.ProfilePhoto);
             }
-           var jsonObJuserPhoto = JsonSerializer.Serialize(new UserPhoto
+            var jsonObJuserPhoto = JsonSerializer.Serialize(new UserPhoto
             {
                 login = user.login,
                 ProfilePhoto = photoPath
@@ -111,13 +115,23 @@ namespace SportHive.Implementations
                 Country = entity.Country,
                 Description = entity.Description
             });
-            _ = _saveDataDb.SaveDataToDb(jsonOrganization,"user-organization");
+            _ = _saveDataDb.SaveDataToDb(jsonOrganization, "user-organization");
         }
 
         public async Task LinkOrganizationJudge(OrganizationJudgeDto entity)
         {
-            var organization = await _context.Users.FirstAsync(e => e.login == entity.LoginOrganization);
-            var Entity = await _context.Users.FirstAsync(e => e.login == entity.LoginEntyty);
+            var organization = await _context.Users
+                                                .AsNoTracking()
+                                                .Where(e => e.login == entity.LoginOrganization)
+                                                .Select(e => new { e.login })
+                                                .FirstOrDefaultAsync();
+
+            var Entity = await _context.Users
+                                        .AsNoTracking()
+                                        .Where(e => e.login == entity.LoginEntyty)
+                                        .Select(e => new {e.login})
+                                        .FirstOrDefaultAsync();
+
             if (entity.Role == "Judge")
             {
                 var organizationJudge = new OrganizationJudge
@@ -141,10 +155,11 @@ namespace SportHive.Implementations
 
         public async Task Registration(UserInfoDto entity)
         {
-            var existingUser = await _context
-                                    .Users
+            var existingUser = await _context.Users
                                     .AsNoTracking()
-                                    .FirstOrDefaultAsync(u => u.Email == entity.Email || u.login == entity.Login);
+                                    .Where(u => u.Email == entity.Email || u.login == entity.Login)
+                                    .Select(u => new{u.login})
+                                    .FirstOrDefaultAsync();
 
             if (existingUser != null) throw new Exception("Користувач з таким email або логіном вже існує.");
 

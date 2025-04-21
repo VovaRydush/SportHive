@@ -11,7 +11,7 @@ namespace SportHive.Implementations
         {
             _webRootPath = Path.Combine(env.ContentRootPath,
                                        config["WebRootPath"] ?? "wwwroot");
-             Console.WriteLine($"WebRootPath: {_webRootPath}"); 
+            Console.WriteLine($"WebRootPath: {_webRootPath}");
         }
 
         public async Task<string> SavePhotoAsync(IFormFile file)
