@@ -44,6 +44,7 @@ public class KafkaWorker : BackgroundService
                     using var scope = _scopeFactory.CreateScope();
                     var saveService = scope.ServiceProvider.GetRequiredService<ISaveDataDb>();
                     await saveService.SaveDataUser(consumeResult.Message.Value, consumeResult.Topic);
+                    _consumer.Commit();
                 }
             }
             catch (Exception ex)

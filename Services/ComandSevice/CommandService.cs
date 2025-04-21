@@ -6,6 +6,7 @@ using SportHive.Services.Interfaces;
 using SportHive.Implementations;
 using Microsoft.OpenApi.Models;
 using Microsoft.EntityFrameworkCore;
+using Persistence.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -41,9 +42,11 @@ builder.Services.AddAuthorization();
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("Primary")));
 
-
+builder.Services.AddScoped<IPhotoProcessing, PhotoProcessing>(); 
+builder.Services.AddScoped<ISaveDataDb,SaveDataDb>();
 builder.Services.AddScoped<ITeamOperateService,TeamOperateService>();
 builder.Services.AddScoped<ITrainerAthletService,TrainerAthletService>();
+builder.Services.AddKafkaServices("localhost:9093");
 
 var app = builder.Build();
 if (app.Environment.IsDevelopment())
@@ -54,7 +57,7 @@ if (app.Environment.IsDevelopment())
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseAuthentication();       
 app.UseAuthorization();
-       
+
 
 app.MapCommandEndpoints();
 

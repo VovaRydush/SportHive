@@ -11,10 +11,10 @@ namespace Command.Endpoints
         {
             var routeTeamGroup = route.MapGroup("/team");
 
-            routeTeamGroup.MapPost("/create-team", async ([FromBody] TeamModelDto team, [FromServices] ITeamOperateService teamService) =>
+            routeTeamGroup.MapPost("/create-team", async ([FromForm] TeamModelDto team, [FromServices] ITeamOperateService teamService) =>
             {
                 await teamService.CreateTeamAsync(team);
-            })
+            }).DisableAntiforgery() 
                 .RequireAuthorization(new AuthorizeAttribute { Roles = "Trainer,Organization" });
 
             routeTeamGroup.MapPost("/add-athletes", async ([FromBody] List<TeamAthleteDto> athleteDtos, [FromServices] ITeamOperateService teamService) =>

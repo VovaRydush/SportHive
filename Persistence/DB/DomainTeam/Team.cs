@@ -12,6 +12,10 @@ namespace DB.SportHive.Domain
         public string TeamName { get; set; } = null!;
 
         [Required]
+        [Column]
+        public string TeamPhoto {get;set;} = null!;
+
+        [Required]
         [Column("LoginTrainer")]
         public string LoginTrainer { get; set; } = null!;
 
