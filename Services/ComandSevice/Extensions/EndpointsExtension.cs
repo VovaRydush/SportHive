@@ -7,6 +7,7 @@ namespace Extensions
         public static void MapCommandEndpoints(this IEndpointRouteBuilder app)
         {
             app.CreateCommandEndpoint();
+            app.GetInfoTeam();
         }
     }
 }

@@ -5,5 +5,6 @@ namespace DB.SportHive.Domain
         public string FirsName{get;set;} = null!;
         public string LastName{get;set;} = null!;
         public string? login{get;set;} = null!;
+        
     }
 }

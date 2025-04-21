@@ -41,7 +41,7 @@ public class ConsumerEmail : BackgroundService
             Random random = new Random();
             string code = random.Next(100000, 1000000).ToString();
            
-            _ = _database.StringSetAsync(message.To, code);
+            _ = _database.StringSetAsync(message.To, code,TimeSpan.FromMinutes(10));
             
             var mail = new MailMessage
             {
