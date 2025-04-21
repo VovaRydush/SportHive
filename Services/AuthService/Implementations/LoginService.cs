@@ -17,7 +17,12 @@ namespace SportHive.Implementations
         }
         public async Task<List<string>> Login(UserInfoDto entity)
         {
-            var user = await _dbcontext.Users.FirstOrDefaultAsync(u => u.login == entity.Login);
+            var user = await _dbcontext.Users
+                                        .AsNoTracking()
+                                        .Where(u => u.login == entity.Login)
+                                        .Select(u => new { u.HashPassword, u.isEmailConfirmed })
+                                        .FirstOrDefaultAsync();
+
             if (user == null || !BCrypt.Net.BCrypt.Verify(entity.Password, user.HashPassword))
                 throw new Exception("Невірний email або пароль.");
 
@@ -28,7 +33,8 @@ namespace SportHive.Implementations
 
         public async Task LogOut(string login, string refreshToken)
         {
-            var user = await _dbcontext.Users.FirstOrDefaultAsync(u => u.login == login);
+            var user = await _dbcontext.Users
+                                    .FirstOrDefaultAsync(u => u.login == login);
             if (refreshToken == user.refreshToken)
             {
                 user.refreshToken = null;

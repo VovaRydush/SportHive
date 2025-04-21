@@ -7,7 +7,7 @@ namespace DB.SportHive.Domain
     public class TeamAthlete
     {
         [Column("NameTeam")]
-        public string NameTeam { get; set; }
+        public string NameTeam { get; set; } = null!;
 
         [ForeignKey("IdTeam")]
         public Team Team { get; set; }=null!;
