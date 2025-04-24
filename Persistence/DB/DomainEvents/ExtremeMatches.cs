@@ -23,7 +23,7 @@ namespace DB.SportHive.Domain
 
         [Required]
         public Location Location { get; set; } = null!;
-        public long LocationId { get; set; }
+        public string LocationName { get; set; } = null!;
 
         [Column("Tour")]
         public int Tour { get; set; }

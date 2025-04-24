@@ -34,7 +34,7 @@ namespace SportHive.DbConfiguration
 
             builder.HasOne(l => l.Location)             
                    .WithMany()                      
-                   .HasForeignKey(tm => tm.LocationId)
+                   .HasForeignKey(tm => tm.LocationName)
                    .OnDelete(DeleteBehavior.NoAction);
 
             builder.Property(tm => tm.Tour);

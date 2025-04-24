@@ -6,18 +6,14 @@ namespace DB.SportHive.Domain
     [Table("Location")]
     public class Location
     {
-        [Required]
         [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public long Id { get; set; }
-
         [Required]
         public string LocationName { get; set; } = null!;
-        public double Latitude { get; set; }
-        public double Longitude { get; set; }
+        public decimal Latitude { get; set; }
+        public decimal Longitude { get; set; }
 
         public string? LocationNameEnd { get; set; } = null!;
-        public double? LatitudeEnd { get; set; }
-        public double? LongitudeEnd { get; set; }
+        public decimal? LatitudeEnd { get; set; }
+        public decimal? LongitudeEnd { get; set; }
     }
 }

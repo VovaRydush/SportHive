@@ -1,5 +1,6 @@
 using Confluent.Kafka;
 using Microsoft.Extensions.DependencyInjection;
+
 namespace Persistence.Services
 {
     public static class KafkaServiceExtensions

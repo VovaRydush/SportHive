@@ -3,6 +3,9 @@ using System.Text.Json;
 using DB.SportHive.Domain;
 using DB.SportHive.Persistence;
 using Microsoft.EntityFrameworkCore;
+using SportHive.Exceptions;
+
+//using MongoDB.Driver.Linq;
 using SportHive.Services.Interfaces;
 
 namespace SportHive.Implementations
@@ -18,6 +21,37 @@ namespace SportHive.Implementations
             _dbContext = appDbContext;
             _saveDataDb = saveDataDb;
         }
+
+        public async Task AddIndividualMathDto(IndividualMatchDto individualMatch)
+        {
+            var eventId = await _dbContext.Events
+            .AsNoTracking()
+            .Where(e => e.NameEvent == individualMatch.NameEvent)
+            .Select(e => e.IdEvent)
+            .FirstOrDefaultAsync();
+            if (eventId == null) throw new NotFoundException("Event not found");
+
+            _dbContext.Locations.Add(new Location{
+                LocationName = individualMatch.location.address,
+                Latitude = individualMatch.location.lat,
+                Longitude = individualMatch.location.lng,
+            });
+
+            var entity = new IndividualMatch
+            {
+                IdEvent = eventId,
+                loginFirstAthlete = individualMatch.loginFirstAthlete,
+                loginSecondAthlete = individualMatch.loginSecondAthlete,
+                DataMatch = individualMatch.DateStart,
+                TimeMatch = individualMatch.TimeStart,
+                LocationName = individualMatch.location.address,
+                Tour = individualMatch.tour,
+                AddInformation = individualMatch.AddInformation
+            };
+            _dbContext.IndividualMatches.Add(entity);
+            await _dbContext.SaveChangesAsync();
+        }
+
         public async Task CreateEvent(EventDto eventDto)
         {
             if (await _dbContext.Events

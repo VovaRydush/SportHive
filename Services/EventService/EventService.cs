@@ -6,7 +6,6 @@ using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Persistence.Services;
 using StackExchange.Redis;
-using Microsoft.AspNetCore.Components.RenderTree;
 using JwtAuthentication;
 using Extensions;
 using Microsoft.OpenApi.Models;
@@ -48,7 +47,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("Primary")));
 
 builder.Services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer.Connect("localhost:6379,abortConnect=false"));
-
+builder.Services.AddSingleton<IMongoDbService, MongoDbService>();
 builder.Services.AddControllers().AddJsonOptions(options =>
 {
     options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;

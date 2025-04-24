@@ -3,6 +3,7 @@ using System;
 using DB.SportHive.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Persistence.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250424184421_ChangeTypeFiled")]
+    partial class ChangeTypeFiled
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -235,20 +238,20 @@ namespace Persistence.Migrations
                     b.Property<string>("LocationName")
                         .HasColumnType("text");
 
-                    b.Property<decimal>("Latitude")
-                        .HasColumnType("numeric");
+                    b.Property<double>("Latitude")
+                        .HasColumnType("double precision");
 
-                    b.Property<decimal?>("LatitudeEnd")
-                        .HasColumnType("numeric");
+                    b.Property<double?>("LatitudeEnd")
+                        .HasColumnType("double precision");
 
                     b.Property<string>("LocationNameEnd")
                         .HasColumnType("text");
 
-                    b.Property<decimal>("Longitude")
-                        .HasColumnType("numeric");
+                    b.Property<double>("Longitude")
+                        .HasColumnType("double precision");
 
-                    b.Property<decimal?>("LongitudeEnd")
-                        .HasColumnType("numeric");
+                    b.Property<double?>("LongitudeEnd")
+                        .HasColumnType("double precision");
 
                     b.HasKey("LocationName");
 

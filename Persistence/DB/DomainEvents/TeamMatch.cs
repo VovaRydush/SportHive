@@ -29,7 +29,7 @@ namespace DB.SportHive.Domain
         public TimeSpan TimeMatch { get; set; }
 
         public Location Location { get; set; } = null!;
-        public long LocationId { get; set; }
+        public string LocationName { get; set; } = null!;
 
         [Column("Tour")]
         public int Tour { get; set; }

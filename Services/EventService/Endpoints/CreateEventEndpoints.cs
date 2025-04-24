@@ -15,6 +15,13 @@ namespace Events.Endpoints
                 await eventService.CreateEvent(Event);
             }).DisableAntiforgery() 
                 .RequireAuthorization(new AuthorizeAttribute { Roles = "Trainer,Organization,Athlete" });
-        }
+            
+            route.MapPost("/create-individual-match",async([FromBody] IndividualMatchDto match,[FromServices] IEventService eventService)=>
+            {
+                await eventService.AddIndividualMathDto(match);
+                return Results.Ok();
+            })
+                .RequireAuthorization(new AuthorizeAttribute { Roles = "Trainer,Organization" });;
+        } 
     }
 }
