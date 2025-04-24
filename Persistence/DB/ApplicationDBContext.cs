@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using DB.SportHive.Domain;
 using SportHive.DbConfiguration;
-using Microsoft.Extensions.Configuration;
 
 namespace DB.SportHive.Persistence
 {
@@ -14,10 +13,14 @@ namespace DB.SportHive.Persistence
         public DbSet<Judge> Judges { get; set; }
         public DbSet<UserPhoto> UserPhotos { get; set; }
         public DbSet<OrganizationJudge> OrginizationJudges { get; set; }
-        public DbSet<OrganizationTeam> OrganizationTeams{get;set;}
-        public DbSet<OrganizationTrainer> OrganizationTrainers{get;set;}
+        public DbSet<OrganizationTeam> OrganizationTeams { get; set; }
+        public DbSet<OrganizationTrainer> OrganizationTrainers { get; set; }
         public DbSet<Team> Teams { get; set; }
         public DbSet<TeamAthlete> teamAthletes { get; set; }
+        public DbSet<Event> Events { get; set; }
+        public DbSet<IndividualMatch> IndividualMatches { get; set; }
+        public DbSet<Location> Locations { get; set; }
+
 
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
         {
@@ -36,6 +39,11 @@ namespace DB.SportHive.Persistence
             modelBuilder.ApplyConfiguration(new TeamAthleteConfiguration());
             modelBuilder.ApplyConfiguration(new OrganizationTeamConfigration());
             modelBuilder.ApplyConfiguration(new OrganizationTrainerConfiguration());
+            modelBuilder.ApplyConfiguration(new EventConfiguration());
+            modelBuilder.ApplyConfiguration(new IndividualMatchConfig());
+            modelBuilder.ApplyConfiguration(new TeamMatchConfiguration());
+            modelBuilder.ApplyConfiguration(new ExtremeMatchConfiguration());
+            modelBuilder.ApplyConfiguration(new EMatchesAthleteConfig());
         }
 
     }

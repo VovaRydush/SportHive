@@ -35,6 +35,7 @@ namespace DB.SportHive.Domain
         public string TypeSport{get;set;}=null!;
 
         public List<TeamAthlete>? TeamAthletes { get; set; }
+        public List<EMatchesAthlete>? MatchesAthletes { get; set; }
 
     }
 }
