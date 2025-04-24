@@ -17,6 +17,10 @@ namespace DB.SportHive.Domain
         public string NameEvent { get; set; } = null!;
 
         [Required]
+        [Column]
+        public string EventPhoto {get;set;} = null!;
+
+        [Required]
         public SelectionSystems systems {get;set;}
 
         [Required]
@@ -24,7 +28,7 @@ namespace DB.SportHive.Domain
         public DateTime DataStart {get;set;}
 
         [DataType(DataType.Date)]
-        public DateTime DataEnd {get;set;}
+        public DateTime? DataEnd {get;set;}
 
         [MaxLength(300)]
         public string description{get;set;} = null!;

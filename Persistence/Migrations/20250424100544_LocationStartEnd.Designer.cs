@@ -3,6 +3,7 @@ using System;
 using DB.SportHive.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Persistence.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250424100544_LocationStartEnd")]
+    partial class LocationStartEnd
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -83,10 +86,6 @@ namespace Persistence.Migrations
 
                     b.Property<DateTime>("DataStart")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("EventPhoto")
-                        .IsRequired()
-                        .HasColumnType("text");
 
                     b.Property<string>("NameEvent")
                         .IsRequired()
