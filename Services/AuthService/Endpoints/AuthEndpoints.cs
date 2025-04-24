@@ -19,12 +19,12 @@ namespace AuthService.Endpoints
             route.MapPost("/complite-profile", async([FromForm] RoleInfoDto user,IUserRegistration userService)=>{
                 await userService.ComplitePrifile(user);
                 return Results.Ok();
-            }).AllowAnonymous().DisableAntiforgery(); ;
+            }).AllowAnonymous().DisableAntiforgery();
 
             route.MapPost("/complite-profile-organization", async([FromForm] OrganizationInfoDto user,IUserRegistration userService)=>{
                 await userService.ComplitePrifileOrganization(user);
                 return Results.Ok();
-            }).AllowAnonymous().DisableAntiforgery(); ;
+            }).AllowAnonymous().DisableAntiforgery();
 
             route.MapGet("/verify", async ([FromBody] UserVerificationDto info, IUserRegistration userService) =>
             {
