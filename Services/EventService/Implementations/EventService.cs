@@ -22,34 +22,59 @@ namespace SportHive.Implementations
             _saveDataDb = saveDataDb;
         }
 
-        public async Task AddIndividualMathDto(IndividualMatchDto individualMatch)
+        public async Task AddExtremeMathes(ExtreameMatchesDto extreameMatch)
         {
-            var eventId = await _dbContext.Events
-            .AsNoTracking()
-            .Where(e => e.NameEvent == individualMatch.NameEvent)
-            .Select(e => e.IdEvent)
-            .FirstOrDefaultAsync();
-            if (eventId == null) throw new NotFoundException("Event not found");
+            await SaveLocation(extreameMatch.location);
+            var entity =  new TeamMatch
+            {
+                IdEvent = await GetEventId(extreameMatch.NameEvent),
+                DataMatch = extreameMatch.DataMatch,
+                TimeMatch = extreameMatch.TimeMatch,
+                Tour = extreameMatch.tour,
+                AddInformation = extreameMatch.AddInformation
+            };
+            _dbContext.TeamMatches.Add(entity);
+            await _dbContext.SaveChangesAsync();
+        }
 
-            _dbContext.Locations.Add(new Location{
-                LocationName = individualMatch.location.address,
-                Latitude = individualMatch.location.lat,
-                Longitude = individualMatch.location.lng,
-            });
+        public async Task AddIndividualMathDto(TIMatchDto individualMatch)
+        {
+
+            await SaveLocation(individualMatch.location);
 
             var entity = new IndividualMatch
             {
-                IdEvent = eventId,
-                loginFirstAthlete = individualMatch.loginFirstAthlete,
-                loginSecondAthlete = individualMatch.loginSecondAthlete,
+                IdEvent = await GetEventId(individualMatch.NameEvent),
+                loginFirstAthlete = individualMatch.FirstEntity,
+                loginSecondAthlete = individualMatch.SecondEntity,
                 DataMatch = individualMatch.DateStart,
                 TimeMatch = individualMatch.TimeStart,
                 LocationName = individualMatch.location.address,
                 Tour = individualMatch.tour,
                 AddInformation = individualMatch.AddInformation
             };
+
             _dbContext.IndividualMatches.Add(entity);
             await _dbContext.SaveChangesAsync();
+        }
+
+        public async Task AddTeamMatch(TIMatchDto teamMatch)
+        {
+            await SaveLocation(teamMatch.location);
+
+            var Karina_Sadik_Temki = new TeamMatch
+            {
+                IdEvent = await GetEventId(teamMatch.NameEvent),
+                NameFirstTeam = teamMatch.FirstEntity,
+                NameSecondTeam = teamMatch.SecondEntity,
+                DataMatch = teamMatch.DateStart,
+                TimeMatch = teamMatch.TimeStart,
+                Tour = teamMatch.tour,
+                AddInformation = teamMatch.AddInformation
+            };
+            _dbContext.TeamMatches.Add(Karina_Sadik_Temki);
+            await _dbContext.SaveChangesAsync();
+
         }
 
         public async Task CreateEvent(EventDto eventDto)
@@ -82,6 +107,33 @@ namespace SportHive.Implementations
             };
             _dbContext.Events.Add(entity);
             await _dbContext.SaveChangesAsync();
+        }
+
+        public async Task<long> GetEventId(string NameTeam)
+        {
+            var eventId = await _dbContext.Events
+            .AsNoTracking()
+            .Where(e => e.NameEvent == NameTeam)
+            .Select(e => e.IdEvent)
+            .FirstOrDefaultAsync();
+
+            if (eventId == null) throw new NotFoundException("Event not found");
+            return eventId;
+        }
+
+        public Task SaveExtreameAtheltes(List<string> athletes,long IdExtremeMatches)
+        {
+            throw new Exception();
+        }
+
+        public async Task SaveLocation(LocationDto location)
+        {
+            _dbContext.Locations.Add(new Location
+            {
+                LocationName = location.address,
+                Latitude = location.lat,
+                Longitude = location.lng,
+            });
         }
     }
 }

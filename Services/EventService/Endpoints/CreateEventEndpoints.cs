@@ -16,9 +16,23 @@ namespace Events.Endpoints
             }).DisableAntiforgery() 
                 .RequireAuthorization(new AuthorizeAttribute { Roles = "Trainer,Organization,Athlete" });
             
-            route.MapPost("/create-individual-match",async([FromBody] IndividualMatchDto match,[FromServices] IEventService eventService)=>
+            route.MapPost("/create-individual-match",async([FromBody] TIMatchDto match,[FromServices] IEventService eventService)=>
             {
                 await eventService.AddIndividualMathDto(match);
+                return Results.Ok();
+            })
+                .RequireAuthorization(new AuthorizeAttribute { Roles = "Trainer,Organization" });;
+           
+            route.MapPost("/create-team-mathc",async([FromBody] TIMatchDto match,[FromServices] IEventService eventService)=>
+            {
+                await eventService.AddTeamMatch(match);
+                return Results.Ok();
+            })
+                .RequireAuthorization(new AuthorizeAttribute { Roles = "Trainer,Organization" });;
+            
+             route.MapPost("/create-extreame-match",async([FromBody] ExtreameMatchesDto match,[FromServices] IEventService eventService)=>
+            {
+                await eventService.AddExtremeMathes(match);
                 return Results.Ok();
             })
                 .RequireAuthorization(new AuthorizeAttribute { Roles = "Trainer,Organization" });;

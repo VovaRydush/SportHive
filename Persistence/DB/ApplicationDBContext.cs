@@ -20,6 +20,8 @@ namespace DB.SportHive.Persistence
         public DbSet<Event> Events { get; set; }
         public DbSet<IndividualMatch> IndividualMatches { get; set; }
         public DbSet<Location> Locations { get; set; }
+        public DbSet<TeamMatch> TeamMatches { get; set; }
+        public DbSet<EMatchesAthlete> ExtremeMatchesAthetes { get; set; }
 
 
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
