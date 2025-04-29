@@ -15,7 +15,7 @@ namespace Events.Endpoints
             }).DisableAntiforgery() 
                 .RequireAuthorization(new AuthorizeAttribute { Roles = "Trainer,Organization,Athlete" });
             
-            route.MapPost("/create-matches",async([FromBody] MatchsAbstractionDto match,[FromServices] ISystemSelectionService matchService)=>
+            route.MapPost("/create-matches",async([FromBody] Matchs match,[FromServices] ISystemSelectionService matchService)=>
             {
                 await matchService.CreateMatchWithSSystem(match);
                 return Results.Ok();

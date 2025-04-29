@@ -61,6 +61,25 @@ builder.Services.AddScoped<IPhotoProcessing,PhotoProcessing>();
 builder.Services.AddScoped<ISaveDataDb,SaveDataDb>();
 builder.Services.AddScoped<IEventService,EventService>();
 builder.Services.AddScoped<ISystemSelectionService,SystemSelectionService>();
+builder.Services.AddScoped<IEventService,EventService>();
+
+builder.Services.AddTransient<PlayOffSystem>();
+builder.Services.AddTransient<DoubleEliminationSystem>();
+builder.Services.AddTransient<GroupSystem>();
+builder.Services.AddTransient<KnockoutSystem>();
+builder.Services.AddTransient<MixsedSystem>();
+builder.Services.AddTransient<OlympicSystem>();
+builder.Services.AddTransient<RoundRobinSystem>();
+builder.Services.AddTransient<SwissSystem>();
+
+builder.Services.AddSingleton<SystemFactory>();
+
+builder.Services.AddScoped<ISaveMatchInfo, SaveTeamMatch>();
+builder.Services.AddScoped<ISaveMatchInfo, SaveExtremeMatch>();
+builder.Services.AddScoped<ISaveMatchInfo,SaveIndividualMatch>();
+builder.Services.AddScoped<ISaveMatchInfo,SaveExtremeMatchIndividual>();
+
+builder.Services.AddSingleton<SaveMatchFactory>();
 
 var app = builder.Build();
 if (app.Environment.IsDevelopment())

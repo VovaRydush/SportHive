@@ -5,8 +5,6 @@ using DB.SportHive.Persistence;
 using Microsoft.EntityFrameworkCore;
 using SportHive.Exceptions;
 
-
-
 using SportHive.Services.Interfaces;
 
 namespace SportHive.Implementations
@@ -39,7 +37,6 @@ namespace SportHive.Implementations
         {
             _dbContext.TeamMatches.AddRange(teamMatches);
             await _dbContext.SaveChangesAsync();
-
         }
 
         public async Task CreateEvent(EventDto eventDto)
