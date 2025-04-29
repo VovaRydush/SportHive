@@ -15,6 +15,8 @@ namespace DB.SportHive.Domain
 
         public Event Event { get; set; } = null!;
 
+        public StatusMatch StatusMatch { get; set; }
+
         [Required]
         public string loginFirstAthlete { get; set; } = null!;
 
@@ -33,7 +35,7 @@ namespace DB.SportHive.Domain
 
         [Required]
         public Location Location { get; set; } = null!;
-        public string LocationName { get; set; }
+        public string LocationName { get; set; } = null!;
 
         [Column("Tour")]
         public int Tour { get; set; }

@@ -22,6 +22,8 @@ namespace DB.SportHive.Persistence
         public DbSet<Location> Locations { get; set; }
         public DbSet<TeamMatch> TeamMatches { get; set; }
         public DbSet<EMatchesAthlete> ExtremeMatchesAthetes { get; set; }
+        public DbSet<EMatchesTeam> EMatchesTeam { get; set; }
+        public DbSet<ExtremeMatch> ExtremeMatches { get; set; }
 
 
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
@@ -46,6 +48,7 @@ namespace DB.SportHive.Persistence
             modelBuilder.ApplyConfiguration(new TeamMatchConfiguration());
             modelBuilder.ApplyConfiguration(new ExtremeMatchConfiguration());
             modelBuilder.ApplyConfiguration(new EMatchesAthleteConfig());
+            modelBuilder.ApplyConfiguration(new EMathesTeamConfig());
         }
 
     }

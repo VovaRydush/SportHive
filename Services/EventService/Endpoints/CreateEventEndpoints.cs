@@ -1,7 +1,6 @@
 using DB.SportHive.Domain;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using SportHive.Implementations;
 using  SportHive.Services.Interfaces;
 
 namespace Events.Endpoints
@@ -16,26 +15,19 @@ namespace Events.Endpoints
             }).DisableAntiforgery() 
                 .RequireAuthorization(new AuthorizeAttribute { Roles = "Trainer,Organization,Athlete" });
             
-            route.MapPost("/create-individual-match",async([FromBody] TIMatchDto match,[FromServices] IEventService eventService)=>
+            route.MapPost("/create-matches",async([FromBody] MatchsAbstractionDto match,[FromServices] ISystemSelectionService matchService)=>
             {
-                await eventService.AddIndividualMathDto(match);
+                await matchService.CreateMatchWithSSystem(match);
                 return Results.Ok();
             })
-                .RequireAuthorization(new AuthorizeAttribute { Roles = "Trainer,Organization" });;
-           
-            route.MapPost("/create-team-mathc",async([FromBody] TIMatchDto match,[FromServices] IEventService eventService)=>
-            {
-                await eventService.AddTeamMatch(match);
-                return Results.Ok();
-            })
-                .RequireAuthorization(new AuthorizeAttribute { Roles = "Trainer,Organization" });;
+                .RequireAuthorization(new AuthorizeAttribute { Roles = "Trainer,Organization" });
             
-             route.MapPost("/create-extreame-match",async([FromBody] ExtreameMatchesDto match,[FromServices] IEventService eventService)=>
+            route.MapPost("/add-athletes-em/{IdExtremeMatches}",async(long IdExtremeMatches, [FromBody] List<string> atletes,[FromServices] IEventService eventService)=>
             {
-                await eventService.AddExtremeMathes(match);
+                await eventService.SaveExtreameAtheltes(atletes,IdExtremeMatches);
                 return Results.Ok();
             })
-                .RequireAuthorization(new AuthorizeAttribute { Roles = "Trainer,Organization" });;
+                .RequireAuthorization(new AuthorizeAttribute { Roles = "Trainer,Organization" });
         } 
     }
 }

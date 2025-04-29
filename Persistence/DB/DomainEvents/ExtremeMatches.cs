@@ -24,6 +24,7 @@ namespace DB.SportHive.Domain
         [Required]
         public Location Location { get; set; } = null!;
         public string LocationName { get; set; } = null!;
+        public StatusMatch StatusMatch { get; set; }
 
         [Column("Tour")]
         public int Tour { get; set; }

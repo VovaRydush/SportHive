@@ -3,6 +3,7 @@ using System;
 using DB.SportHive.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Persistence.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250427120130_AddStatusFiledForMatch")]
+    partial class AddStatusFiledForMatch
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -68,26 +71,6 @@ namespace Persistence.Migrations
                     b.HasIndex("IdExtremeMatches");
 
                     b.ToTable("EMatchesAthlete");
-                });
-
-            modelBuilder.Entity("DB.SportHive.Domain.EMatchesTeam", b =>
-                {
-                    b.Property<string>("NameTeam")
-                        .HasColumnType("text");
-
-                    b.Property<long>("IdExtremeMatches")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("TeamName")
-                        .HasColumnType("text");
-
-                    b.HasKey("NameTeam", "IdExtremeMatches");
-
-                    b.HasIndex("IdExtremeMatches");
-
-                    b.HasIndex("TeamName");
-
-                    b.ToTable("EMatchesTeam");
                 });
 
             modelBuilder.Entity("DB.SportHive.Domain.Event", b =>
@@ -607,29 +590,6 @@ namespace Persistence.Migrations
                     b.Navigation("ExtremeMatch");
                 });
 
-            modelBuilder.Entity("DB.SportHive.Domain.EMatchesTeam", b =>
-                {
-                    b.HasOne("DB.SportHive.Domain.ExtremeMatch", "ExtremeMatch")
-                        .WithMany()
-                        .HasForeignKey("IdExtremeMatches")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("DB.SportHive.Domain.Team", "Team")
-                        .WithMany()
-                        .HasForeignKey("NameTeam")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("DB.SportHive.Domain.Team", null)
-                        .WithMany("eMatchesTeams")
-                        .HasForeignKey("TeamName");
-
-                    b.Navigation("ExtremeMatch");
-
-                    b.Navigation("Team");
-                });
-
             modelBuilder.Entity("DB.SportHive.Domain.ExtremeMatch", b =>
                 {
                     b.HasOne("DB.SportHive.Domain.Event", "Event")
@@ -885,8 +845,6 @@ namespace Persistence.Migrations
                     b.Navigation("OrganizationTeam");
 
                     b.Navigation("TeamAthletes");
-
-                    b.Navigation("eMatchesTeams");
                 });
 
             modelBuilder.Entity("DB.SportHive.Domain.Trainer", b =>

@@ -60,6 +60,7 @@ builder.Services.AddScoped<IRedisService, RedisService>();
 builder.Services.AddScoped<IPhotoProcessing,PhotoProcessing>();
 builder.Services.AddScoped<ISaveDataDb,SaveDataDb>();
 builder.Services.AddScoped<IEventService,EventService>();
+builder.Services.AddScoped<ISystemSelectionService,SystemSelectionService>();
 
 var app = builder.Build();
 if (app.Environment.IsDevelopment())

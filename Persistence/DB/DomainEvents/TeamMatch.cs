@@ -14,6 +14,8 @@ namespace DB.SportHive.Domain
         public long IdEvent { get; set; }
         public Event Event { get; set; } = null!;
 
+        public StatusMatch StatusMatch { get; set; }
+
         [Required]
         public string NameFirstTeam { get; set; } = null!;
         public Team FirstTeam { get; set; } = null!;

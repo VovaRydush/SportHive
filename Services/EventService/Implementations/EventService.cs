@@ -5,7 +5,8 @@ using DB.SportHive.Persistence;
 using Microsoft.EntityFrameworkCore;
 using SportHive.Exceptions;
 
-//using MongoDB.Driver.Linq;
+
+
 using SportHive.Services.Interfaces;
 
 namespace SportHive.Implementations
@@ -22,57 +23,21 @@ namespace SportHive.Implementations
             _saveDataDb = saveDataDb;
         }
 
-        public async Task AddExtremeMathes(ExtreameMatchesDto extreameMatch)
+        public async Task AddExtremeMathes(List<ExtremeMatch> extreameMatches)
         {
-            await SaveLocation(extreameMatch.location);
-            var entity =  new TeamMatch
-            {
-                IdEvent = await GetEventId(extreameMatch.NameEvent),
-                DataMatch = extreameMatch.DataMatch,
-                TimeMatch = extreameMatch.TimeMatch,
-                Tour = extreameMatch.tour,
-                AddInformation = extreameMatch.AddInformation
-            };
-            _dbContext.TeamMatches.Add(entity);
+            _dbContext.ExtremeMatches.AddRange(extreameMatches);
             await _dbContext.SaveChangesAsync();
         }
 
-        public async Task AddIndividualMathDto(TIMatchDto individualMatch)
+        public async Task AddIndividualMath(List<IndividualMatch> individualMatches)
         {
-
-            await SaveLocation(individualMatch.location);
-
-            var entity = new IndividualMatch
-            {
-                IdEvent = await GetEventId(individualMatch.NameEvent),
-                loginFirstAthlete = individualMatch.FirstEntity,
-                loginSecondAthlete = individualMatch.SecondEntity,
-                DataMatch = individualMatch.DateStart,
-                TimeMatch = individualMatch.TimeStart,
-                LocationName = individualMatch.location.address,
-                Tour = individualMatch.tour,
-                AddInformation = individualMatch.AddInformation
-            };
-
-            _dbContext.IndividualMatches.Add(entity);
+            _dbContext.IndividualMatches.AddRange(individualMatches);
             await _dbContext.SaveChangesAsync();
         }
 
-        public async Task AddTeamMatch(TIMatchDto teamMatch)
+        public async Task AddTeamMatch(List<TeamMatch> teamMatches)
         {
-            await SaveLocation(teamMatch.location);
-
-            var Karina_Sadik_Temki = new TeamMatch
-            {
-                IdEvent = await GetEventId(teamMatch.NameEvent),
-                NameFirstTeam = teamMatch.FirstEntity,
-                NameSecondTeam = teamMatch.SecondEntity,
-                DataMatch = teamMatch.DateStart,
-                TimeMatch = teamMatch.TimeStart,
-                Tour = teamMatch.tour,
-                AddInformation = teamMatch.AddInformation
-            };
-            _dbContext.TeamMatches.Add(Karina_Sadik_Temki);
+            _dbContext.TeamMatches.AddRange(teamMatches);
             await _dbContext.SaveChangesAsync();
 
         }
@@ -83,7 +48,7 @@ namespace SportHive.Implementations
             .FirstOrDefaultAsync(e => e.NameEvent == eventDto.NameEvent) != null)
                 throw new ValidationException("Team with this name exists");
 
-            string photoPath = null;
+            string photoPath = "";
             if (eventDto.EventPhoto != null)
             {
                 photoPath = await _photoProcessing.SavePhotoAsync(eventDto.EventPhoto);
@@ -121,12 +86,30 @@ namespace SportHive.Implementations
             return eventId;
         }
 
-        public Task SaveExtreameAtheltes(List<string> athletes,long IdExtremeMatches)
+        public async Task SaveExtreameAtheltes(List<string> athletes, long IdExtremeMatches)
         {
-            throw new Exception();
+            var eMatchId = await _dbContext.ExtremeMatches
+                .AsNoTracking()
+                .Where(eMatch => eMatch.IdExtremeMatches == IdExtremeMatches)
+                .Select(e => (long?)e.IdExtremeMatches).FirstOrDefaultAsync();
+
+            if (eMatchId == null) throw new NotFoundException("Not found Match");
+
+            var entities = new List<EMatchesAthlete>();
+            foreach (var athlete in athletes)
+            {
+                var entity = new EMatchesAthlete
+                {
+                    IdExtremeMatches = eMatchId.Value,
+                    loginAthlete = athlete
+                };
+                entities.Add(entity);
+            }
+            _dbContext.ExtremeMatchesAthetes.AddRange(entities);
+            await _dbContext.SaveChangesAsync();
         }
 
-        public async Task SaveLocation(LocationDto location)
+        public void SaveLocation(LocationDto location)
         {
             _dbContext.Locations.Add(new Location
             {

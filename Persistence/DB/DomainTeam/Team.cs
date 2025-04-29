@@ -13,7 +13,7 @@ namespace DB.SportHive.Domain
 
         [Required]
         [Column]
-        public string TeamPhoto {get;set;} = null!;
+        public string TeamPhoto { get; set; } = null!;
 
         [Required]
         [Column("LoginTrainer")]
@@ -29,7 +29,8 @@ namespace DB.SportHive.Domain
         public string TypeSport { get; set; } = null!;
 
         [Column("Organization")]
-        public List<OrganizationTeam>? OrganizationTeam{get;set;} = null!;
+        public List<OrganizationTeam>? OrganizationTeam { get; set; } = null!;
+        public List<EMatchesTeam>? eMatchesTeams { get; set; } = null!;
     }
 
 }
