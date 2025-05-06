@@ -5,7 +5,7 @@ namespace DB.SportHive.MongoDb
 {
     public class Weightlifting
     {
-        public long IdMatch{get;set;}
+        public long IdMatch{get;}
         public WeightDesipline desipline{get;set;}
         public string WeightCategory {get;set;} = null!;
         public string FullNamePlayer {get;set;} = null!;

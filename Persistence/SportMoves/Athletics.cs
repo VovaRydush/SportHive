@@ -5,7 +5,7 @@ namespace DB.SportHive.MongoDb
 {
     public class Athletics
     {
-        public long IdMatch { get; set; }
+        public long IdMatch { get; }
         public TypeDesipline typeDesipline { get; set; }
         public float distance { get; set; }
         public int Try { get; set; }

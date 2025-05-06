@@ -5,10 +5,10 @@ namespace DB.SportHive.MongoDb
 {
     public class AttacksMoves
     {
-        public long IdMatch{get;set;}
-        public string FullNamePlayer{get;set;} = null!;
-        public string time {get;set;} = null!;
-        public bool realization {get;set;}
+        public long IdMatch { get; }
+        public string FullNamePlayer { get; set; } = null!;
+        public string time { get; set; } = null!;
+        public bool realization { get; set; }
     }
     public enum TypeMoves
     {

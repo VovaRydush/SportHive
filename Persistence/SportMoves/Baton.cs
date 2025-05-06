@@ -5,7 +5,7 @@ namespace DB.SportHive.MongoDb
 {
     public class Baton
     {
-        public long idMatch { get; set; }
+        public long idMatch { get;}
         public string NameTeam { get; set; } = null!;
         public string FullNamePlayer { get; set; } = null!;
         public TimeSpan time { get; set; }

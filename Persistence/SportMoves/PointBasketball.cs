@@ -5,7 +5,7 @@ namespace DB.SportHive.MongoDb
 {
     public class PointBasketball
     {
-        public long IdMatch{get;set;}
+        public long IdMatch{get;}
         public string FullNamePlayer{get;set;} = null!;
         public string timeGetPoint {get;set;} = null!;
         public PointType pointType {get;set;}

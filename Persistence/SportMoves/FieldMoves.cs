@@ -5,7 +5,7 @@ namespace DB.SportHive.MongoDb
 {
     public class FieldMoves
     {
-        public long IdMatch { get; set; }
+        public long IdMatch { get;}
         public string FullNamePlayer { get; set; } = null!;
         FieldMove fieldMove { get; set; }
     }

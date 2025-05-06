@@ -5,7 +5,7 @@ namespace DB.SportHive.MongoDb
 {
     public class BaseballEvent
     {
-        public long IdMatch { get; set; }           // Ідентифікатор матчу
+        public long IdMatch { get;}           // Ідентифікатор матчу
         public long PlayerId { get; set; }          // Ідентифікатор гравця
         public DateTime EventTime { get; set; }     // Час події
         public EventType EventType { get; set; }    // Тип події
