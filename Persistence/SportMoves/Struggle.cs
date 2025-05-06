@@ -1,0 +1,40 @@
+using System.ComponentModel;
+using MongoDB.Bson;
+
+namespace DB.SportHive.MongoDb
+{
+    public class Struggle
+    {
+        public string typeResult { get; set; } = null!;
+        public long idMatch { get; set; }
+        public int round { get; set; }
+        public TimeSpan time { get; set; }
+        public string FullNamePlayer1 { get; set; } = null!;
+        public FoulStruggle? foulsPlayer1 { get; set; }
+        public int? MinusValue1 { get; set; } // в бородьбі за фоли можуть бали давати супернику
+        public Result? winPlayer1 { get; set; }
+        public string FullNamePlayer2 { get; set; } = null!;
+        public FoulStruggle? foulsPlayer2 { get; set; }
+        public int? MinusValue2 { get; set; } // в бородьбі за фоли можуть бали давати супернику
+        public Result? winPlayer2 { get; set; }
+    }
+    public enum FoulStruggle
+    {
+        IllegalMove,
+        FingerGrasp,
+        RoughPlay, // Удар, штовхання, ривок
+        Passivity,
+        HoldingGear,
+        Avoiding, // Вихід зі зони без боротьби
+        Forfeit
+    }
+    public enum Result
+    {
+        Fall, // Туше 
+        TechnicalSuperiority, // є вже 10 балів
+        Points,
+        Injury, // травма
+        Rejection, // відмова
+        Disqualification
+    }
+}

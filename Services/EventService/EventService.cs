@@ -81,6 +81,8 @@ builder.Services.AddScoped<ISaveMatchInfo,SaveExtremeMatchIndividual>();
 
 builder.Services.AddSingleton<SaveMatchFactory>();
 
+builder.Services.AddScoped<IMatchsGenerator,MatchsGenerator>();
+
 var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {

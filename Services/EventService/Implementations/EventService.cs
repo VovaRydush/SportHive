@@ -62,6 +62,7 @@ namespace SportHive.Implementations
             {
                 NameEvent = eventDto.NameEvent,
                 systems = eventDto.systems,
+                TypeSport = eventDto.TypeSport,
                 EventPhoto = photoPath,
                 DataStart = eventDto.DataStart.ToUniversalTime(),
                 DataEnd = eventDto.DataEnd.ToUniversalTime(),

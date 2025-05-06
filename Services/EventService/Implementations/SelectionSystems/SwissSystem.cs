@@ -5,19 +5,29 @@ namespace SportHive.Implementations
 {
     public class SwissSystem : ICompetitionSystem
     {
-        private readonly SaveMatchFactory _saveMatchFactory;
-        public SwissSystem(SaveMatchFactory saveMatchFactory)
+        private readonly IMatchsGenerator _matchsGenerator;
+        public SwissSystem(IMatchsGenerator matchsGenerator)
         {
-            _saveMatchFactory = saveMatchFactory;
+            _matchsGenerator = matchsGenerator;
         }
-        public Task GenerateFirstRoundAsync(Matchs matchs, long IdEvent)
+        public async Task GenerateFirstRoundAsync(Matchs matchs, long IdEvent)
         {
-            throw new NotImplementedException();
+            if (matchs.Raiting == false) await GenerateFirstRoundRandomAsync(matchs, IdEvent);
+            else await GenerateFirstRoundByRatingAsync(matchs,IdEvent);
         }
 
         public Task GenerateNextRoundAsync(Matchs matchs, long IdEvent, List<Matchs> previousMatches)
         {
             throw new NotImplementedException();
+        }
+        
+        public async Task GenerateFirstRoundRandomAsync(Matchs matchs, long IdEvent)
+        {
+            await _matchsGenerator.GenerateInitialBracketAsync(matchs,IdEvent);
+        }
+        public async Task GenerateFirstRoundByRatingAsync(Matchs matchs, long IdEvent)
+        {
+            await Task.CompletedTask;
         }
     }
 }

@@ -30,6 +30,10 @@ namespace DB.SportHive.Domain
         [DataType(DataType.Date)]
         public DateTime? DataEnd {get;set;}
 
+        [Required]
+        [MaxLength(150)]
+        public string TypeSport{get;set;} = null!;
+
         [MaxLength(300)]
         public string description{get;set;} = null!;
 

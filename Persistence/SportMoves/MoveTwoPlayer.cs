@@ -1,0 +1,21 @@
+using System.ComponentModel;
+using MongoDB.Bson;
+
+namespace DB.SportHive.MongoDb
+{
+    public class MoveTwoPlayer
+    {
+        public long IdMatch{get;set;}
+        public string FullNamePlayer1{get;set;} = null!;
+        public string FullNamePlayer2{get;set;} = null!;
+        public string time {get;set;} = null!;
+    }
+    public enum TypeMovePlayer
+    {
+        [Description("Interception")]
+        Interception,
+        [Description("BlockShot")]
+        BlockShot
+    }
+
+}

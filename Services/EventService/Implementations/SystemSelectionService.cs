@@ -9,14 +9,12 @@ namespace SportHive.Implementations
 {
     public class SystemSelectionService : ISystemSelectionService
     {
-        private readonly IEventService _eventService;
         private readonly AppDbContext _appDbContext;
         private readonly SystemFactory _systemFactory;
-        public SystemSelectionService(IEventService eventService, AppDbContext appDbContext, SystemFactory systemFactory)
+        public SystemSelectionService(AppDbContext appDbContext, SystemFactory systemFactory)
         {
             _systemFactory = systemFactory;
             _appDbContext = appDbContext;
-            _eventService = eventService;
         }
         public async Task CreateMatchWithSSystem(Matchs teamComposition)
         {
@@ -31,6 +29,7 @@ namespace SportHive.Implementations
             ICompetitionSystem system = _systemFactory.Create(teamComposition.system);
             if(teamComposition.tour == 1) await system.GenerateFirstRoundAsync(teamComposition,IdEvent);
             // потім якось зберигти в редіс
+            // потім взагалі читати можна
             // system.GenerateNextRoundAsync();
         }
     }
