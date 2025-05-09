@@ -1,5 +1,4 @@
 using System.ComponentModel;
-using MongoDB.Bson;
 
 namespace DB.SportHive.MongoDb
 {
@@ -8,7 +7,7 @@ namespace DB.SportHive.MongoDb
         public long IdMatch { get; }
         public string FullNamePlayer { get; set; } = null!;
         public string time { get; set; } = null!;
-        public TypeMoves move{get;set;}
+        public TypeMoves move { get; set; }
         public bool realization { get; set; }
     }
     public enum TypeMoves
@@ -28,5 +27,4 @@ namespace DB.SportHive.MongoDb
         [Description("Conversion")]
         Conversion
     }
-
 }

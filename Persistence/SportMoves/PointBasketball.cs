@@ -1,5 +1,4 @@
 using System.ComponentModel;
-using MongoDB.Bson;
 
 namespace DB.SportHive.MongoDb
 {
@@ -11,7 +10,6 @@ namespace DB.SportHive.MongoDb
         public PointType pointType {get;set;}
         public int valuePoint{get;set;}
     }
-
     public enum PointType
     {
         [Description("free_throw")]

@@ -1,6 +1,4 @@
 using System.ComponentModel;
-using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
-using MongoDB.Bson;
 
 namespace DB.SportHive.MongoDb
 {
@@ -11,7 +9,7 @@ namespace DB.SportHive.MongoDb
         public string FullNamePlayer { get; set; } = null!;
         public TimeSpan time { get; set; }
         public SwimmingStyle style { get; set; }
-        public SwimmingFoul foul { get; set; }
+        public Foul foul { get; set; }
 
     }
     public enum SwimmingStyle

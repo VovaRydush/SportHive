@@ -20,6 +20,4 @@ namespace DB.SportHive.MongoDb
         public bool IsKingMove { get; set; }
         public TimeSpan? TimeRemaining { get; set; }
     }
-
-
 }

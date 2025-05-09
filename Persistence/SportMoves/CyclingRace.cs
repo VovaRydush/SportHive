@@ -1,6 +1,3 @@
-using System.ComponentModel;
-using MongoDB.Bson;
-
 namespace DB.SportHive.MongoDb
 {
     public class CyclingRace
@@ -13,21 +10,8 @@ namespace DB.SportHive.MongoDb
         public int Position { get; set; }
         public float AvgSpeed { get; set; }
         public float? MaxSpeed { get; set; }
-        public List<CyclingFoul> Fouls { get; set; } = new();
+        public List<Foul> Fouls { get; set; } = new();
         public bool DidNotFinish { get; set; }
     }
-
-    public enum CyclingFoul
-    {
-        [Description("UnsportingBehavior")]
-        UnsportingBehavior,
-        [Description("DraftingViolation")]
-        DraftingViolation,
-        [Description("LineChangeInSprint")]
-        LineChangeInSprint,
-        [Description("Littering")]
-        Littering,
-        [Description("IllegalAssistance")]
-        IllegalAssistance
-    }
 }
+

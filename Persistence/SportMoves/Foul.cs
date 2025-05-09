@@ -187,6 +187,16 @@ namespace DB.SportHive.MongoDb
         Elbow, //удар ліктем
         [Description("Headbutt")]
         Headbutt, //удар головою
+
+        // стрільба з лука
+        [Description("Overtime")]
+        Overtime,
+        [Description("WrongTarget")]
+        WrongTarget,
+        [Description("CrossingLineEarly")]
+        CrossingLineEarly,
+        [Description("TooManyArrows")]
+        TooManyArrows
     }
 
 

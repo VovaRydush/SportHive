@@ -1,5 +1,4 @@
 using System.ComponentModel;
-using MongoDB.Bson;
 
 namespace DB.SportHive.MongoDb
 {
@@ -18,7 +17,6 @@ namespace DB.SportHive.MongoDb
         public MethodWin? winPlayer2 { get; set; }
 
     }
-
     public enum MethodWin
     {
         [Description("Knockout")]

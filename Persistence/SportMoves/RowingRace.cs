@@ -1,9 +1,5 @@
-using System.ComponentModel;
-using MongoDB.Bson;
-
 namespace DB.SportHive.MongoDb
 {
-
     public class RowingRace
     {
         public long IdRace { get; set; }

@@ -1,14 +1,13 @@
 using System.ComponentModel;
-using MongoDB.Bson;
 
 namespace DB.SportHive.MongoDb
 {
     public class MoveTwoPlayer
     {
-        public long IdMatch{get;}
-        public string FullNamePlayer1{get;set;} = null!;
-        public string FullNamePlayer2{get;set;} = null!;
-        public string time {get;set;} = null!;
+        public long IdMatch { get; }
+        public string FullNamePlayer1 { get; set; } = null!;
+        public string FullNamePlayer2 { get; set; } = null!;
+        public string time { get; set; } = null!;
     }
     public enum TypeMovePlayer
     {
@@ -17,5 +16,4 @@ namespace DB.SportHive.MongoDb
         [Description("BlockShot")]
         BlockShot
     }
-
 }

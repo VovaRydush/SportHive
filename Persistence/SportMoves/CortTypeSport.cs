@@ -1,5 +1,3 @@
-using System.ComponentModel;
-
 namespace DB.SportHive.MongoDb
 {
     public class TableTennis
@@ -20,5 +18,4 @@ namespace DB.SportHive.MongoDb
         Tenis,
         Badminton
     }
-
 }
