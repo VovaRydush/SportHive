@@ -9,7 +9,7 @@ namespace DB.SportHive.MongoDb
         public string FullNamePlayer { get; set; } = null!;
         public TimeSpan time { get; set; }
         public SwimmingStyle style { get; set; }
-        public Foul foul { get; set; }
+        public Foul Foul { get; set; }
 
     }
     public enum SwimmingStyle
