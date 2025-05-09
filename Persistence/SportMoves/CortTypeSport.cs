@@ -1,3 +1,5 @@
+using System.ComponentModel;
+
 namespace DB.SportHive.MongoDb
 {
     public class TableTennis
@@ -8,27 +10,8 @@ namespace DB.SportHive.MongoDb
         public List<string> FullNamePlayer { get; set; } = null!;
         public TimeOut? timeOut { get; set; }
         public Card? card { get; set; }
-        public TypeFoul foul { get; set; }
+        public Foul foul { get; set; }
         public TimeSpan CreatedAt { get; set; }
-
-    }
-    public enum TypeFoul
-    {
-        FaultyServe,
-        NetTouch,
-        MissedBall,
-        BallBounceTwice,
-        WrongOrder,
-        Obstructing,
-        UnforcedError,
-        ForcedError,
-        DoubleFault,
-        FootFault,
-        Out,
-        TimeViolation,
-        CodeViolation,
-        Carry,
-        Disqualification
 
     }
     public enum TypeTenis

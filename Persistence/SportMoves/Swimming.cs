@@ -27,17 +27,4 @@ namespace DB.SportHive.MongoDb
         [Description("Comprehensive")]
         Comprehensive
     }
-    public enum SwimmingFoul
-    {
-        [Description("FalseStart")]
-        FalseStart,
-        [Description("BadTechnique")]
-        BadTechnique,
-        [Description("ViolationTurn")]
-        ViolationTurn,
-        [Description("Immersion")]
-        Immersion,
-        [Description("BatonViolation")]
-        BatonViolation
-    }
 }

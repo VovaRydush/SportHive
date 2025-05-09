@@ -19,11 +19,15 @@ namespace DB.SportHive.MongoDb
 
     public enum CyclingFoul
     {
-        FalseStart,
+        [Description("UnsportingBehavior")]
         UnsportingBehavior,
+        [Description("DraftingViolation")]
         DraftingViolation,
+        [Description("LineChangeInSprint")]
         LineChangeInSprint,
+        [Description("Littering")]
         Littering,
+        [Description("IllegalAssistance")]
         IllegalAssistance
     }
 }

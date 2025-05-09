@@ -8,7 +8,7 @@ namespace DB.SportHive.MongoDb
         public string Result { get; set; } = null!; // "1-0", "0-1", "½-½"
         public string TimeControl { get; set; } = null!; // "15+3"
         public List<CheckersMove> Moves { get; set; } = new();
-        public List<CheckersFoul> Fouls { get; set; } = new();
+        public List<Foul> Fouls { get; set; } = new();
         public DateTime Date { get; set; }
     }
 
@@ -21,13 +21,5 @@ namespace DB.SportHive.MongoDb
         public TimeSpan? TimeRemaining { get; set; }
     }
 
-    public enum CheckersFoul
-    {
-        IllegalMove,
-        MissedCapture,
-        TouchViolation,
-        TimeForfeit,
-        UnsportingBehavior
-    }
 
 }

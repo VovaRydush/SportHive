@@ -13,6 +13,7 @@ namespace DB.SportHive.MongoDb
         public int countNo{get;set;}
         public float Weight {get;set;}
         public int TryCount {get;set;}
+        public bool done {get;set;}
         public ResultMove result{get;set;}
 
     }
@@ -28,46 +29,5 @@ namespace DB.SportHive.MongoDb
         BenchPress, //жим лежачи
         [Description("Deadlift")]
         Deadlift, // станова тяга
-    }
-    public enum ResultMove
-    {
-        [Description("Disqualification")]
-        Disqualification,
-        [Description("BadLift")]
-        BadLift, //Недопідйом
-        [Description("EarlyDrop")]
-        EarlyDrop,
-        [Description("PlatformExit")]
-        PlatformExit,
-        [Description("DoubleMovement")]
-        DoubleMovement,
-        [Description("CoachInterference")]
-        CoachInterference,
-        [Description("BombOut")]
-        BombOut,
-        [Description("Done")]
-        Done,
-        [Description("NoLockout")]
-        NoLockout, // не зафіксовано вагу
-        [Description("MissedСommand")]
-        MissedСommand,
-        [Description("UnevenMovement")]
-        UnevenMovement,
-        [Description("BarDropped")]
-        BarDropped, //впав інвентар
-        [Description("LiftingOff")]
-        LiftingOff, // відрив
-        [Description("ShallowSquat")]
-        ShallowSquat,// недостатня глибина присідання
-        [Description("EarlyMovement")]
-        EarlyMovement, // Рух назад вгору до команди
-        [Description("UnevenBar")]
-        UnevenBar, // Плечі не вирівняні
-        [Description("Bounce")]
-        Bounce, // не торкнувся грудей
-        [Description("RoundedBack")]
-        RoundedBack, //не стабільне положення
-        [Description("Stepping")]
-        Stepping // Переставив ноги під час підйому
     }
 }
