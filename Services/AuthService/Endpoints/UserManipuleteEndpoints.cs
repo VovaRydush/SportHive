@@ -22,7 +22,7 @@ namespace AuthService.Endpoints
 
             route.MapPost("/change-password", async ([FromBody] UserInfoDto user, IProfileManipulete profile) =>
             {
-                await profile.PasswordRecovery(user.Email, user.Password);
+                await profile.PasswordRecovery(user.Login, user.Password);
             });
         }
     }

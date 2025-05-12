@@ -42,12 +42,12 @@ public class ConsumerEmail : BackgroundService
             string code = random.Next(100000, 1000000).ToString();
            
             _ = _database.StringSetAsync(message.To, code,TimeSpan.FromMinutes(10));
-            
+
             var mail = new MailMessage
             {
                 From = new MailAddress(message.From),
                 Subject = message.Subject,
-                Body = message.Body+code,
+                Body = HTMLTemplate.getHTMLPage(code, message.Subject),
                 IsBodyHtml = true 
             };
 

@@ -21,7 +21,7 @@ namespace SportHive.Implementations
 
         public async Task PasswordRecovery(string login, string newPassword)
         {
-            var user = await _dbcontext.Users.FirstOrDefaultAsync(u => u.login == login);
+            var user = await _dbcontext.Users.FirstAsync(u => u.login == login);
             user.HashPassword = BCrypt.Net.BCrypt.HashPassword(newPassword, workFactor: 8);
             await _dbcontext.SaveChangesAsync();
         }
@@ -32,7 +32,7 @@ namespace SportHive.Implementations
             {
                 From = "vadimrudis7@gmail.com",
                 To = Email, 
-                Subject = "Код відновлення:",
+                Subject = "Відновлення паролю",
                 Body = "Ваш код: "
             });
         }
