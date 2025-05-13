@@ -1,8 +1,9 @@
 namespace DB.SportHive.MongoDb
 {
-    public class ChessGame
+    public class ChessMatch
     {
         public long IdMatch { get; set; }
+        public int Tour{get;set;}
         public string WhitePlayer { get; set; } = null!;
         public string BlackPlayer { get; set; } = null!;
         public string TimeControl { get; set; } = null!;

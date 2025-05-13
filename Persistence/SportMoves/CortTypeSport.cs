@@ -1,14 +1,11 @@
 namespace DB.SportHive.MongoDb
 {
-    public class TableTennis
+    public class CortTypeSport
     {
-        public long idMatch { get; }
         public TypeTenis type { get; set; }
         public int SetCount { get; set; }
-        public List<string> FullNamePlayer { get; set; } = null!;
         public TimeOut? timeOut { get; set; }
-        public Card? card { get; set; }
-        public Foul foul { get; set; }
+        public List<PlayerFouls> playerFouls { get; set; } = null!;
         public TimeSpan CreatedAt { get; set; }
 
     }

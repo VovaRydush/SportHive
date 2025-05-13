@@ -24,6 +24,8 @@ namespace DB.SportHive.MongoDb
         Pass,
         [Description("Penalty")]
         Penalty,
+        [Description("Try")]
+        Try,
         [Description("Conversion")]
         Conversion
     }

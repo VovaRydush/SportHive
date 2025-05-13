@@ -5,7 +5,8 @@ namespace DB.SportHive.MongoDb
     public class BaseballEvent
     {
         public long IdMatch { get;}           // Ідентифікатор матчу
-        public long PlayerId { get; set; }          // Ідентифікатор гравця
+        public string FullNamePlayer { get; set; } = null!;        // Ідентифікатор гравця
+        public string loginPlayer{get;set;} = null!;
         public DateTime EventTime { get; set; }     // Час події
         public EventType EventType { get; set; }    // Тип події
         public int? BaseReached { get; set; }       // Номер бази, яку досяг гравець (якщо застосовно)

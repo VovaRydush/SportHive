@@ -4,13 +4,12 @@ namespace DB.SportHive.MongoDb
     {
         public long IdMatch { get; set; }
         public string AthleteName { get; set; } = null!;
-        public string RaceType { get; set; } = null!;
         public float DistanceKm { get; set; }
         public TimeSpan FinishTime { get; set; }
         public int Position { get; set; }
         public float AvgSpeed { get; set; }
         public float? MaxSpeed { get; set; }
-        public List<Foul> Fouls { get; set; } = new();
+        public List<Foul> Fouls { get; set; } = null!;
         public bool DidNotFinish { get; set; }
     }
 }

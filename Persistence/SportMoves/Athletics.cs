@@ -2,9 +2,10 @@ using System.ComponentModel;
 
 namespace DB.SportHive.MongoDb
 {
-    public class Athletics
+    public class AthleticsMoves
     {
-        public long IdMatch { get; }
+        public string FullNamePlayer { get; set; } = null!;
+        public string login { get; set; } = null!;
         public TypeDesipline typeDesipline { get; set; }
         public float distance { get; set; }
         public int Try { get; set; }

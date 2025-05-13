@@ -7,6 +7,7 @@ namespace DB.SportHive.MongoDb
         public long IdMatch { get; }
         public string FullNamePlayer1 { get; set; } = null!;
         public string FullNamePlayer2 { get; set; } = null!;
+        public TypeMovePlayer typeMove{get;set;}
         public string time { get; set; } = null!;
     }
     public enum TypeMovePlayer
@@ -14,6 +15,8 @@ namespace DB.SportHive.MongoDb
         [Description("Interception")]
         Interception,
         [Description("BlockShot")]
-        BlockShot
+        BlockShot,
+        [Description("Replacement")]
+        Replacement
     }
 }

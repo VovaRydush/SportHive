@@ -4,18 +4,14 @@ namespace DB.SportHive.MongoDb
 {
     public class Box
     {
-        public long idMatch { get;}
+        public long idMatch { get; }
         public int round { get; set; }
+        public BoxWinner boxWinner { get; set; } = null!;
         public TimeSpan time { get; set; }
         public string FullNamePlayer1 { get; set; } = null!;
-        public Foul? foulsPlayer1 { get; set; }
-        public int? MinusValue1 { get; set; }
-        public MethodWin? winPlayer1 { get; set; }
         public string FullNamePlayer2 { get; set; } = null!;
-        public Foul? foulsPlayer2 { get; set; }
-        public int? MinusValue2 { get; set; }
-        public MethodWin? winPlayer2 { get; set; }
-
+        public List<MinusValue> playerMinusValue {get;set;} = null!;
+        public List<PlayerFouls> playerFouls { get; set; } = null!;
     }
     public enum MethodWin
     {
@@ -31,5 +27,16 @@ namespace DB.SportHive.MongoDb
         UnanimousDecision,
         [Description("SplitDecision")]
         SplitDecision
+    }
+    public class BoxWinner
+    {
+        public string FullNamePlayer { get; set; } = null!;
+        public string loginWinner { get; set; } = null!;
+        public MethodWin win { get; set; }
+    }
+    public class MinusValue
+    {
+        public string FullNamePlayer { get; set; } = null!;
+        public int value { get; set; }
     }
 }

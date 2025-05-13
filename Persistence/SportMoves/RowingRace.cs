@@ -4,8 +4,6 @@ namespace DB.SportHive.MongoDb
     {
         public long IdRace { get; set; }
         public string AthleteOrTeam { get; set; } = null!;
-        public string BoatType { get; set; } = null!; 
-        public string Discipline { get; set; } = null!; 
         public int DistanceMeters { get; set; }
         public TimeSpan ResultTime { get; set; }
         public int Place { get; set; }
