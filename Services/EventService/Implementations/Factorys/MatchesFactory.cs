@@ -1,3 +1,4 @@
+using SportHive.Exceptions;
 using SportHive.Services.Interfaces;
 
 namespace SportHive.Implementations
@@ -16,11 +17,13 @@ namespace SportHive.Implementations
             return matchType switch
             {
                 "SaveTeamMatch" => _provider.GetRequiredService<SaveTeamMatch>(),
-                "ExtremeMatchIndividual" => _provider.GetRequiredService<SaveExtremeMatchIndividual>(),
                 "IndividualMatch" => _provider.GetRequiredService<SaveIndividualMatch>(),
                 "TeamMatch" => _provider.GetRequiredService<SaveTeamMatch>(),
-                _ => throw new NotImplementedException($"Unknown match type: {matchType}")
+                _ => throw new NotFoundException($"Unknown match type: {matchType}")
             };
         }
     }
+
+
+
 }

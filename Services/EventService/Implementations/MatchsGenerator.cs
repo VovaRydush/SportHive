@@ -8,7 +8,7 @@ namespace SportHive.Implementations
     {
         private readonly SaveMatchFactory _saveMatchFactory;
         private readonly AppDbContext _appDbContext;
-        public MatchsGenerator(SaveMatchFactory saveMatchFactory,AppDbContext appDbContext)
+        public MatchsGenerator(SaveMatchFactory saveMatchFactory, AppDbContext appDbContext)
         {
             _appDbContext = appDbContext;
             _saveMatchFactory = saveMatchFactory;

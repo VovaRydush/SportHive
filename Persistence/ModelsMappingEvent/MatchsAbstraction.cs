@@ -9,7 +9,7 @@ namespace DB.SportHive.Domain
         public int tour { get; set; }
         public string NameSport { get; set; } = null!;
         public string typeSport { get; set; } = null!; // типу індивідуальний чи командний і тд
-        public bool? Raiting { get; set; }
+        public bool? Rating { get; set; }
         public string system { get; set; } = null!;
     }
 }

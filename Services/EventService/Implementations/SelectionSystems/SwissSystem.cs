@@ -1,4 +1,5 @@
 using DB.SportHive.Domain;
+using DB.SportHive.Persistence;
 using SportHive.Services.Interfaces;
 
 namespace SportHive.Implementations
@@ -12,7 +13,7 @@ namespace SportHive.Implementations
         }
         public async Task GenerateFirstRoundAsync(Matchs matchs, long IdEvent)
         {
-            if (matchs.Raiting == false) await GenerateFirstRoundRandomAsync(matchs, IdEvent);
+            if (matchs.Rating == false) await GenerateFirstRoundRandomAsync(matchs, IdEvent);
             else await GenerateFirstRoundByRatingAsync(matchs,IdEvent);
         }
 

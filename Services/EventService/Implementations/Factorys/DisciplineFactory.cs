@@ -57,6 +57,7 @@ namespace SportHive.Implementations
                 "Rowing" => new Rowing(info),
                 "Swimming"=>new Swimming(info),
                 "WeightliftingMatch" => new WeightliftingMatch(info),
+                "Archery" => new Archery(info),
                 _ => throw new NotImplementedException($"Unknown system: {info.NameDesipline}")
             };
         }

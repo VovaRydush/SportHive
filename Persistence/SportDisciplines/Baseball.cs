@@ -8,12 +8,12 @@ namespace DB.SportHive.MongoDb
         {
             playerFouls = new List<PlayerFouls>();
             Tour = info.tour;
-            foreach (var entity in info.playersName)
+            foreach (var entity in info.entitysName)
             {
                 var athlete = new PlayerFouls
                 {
-                    FullNamePlayer = entity.FullNamePlayer,
-                    loginPlayer = entity.loginPlayer
+                    FullNamePlayer = entity.EntityName,
+                    loginPlayer = entity.loginPlayer ?? ""
                 };
                 playerFouls.Add(athlete);
             }

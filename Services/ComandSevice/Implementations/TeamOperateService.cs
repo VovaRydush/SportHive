@@ -69,7 +69,7 @@ namespace SportHive.Implementations
            
             var entities = team.Athlets.Select(d => new TeamAthlete
             {
-                NameTeam = d.NameTeam,
+                 NameTeam = team.NameTeam,
                 loginAthlets = d.LoginAthlets,
                 AthleteStatus = d.AthleteStatus
             }).ToList();
