@@ -5,6 +5,8 @@ namespace SportHive.Services.Interfaces
 {
     public interface IMongoDbService
     {
-        IMongoDatabase dbcontext {get;set;}
+        IMongoDatabase DbContext { get; }
+        IMongoCollection<T> GetCollection<T>(string name);
     }
+
 }

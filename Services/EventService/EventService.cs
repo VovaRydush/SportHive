@@ -9,6 +9,7 @@ using StackExchange.Redis;
 using JwtAuthentication;
 using Extensions;
 using Microsoft.OpenApi.Models;
+using DB.SportHive.MongoDb;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -73,11 +74,13 @@ builder.Services.AddTransient<RoundRobinSystem>();
 builder.Services.AddTransient<SwissSystem>();
 
 builder.Services.AddSingleton<SystemFactory>();
+builder.Services.AddSingleton<DisciplineFactory>();
 
 builder.Services.AddScoped<ISaveMatchInfo, SaveTeamMatch>();
 builder.Services.AddScoped<ISaveMatchInfo, SaveExtremeMatch>();
 builder.Services.AddScoped<ISaveMatchInfo,SaveIndividualMatch>();
-builder.Services.AddScoped<ISaveMatchInfo,SaveExtremeMatchIndividual>();
+builder.Services.AddScoped<ISaveMatchInfo, SaveExtremeMatchIndividual>();
+builder.Services.AddScoped<IEnterDataMatches,EnterDataMatches>();
 
 builder.Services.AddSingleton<SaveMatchFactory>();
 

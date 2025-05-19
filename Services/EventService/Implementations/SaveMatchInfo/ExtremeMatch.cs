@@ -7,8 +7,10 @@ namespace SportHive.Implementations
     public class SaveExtremeMatch : ISaveMatchInfo
     {
         private readonly AppDbContext _appDbContext;
-        public SaveExtremeMatch(AppDbContext appDbContext)
+        private readonly IEnterDataMatches _saveMongo;
+        public SaveExtremeMatch(AppDbContext appDbContext,IEnterDataMatches saveMongo)
         {
+            _saveMongo = saveMongo;
             _appDbContext = appDbContext;
         }
         public void SaveMatch(Matchs matchs,long IdExtremeMatches)
@@ -23,6 +25,7 @@ namespace SportHive.Implementations
                 };
                 entities.Add(entity);
              }
+             //_saveMongo.SaveMatches();
              _appDbContext.EMatchesTeam.AddRange(entities);
         }
     }

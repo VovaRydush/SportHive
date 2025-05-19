@@ -1,9 +1,18 @@
+using DB.SportHive.Domain;
+
 namespace DB.SportHive.MongoDb
 {
-    public class Struggle
+    public class Struggle : MatchEvents
     {
+        public Struggle(TwoPlayerInfo info)
+        {
+            idMatch = info.idMatch;
+            FullNamePlayer1 = info.FullNamePlayer1;
+            FullNamePlayer2 = info.FullNamePlayer2;
+        }
         public string typeResult { get; set; } = null!;
-        public long idMatch { get;}
+        public string FullNamePlayer1 {get;set;} = null!;
+        public string FullNamePlayer2 {get;set;} = null!;
         public int round { get; set; }
         public TimeSpan time { get; set; }
         public List<PlayerFouls> player1Fouls {get;set;} = null!;

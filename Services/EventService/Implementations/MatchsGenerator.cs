@@ -20,10 +20,9 @@ namespace SportHive.Implementations
             if (matchs.Entitys.Count % 2 != 0) { saveEntity.SaveMatch(matchs, matchs.Entitys[0], "Bye", IdEvent); iterator++; }
             for (int i = iterator; i < matchs.Entitys.Count - 1; i += 2)
             {
-                saveEntity.SaveMatch(matchs, matchs.Entitys[1],matchs.Entitys[i+1], IdEvent);
+                saveEntity.SaveMatch(matchs, matchs.Entitys[i],matchs.Entitys[i+1], IdEvent);
             }
            await _appDbContext.SaveChangesAsync(); 
         }
     }
-
 }

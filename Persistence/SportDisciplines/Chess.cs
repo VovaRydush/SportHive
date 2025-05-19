@@ -1,11 +1,18 @@
+using DB.SportHive.Domain;
+
 namespace DB.SportHive.MongoDb
 {
-    public class ChessMatch
+    public class ChessMatch : MatchEvents
     {
-        public long IdMatch { get; set; }
+         public ChessMatch(TwoPlayerInfo info)
+        {
+            idMatch = info.idMatch;
+            FullNamePlayer1 = info.FullNamePlayer1;
+            FullNamePlayer2 = info.FullNamePlayer2;
+        }
         public int Tour{get;set;}
-        public string WhitePlayer { get; set; } = null!;
-        public string BlackPlayer { get; set; } = null!;
+        public string FullNamePlayer1 { get; set; } = null!;
+        public string FullNamePlayer2 { get; set; } = null!;
         public string TimeControl { get; set; } = null!;
         public string Result { get; set; } = null!;
         public List<ChessMove> Moves { get; set; } = new();

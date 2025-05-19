@@ -1,9 +1,16 @@
+using DB.SportHive.Domain;
+
 namespace DB.SportHive.MongoDb
 {
-    public class TeamDesiplines
-    {
-        public long idMatch { get; set; }
-        public int Tour{get;set;}
+    public class TeamDesiplines : MatchEvents
+    { 
+        public TeamDesiplines(TeamInfo info)
+        {
+            Tour = info.Tour;
+            NameDesipline = info.NameDesipline;
+            idMatch = info.idMatch;
+        }
+        public int Tour { get; set; }
         public string NameDesipline {get;set;} = null!; // футбол, баскетбол, волейбол, пляжний волейбол, амириканський футбол, хокей,Регбі,Бейсбол
         public TeamScore firstTeamScore { get; set; } = null!;
         public TeamScore secondTeamScore { get; set; } = null!;

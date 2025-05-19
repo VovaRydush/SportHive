@@ -1,10 +1,17 @@
 using System.ComponentModel;
-
+using DB.SportHive.Domain;
+using SportHive.Services.Interfaces;
+using SportHive.Implementations;
 namespace DB.SportHive.MongoDb
 {
-    public class Box
+    public class Box : MatchEvents
     {
-        public long idMatch { get; }
+        public Box(TwoPlayerInfo info)
+        {
+            idMatch = info.idMatch;
+            FullNamePlayer1 = info.FullNamePlayer1;
+            FullNamePlayer2 = info.FullNamePlayer2;
+        }
         public int round { get; set; }
         public BoxWinner boxWinner { get; set; } = null!;
         public TimeSpan time { get; set; }
@@ -13,6 +20,11 @@ namespace DB.SportHive.MongoDb
         public List<MinusValue> playerMinusValue {get;set;} = null!;
         public List<PlayerFouls> playerFouls { get; set; } = null!;
     }
+
+    internal interface ICompetitionSystem
+    {
+    }
+
     public enum MethodWin
     {
         [Description("Knockout")]

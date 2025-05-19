@@ -1,9 +1,23 @@
+using DB.SportHive.Domain;
+
 namespace DB.SportHive.MongoDb
 {
-    public class Rowing
+    public class Rowing : MatchEvents
     {
-        public long idMatch { get; set; }
-        public int Tour{get;set;}
+        public Rowing(ExtremeIndividualInfo info)
+        {
+            rowingAtheletes = new List<RowingRace>();
+            Tour = info.tour;
+            foreach (var entity in info.playersName)
+            {
+                var athlete = new RowingRace
+                {
+                    AthleteOrTeam = entity.FullNamePlayer,
+                };
+                rowingAtheletes.Add(athlete);
+            }
+        }
+        public int Tour { get; set; }
         public string BoatType { get; set; } = null!; 
         public string Discipline { get; set; } = null!; 
         public List<RowingRace> rowingAtheletes {get;set;} = null!;

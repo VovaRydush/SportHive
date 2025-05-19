@@ -4,6 +4,7 @@ namespace DB.SportHive.MongoDb
     {
         public long IdMatch { get; set; }
         public string AthleteName { get; set; } = null!;
+        public string loginPlayer { get; set; } = null!;
         public float DistanceKm { get; set; }
         public TimeSpan FinishTime { get; set; }
         public int Position { get; set; }

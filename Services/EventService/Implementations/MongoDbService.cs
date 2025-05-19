@@ -5,18 +5,21 @@ namespace SportHive.Implementations
 {
     public class MongoDbService : IMongoDbService
     {
-        private readonly MongoClient client;
-        public IMongoDatabase dbcontext;
+        private readonly MongoClient _client;
         private readonly IConfiguration _configuration;
-
-        IMongoDatabase IMongoDbService.dbcontext { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public IMongoDatabase DbContext { get; }
 
         public MongoDbService(IConfiguration configuration)
         {
             _configuration = configuration;
-            client = new MongoClient(_configuration.GetValue<string>("MongoDb:ConnectionString"));
-            dbcontext = client.GetDatabase(_configuration.GetValue<string>("MongoDb:Database"));
+            _client = new MongoClient(_configuration.GetValue<string>("MongoDb:ConnectionString"));
+            DbContext = _client.GetDatabase(_configuration.GetValue<string>("MongoDb:Database"));
         }
-        
+
+        public IMongoCollection<T> GetCollection<T>(string name)
+        {
+            return DbContext.GetCollection<T>(name);
+        }
     }
+
 }

@@ -1,10 +1,16 @@
+using DB.SportHive.Domain;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 
 namespace DB.SportHive.MongoDb
 {
-    public class CortMatches
+    public class CortMatches : MatchEvents
     {
-        public long idMatch { get; }
+        public CortMatches(TwoPlayerInfo info)
+        {
+            idMatch = info.idMatch;
+            cortSport.FullNamePlayer1 = info.FullNamePlayer1;
+            cortSport.FullNamePlayer2 = info.FullNamePlayer2;
+        }
         public CortTypeSport cortSport { get; set; } = null!;
     }
 }
