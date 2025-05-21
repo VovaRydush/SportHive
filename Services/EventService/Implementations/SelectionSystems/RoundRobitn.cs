@@ -22,7 +22,7 @@ namespace SportHive.Implementations
             {
                 for (int j = i + 1; j < matchs.Entitys.Count; j++)
                 {
-                    saveEntity.SaveMatch(matchs, matchs.Entitys[i], matchs.Entitys[j], IdEvent);
+                    await saveEntity.SaveMatch(_appDbContext,matchs, matchs.Entitys[i], matchs.Entitys[j], IdEvent);
                 }
             }
            await _appDbContext.SaveChangesAsync(); 

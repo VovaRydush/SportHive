@@ -1,4 +1,5 @@
 using DB.SportHive.Domain;
+using DB.SportHive.Persistence;
 using SportHive.Services.Interfaces;
 
 namespace SportHive.Implementations

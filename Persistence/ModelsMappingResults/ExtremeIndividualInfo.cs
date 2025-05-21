@@ -7,11 +7,11 @@ namespace DB.SportHive.Domain
         public long idMatch;
         public int tour;
         public string NameDesipline { get; set; } = null!;
-        public List<PlayerInfo> playersName { get; set; } = null!;
+        public List<EntityInfo> entitysName { get; set; } = null!;
     }
-    public class PlayerInfo
+    public class EntityInfo
     {
-        public string FullNamePlayer { get; set; } = null!;
-        public string loginPlayer { get; set; } = null!;
+        public string EntityName { get; set; } = null!;
+        public string? loginPlayer { get; set; } = null!;
     }
 }

@@ -7,12 +7,12 @@ namespace DB.SportHive.MongoDb
         public DistanceRunningMatch(ExtremeIndividualInfo info)
         {
             runningAthlets = new List<DistanceRunning>();
-            foreach (var entity in info.playersName)
+            foreach (var entity in info.entitysName)
             {
                 var athlete = new DistanceRunning
                 {
-                    FullNamePlayer = entity.FullNamePlayer,
-                    loginPlayer = entity.loginPlayer
+                    FullNamePlayer = entity.EntityName,
+                    loginPlayer = entity.loginPlayer ?? ""
                 };
                 runningAthlets.Add(athlete);
             }

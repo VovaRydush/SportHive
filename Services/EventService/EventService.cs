@@ -64,27 +64,29 @@ builder.Services.AddScoped<IEventService,EventService>();
 builder.Services.AddScoped<ISystemSelectionService,SystemSelectionService>();
 builder.Services.AddScoped<IEventService,EventService>();
 
-builder.Services.AddTransient<PlayOffSystem>();
-builder.Services.AddTransient<DoubleEliminationSystem>();
-builder.Services.AddTransient<GroupSystem>();
-builder.Services.AddTransient<KnockoutSystem>();
-builder.Services.AddTransient<MixsedSystem>();
-builder.Services.AddTransient<OlympicSystem>();
-builder.Services.AddTransient<RoundRobinSystem>();
-builder.Services.AddTransient<SwissSystem>();
+builder.Services.AddScoped<PlayOffSystem>();
+builder.Services.AddScoped<DoubleEliminationSystem>();
+builder.Services.AddScoped<GroupSystem>();
+builder.Services.AddScoped<KnockoutSystem>();
+builder.Services.AddScoped<MixsedSystem>();
+builder.Services.AddScoped<OlympicSystem>();
+builder.Services.AddScoped<RoundRobinSystem>();
+builder.Services.AddScoped<SwissSystem>();
 
-builder.Services.AddSingleton<SystemFactory>();
-builder.Services.AddSingleton<DisciplineFactory>();
+builder.Services.AddScoped<SystemFactory>();
 
-builder.Services.AddScoped<ISaveMatchInfo, SaveTeamMatch>();
-builder.Services.AddScoped<ISaveMatchInfo, SaveExtremeMatch>();
-builder.Services.AddScoped<ISaveMatchInfo,SaveIndividualMatch>();
-builder.Services.AddScoped<ISaveMatchInfo, SaveExtremeMatchIndividual>();
-builder.Services.AddScoped<IEnterDataMatches,EnterDataMatches>();
+builder.Services.AddScoped<DisciplineFactory>();
 
-builder.Services.AddSingleton<SaveMatchFactory>();
+builder.Services.AddScoped<IEnterDataMatches, EnterDataMatches>();
 
-builder.Services.AddScoped<IMatchsGenerator,MatchsGenerator>();
+builder.Services.AddScoped<SaveTeamMatch>();
+builder.Services.AddScoped<SaveIndividualMatch>();
+builder.Services.AddScoped<SaveExtremeMatch>();
+
+builder.Services.AddScoped<SaveMatchFactory>();
+
+builder.Services.AddScoped<IMatchsGenerator, MatchsGenerator>();
+
 
 var app = builder.Build();
 if (app.Environment.IsDevelopment())

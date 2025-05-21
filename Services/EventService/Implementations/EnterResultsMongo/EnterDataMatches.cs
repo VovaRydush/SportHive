@@ -7,9 +7,9 @@ namespace SportHive.Implementations
 {
     public class EnterDataMatches : IEnterDataMatches
     {
-        private readonly  IMongoCollection<MatchEvents> _matchEvents;
+        private readonly IMongoCollection<MatchEvents> _matchEvents;
         private readonly DisciplineFactory _disciplineFactory;
-        public EnterDataMatches(IMongoDbService mongoDbService,DisciplineFactory disciplineFactory)
+        public EnterDataMatches(IMongoDbService mongoDbService, DisciplineFactory disciplineFactory)
         {
             _disciplineFactory = disciplineFactory;
             _matchEvents = mongoDbService.GetCollection<MatchEvents>("MatchEvents");
@@ -17,16 +17,15 @@ namespace SportHive.Implementations
 
         public async Task SaveMatches(TwoPlayerInfo info)
         {
-           var sport = _disciplineFactory.CreateIndividual(info);
-           _matchEvents.InsertOne(sport);
-           await Task.CompletedTask;
+            var sport = _disciplineFactory.CreateIndividual(info);
+            _matchEvents.InsertOne(sport);
+            await Task.CompletedTask;
         }
 
         public async Task SaveMatches(TeamInfo info)
         {
             var sport = _disciplineFactory.CreateTeamRecord(info);
-            _matchEvents.InsertOne(sport);
-            await Task.CompletedTask;
+            await _matchEvents.InsertOneAsync(sport);
         }
         public async Task SaveMatches(ExtremeIndividualInfo info)
         {

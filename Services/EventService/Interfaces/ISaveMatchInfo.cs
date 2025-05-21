@@ -1,12 +1,12 @@
 
 using DB.SportHive.Domain;
+using DB.SportHive.Persistence;
 
 namespace SportHive.Services.Interfaces
 {
-    public class ISaveMatchInfo
+    public interface ISaveMatchInfo
     {
-        public void SaveMatch(params object[] parameters)
-        {
-        }
+        Task SaveMatch(AppDbContext appDbContext,Matchs matchs, long IdExtremeMatches, string TypeMatch);
+        Task SaveMatch(AppDbContext appDbContext,Matchs matchs, string entity1, string entity2, long IdEvent);
     }
 }

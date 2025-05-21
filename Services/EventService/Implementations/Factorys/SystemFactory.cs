@@ -4,28 +4,33 @@ namespace SportHive.Implementations
 {
     public class SystemFactory
     {
-        private readonly IServiceProvider _provider;
+        private readonly IServiceScopeFactory _scopeFactory;
 
-        public SystemFactory(IServiceProvider provider)
+        public SystemFactory(IServiceScopeFactory scopeFactory)
         {
-            _provider = provider;
+            _scopeFactory = scopeFactory;
         }
 
         public ICompetitionSystem Create(string system)
         {
+            Console.WriteLine("SystemFactory");
+            var scope = _scopeFactory.CreateScope();
+            var provider = scope.ServiceProvider;
+
             return system switch
             {
-                "PlayOff" => _provider.GetRequiredService<PlayOffSystem>(),
-                "DoubleElimination" => _provider.GetRequiredService<DoubleEliminationSystem>(),
-                "Group" => _provider.GetRequiredService<GroupSystem>(),
-                "Knockout" => _provider.GetRequiredService<KnockoutSystem>(),
-                "Mixsed" => _provider.GetRequiredService<MixsedSystem>(),
-                "Olympic" => _provider.GetRequiredService<OlympicSystem>(),
-                "RoundRobin" => _provider.GetRequiredService<RoundRobinSystem>(),
-                "Swiss" => _provider.GetRequiredService<SwissSystem>(),
+                "PlayOff" => provider.GetRequiredService<PlayOffSystem>(),
+                "DoubleElimination" => provider.GetRequiredService<DoubleEliminationSystem>(),
+                "Group" => provider.GetRequiredService<GroupSystem>(),
+                "Knockout" => provider.GetRequiredService<KnockoutSystem>(),
+                "Mixsed" => provider.GetRequiredService<MixsedSystem>(),
+                "Olympic" => provider.GetRequiredService<OlympicSystem>(),
+                "RoundRobin" => provider.GetRequiredService<RoundRobinSystem>(),
+                "Swiss" => provider.GetRequiredService<SwissSystem>(),
                 _ => throw new NotImplementedException($"Unknown system: {system}")
             };
         }
     }
+
 
 }
