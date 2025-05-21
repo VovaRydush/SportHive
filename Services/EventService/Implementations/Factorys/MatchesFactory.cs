@@ -5,24 +5,29 @@ namespace SportHive.Implementations
 {
     public class SaveMatchFactory
     {
-        private readonly IServiceProvider _provider;
+         private readonly IServiceScopeFactory _scopeFactory;
 
-        public SaveMatchFactory(IServiceProvider provider)
+        public SaveMatchFactory(IServiceScopeFactory scopeFactory)
         {
-            _provider = provider;
+            _scopeFactory = scopeFactory;
         }
 
         public ISaveMatchInfo Create(string matchType)
         {
+             var scope = _scopeFactory.CreateScope();
+             var _provider = scope.ServiceProvider;
+
             return matchType switch
             {
                 "SaveTeamMatch" => _provider.GetRequiredService<SaveTeamMatch>(),
                 "IndividualMatch" => _provider.GetRequiredService<SaveIndividualMatch>(),
-                "TeamMatch" => _provider.GetRequiredService<SaveTeamMatch>(),
+                "ExtremeMatch" => _provider.GetRequiredService<SaveExtremeMatch>(),
                 _ => throw new NotFoundException($"Unknown match type: {matchType}")
             };
         }
     }
+
+
 
 
 

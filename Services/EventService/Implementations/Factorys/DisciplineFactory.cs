@@ -41,6 +41,7 @@ namespace SportHive.Implementations
 
             if (teamDisciplines.Contains(info.NameDesipline))
             {
+                Console.WriteLine(info.NameDesipline);
                 return new TeamDesiplines(info);
             }
 

@@ -6,14 +6,12 @@ namespace SportHive.Implementations
 {
     public class SaveExtremeMatch : ISaveMatchInfo
     {
-        private readonly AppDbContext _appDbContext;
         private readonly IEnterDataMatches _dataMatches;
-        public SaveExtremeMatch(AppDbContext appDbContext,IEnterDataMatches dataMatches)
+        public SaveExtremeMatch(IEnterDataMatches dataMatches)
         {
             _dataMatches = dataMatches;
-            _appDbContext = appDbContext;
         }
-        public void SaveMatch(Matchs matchs, long IdExtremeMatches, string TypeMatch)
+        public async Task SaveMatch(AppDbContext appDbContext,Matchs matchs, long IdExtremeMatches, string TypeMatch)
         {
             var Entitys = new List<EntityInfo>();
             if (TypeMatch == "TeamMatch")
@@ -29,14 +27,14 @@ namespace SportHive.Implementations
                     Entitys.Add(new EntityInfo { EntityName = team.ToString()});
                     entities.Add(entity);
                 }
-                _dataMatches.SaveMatches(new ExtremeIndividualInfo
+                await _dataMatches.SaveMatches(new ExtremeIndividualInfo
                 {
                     idMatch = IdExtremeMatches,
                     tour = matchs.tour,
                     NameDesipline = matchs.NameSport,
                     entitysName = Entitys
                 });
-                _appDbContext.EMatchesTeam.AddRange(entities);
+                appDbContext.EMatchesTeam.AddRange(entities);
             }
             else
             {
@@ -51,15 +49,20 @@ namespace SportHive.Implementations
                     Entitys.Add(new EntityInfo { EntityName = athlete.ToString()});
                     entities.Add(entity);
                 }
-                _dataMatches.SaveMatches(new ExtremeIndividualInfo
+                await _dataMatches.SaveMatches(new ExtremeIndividualInfo
                 {
                     idMatch = IdExtremeMatches,
                     tour = matchs.tour,
                     NameDesipline = matchs.NameSport,
                     entitysName = Entitys
                 });
-                _appDbContext.ExtremeMatchesAthetes.AddRange(entities);
+                appDbContext.ExtremeMatchesAthetes.AddRange(entities);
             }
+        }
+
+        public Task SaveMatch(AppDbContext appDbContext,Matchs matchs, string entity1, string entity2, long IdEvent)
+        {
+            throw new NotImplementedException();
         }
     }
 }

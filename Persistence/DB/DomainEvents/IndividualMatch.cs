@@ -28,20 +28,20 @@ namespace DB.SportHive.Domain
 
 
         [DataType(DataType.Date)]
-        public DateTime DataMatch { get; set; }
+        public DateTime? DataMatch { get; set; }
 
         [DataType(DataType.Time)]
-        public TimeSpan TimeMatch { get; set; }
+        public TimeSpan? TimeMatch { get; set; }
 
         [Required]
-        public Location Location { get; set; } = null!;
-        public string LocationName { get; set; } = null!;
+        public Location? Location { get; set; } = null!;
+        public string? LocationName { get; set; } = null!;
 
         [Column("Tour")]
         public int Tour { get; set; }
 
         [Column("AddInformation")]
         [MaxLength(300)]
-        public string AddInformation { get; set; } = null!;
+        public string? AddInformation { get; set; } = null!;
     }
 }
