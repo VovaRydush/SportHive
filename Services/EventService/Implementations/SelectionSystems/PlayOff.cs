@@ -14,7 +14,6 @@ namespace SportHive.Implementations
         }
         public async Task GenerateFirstRoundAsync(Matchs matchs, long IdEvent)
         {
-            Console.WriteLine("PlayOffSystem");
             await _matchsGenerator.GenerateInitialBracketAsync(matchs, IdEvent);
         }
 

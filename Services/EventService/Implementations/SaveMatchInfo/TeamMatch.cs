@@ -14,7 +14,6 @@ namespace SportHive.Implementations
         }
         public async Task SaveMatch(AppDbContext appDbContext,Matchs matchs,string Team1, string Team2,long IdEvent)
         {
-            Console.WriteLine("SaveTeamMatch");
             var IdTeamMatchs = Interlocked.Increment(ref _counter);
             var entity = new TeamMatch
             {
@@ -23,6 +22,7 @@ namespace SportHive.Implementations
                 StatusMatch = StatusMatch.Upcoming,
                 NameFirstTeam = Team1,
                 NameSecondTeam = Team2,
+                Group = matchs.Group ?? -1,
                 Tour = matchs.tour,
                 AddInformation = matchs.AddInformation ?? ""
             };
@@ -31,6 +31,7 @@ namespace SportHive.Implementations
             {
                 idMatch = IdTeamMatchs,
                 NameDesipline = matchs.NameSport,
+                Group = matchs.Group,
                 Tour = matchs.tour
             });
             appDbContext.TeamMatches.Add(entity);

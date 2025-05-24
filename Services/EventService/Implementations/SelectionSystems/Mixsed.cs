@@ -6,13 +6,14 @@ namespace SportHive.Implementations
     public class MixsedSystem : ICompetitionSystem
     {
         private readonly SaveMatchFactory _saveMatchFactory;
+        private readonly GroupSystem _groupSystem;
         public MixsedSystem(SaveMatchFactory saveMatchFactory)
         {
             _saveMatchFactory = saveMatchFactory;
         }
-        public Task GenerateFirstRoundAsync(Matchs matchs, long IdEvent)
+        public async Task GenerateFirstRoundAsync(Matchs matchs, long IdEvent)
         {
-            throw new NotImplementedException();
+            await _groupSystem.GenerateFirstRoundAsync(matchs, IdEvent);
         }
 
         public Task GenerateNextRoundAsync(Matchs matchs, long IdEvent, List<Matchs> previousMatches)

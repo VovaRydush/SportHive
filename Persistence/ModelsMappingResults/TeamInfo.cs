@@ -5,5 +5,6 @@ namespace DB.SportHive.Domain
         public long idMatch { get; set; }
         public string NameDesipline { get; set; } = null!;
         public int Tour { get; set; } 
+        public int? Group{ get; set; }
     }
 }

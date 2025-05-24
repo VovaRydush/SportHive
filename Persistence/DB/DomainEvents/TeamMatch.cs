@@ -35,6 +35,7 @@ namespace DB.SportHive.Domain
 
         [Column("Tour")]
         public int Tour { get; set; }
+        public int? Group{ get; set; }
 
         [Column("AddInformation")]
         [MaxLength(300)]

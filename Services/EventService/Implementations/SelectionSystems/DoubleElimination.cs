@@ -5,14 +5,14 @@ namespace SportHive.Implementations
 {
     public class DoubleEliminationSystem : ICompetitionSystem
     {
-        private readonly SaveMatchFactory _saveMatchFactory;
-        public DoubleEliminationSystem(SaveMatchFactory saveMatchFactory)
+        private readonly IMatchsGenerator _matchsGenerator;
+        public DoubleEliminationSystem(IMatchsGenerator matchsGenerator)
         {
-            _saveMatchFactory = saveMatchFactory;
+            _matchsGenerator = matchsGenerator;
         }
-        public Task GenerateFirstRoundAsync(Matchs matchs, long IdEvent)
+        public async Task GenerateFirstRoundAsync(Matchs matchs, long IdEvent)
         {
-            throw new NotImplementedException();
+            await _matchsGenerator.GenerateInitialBracketAsync(matchs, IdEvent);
         }
 
         public Task GenerateNextRoundAsync(Matchs matchs, long IdEvent, List<Matchs> previousMatches)
