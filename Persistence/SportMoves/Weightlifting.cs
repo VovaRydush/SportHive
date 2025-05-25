@@ -1,5 +1,4 @@
 using System.ComponentModel;
-using StackExchange.Redis;
 
 namespace DB.SportHive.MongoDb
 {

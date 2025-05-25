@@ -32,7 +32,7 @@ namespace SportHive.Implementations
                         FullNamePlayer = move.FullNamePlayer1,
                         move = (TypeMoves)typeMoves,
                         time = move.timeMove,
-                        realization =  move.realization
+                        realization = move.realization
                     })
                 );
 
@@ -42,9 +42,28 @@ namespace SportHive.Implementations
             await Task.CompletedTask;
         }
 
-        public Task SetFoul(PlayerMovesDto move)
+        public async Task SetFoul(PlayerMovesDto move)
         {
-            throw new NotImplementedException();
+            if (EnumWork.TryParseStyleFromText<Foul>(move.typeMove, out int typeMoves))
+            {
+                var obj = _disciplineFactory.CreateTeamRecord(new TeamInfo { NameDesipline = move.NameSport });
+                var filter = Builders<MatchEvents>.Filter.And(
+                    Builders<MatchEvents>.Filter.Eq(x => x.idMatch, move.idMatch),
+                    Builders<MatchEvents>.Filter.Eq("_t", obj.GetType().Name)
+                );
+                var update = Builders<MatchEvents>.Update.Combine(
+                    Builders<MatchEvents>.Update.Push(nameof(TeamDesiplines.fouls), new PlayerFouls
+                    {
+                        FullNamePlayer = move.FullNamePlayer,
+                        loginPlayer = move.login,
+                        timeFoul = move.timeMove,
+                        foul = (Foul)typeMoves,
+                    })
+                );
+
+                await _matchEvents.UpdateOneAsync(filter, update);
+            }
+            else throw new NotFoundException("Not found type move");
         }
 
         public Task SetPlayMoves(TwoPlayerMoveDto move)

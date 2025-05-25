@@ -4,7 +4,7 @@ namespace DB.SportHive.MongoDb
 {
     public class PlayMoves 
     {
-        public long IdMatch{get;}
+        public long IdMatch{ get; set; }
         public string FullNamePlayer{get;set;} = null!;
         public string timeMove {get;set;} = null!;
     }
