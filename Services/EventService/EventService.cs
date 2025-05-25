@@ -85,6 +85,7 @@ builder.Services.AddScoped<SaveIndividualMatch>();
 builder.Services.AddScoped<SaveExtremeMatch>();
 
 builder.Services.AddScoped<SaveMatchFactory>();
+builder.Services.AddScoped<EnumWork>();
 
 builder.Services.AddScoped<IMatchsGenerator, MatchsGenerator>();
 

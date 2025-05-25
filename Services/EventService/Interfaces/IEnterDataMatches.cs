@@ -7,6 +7,5 @@ namespace SportHive.Services.Interfaces
         Task SaveMatches(TwoPlayerInfo info);
         Task SaveMatches(TeamInfo info);
         Task SaveMatches(ExtremeIndividualInfo info);
-        Task SetFoul(FoulDto foul);
     }
 }

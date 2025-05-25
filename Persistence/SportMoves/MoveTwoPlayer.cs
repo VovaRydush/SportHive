@@ -2,7 +2,7 @@ using System.ComponentModel;
 
 namespace DB.SportHive.MongoDb
 {
-    public class MoveTwoPlayer
+    public class MoveTwoPlayer 
     {
         public long IdMatch { get; }
         public string FullNamePlayer1 { get; set; } = null!;

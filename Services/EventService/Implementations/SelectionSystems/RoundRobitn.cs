@@ -9,7 +9,7 @@ namespace SportHive.Implementations
     {
         private readonly SaveMatchFactory _saveMatchFactory;
         private readonly AppDbContext _appDbContext;
-        public RoundRobinSystem(SaveMatchFactory saveMatchFactory, AppDbContext appDbContext)
+        public RoundRobinSystem(SaveMatchFactory saveMatchFactory,AppDbContext appDbContext)
         {
             _appDbContext = appDbContext;
             _saveMatchFactory = saveMatchFactory;
@@ -18,23 +18,19 @@ namespace SportHive.Implementations
         {
             var saveEntity = _saveMatchFactory.Create(matchs.typeSport);
 
-            await _appDbContext.SaveChangesAsync();
+            for (int i = 0; i < matchs.Entitys.Count - 1; i++)
+            {
+                for (int j = i + 1; j < matchs.Entitys.Count; j++)
+                {
+                    await saveEntity.SaveMatch(_appDbContext,matchs, matchs.Entitys[i], matchs.Entitys[j], IdEvent);
+                }
+            }
+           await _appDbContext.SaveChangesAsync(); 
         }
 
         public Task GenerateNextRoundAsync(Matchs matchs, long IdEvent, List<Matchs> previousMatches)
         {
             throw new NotImplementedException();
-        }
-        public async Task Generate(List<string> entitys)
-        {
-            for (int i = 0; i < entitys.Count - 1; i++)
-            {
-                for (int j = i + 1; j < entitys.Count; j++)
-                {
-                    await saveEntity.SaveMatch(_appDbContext, matchs, entitys[i], entitys[j], IdEvent);
-                }
-            }
-            await Task.CompletedTask;
         }
     }
 }

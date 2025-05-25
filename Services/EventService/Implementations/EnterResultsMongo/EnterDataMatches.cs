@@ -33,11 +33,5 @@ namespace SportHive.Implementations
             _matchEvents.InsertOne(sport);
             await Task.CompletedTask;
         }
-
-        public async Task SetFoul(FoulDto foul)
-        {
-            //_matchEvents.InsertMany();
-            await Task.CompletedTask;
-        }
     }
 }
