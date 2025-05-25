@@ -20,7 +20,7 @@ namespace DB.SportHive.MongoDb
         }
         public int Tour { get; set; }
         public string RaceType { get; set; } = null!;
-        public List<CyclingRace> atheltesMoves {get;set;} = null!;
+        public List<CyclingRace> atheltesMoves {get;set;} = new();
         public string NameWinner {get;set;} = null!;
     }
 }

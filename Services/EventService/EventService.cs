@@ -79,6 +79,7 @@ builder.Services.AddScoped<SystemFactory>();
 builder.Services.AddScoped<DisciplineFactory>();
 
 builder.Services.AddScoped<IEnterDataMatches, EnterDataMatches>();
+builder.Services.AddScoped<IEnterSportMove, EnterSportMove>();
 
 builder.Services.AddScoped<SaveTeamMatch>();
 builder.Services.AddScoped<SaveIndividualMatch>();

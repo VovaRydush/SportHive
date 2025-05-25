@@ -17,6 +17,6 @@ namespace DB.SportHive.MongoDb
                 runningAthlets.Add(athlete);
             }
         }
-        public List<DistanceRunning> runningAthlets { get; set; } = null!;
+        public List<DistanceRunning> runningAthlets { get; set; } = new();
     }
 }

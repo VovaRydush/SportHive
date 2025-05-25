@@ -20,7 +20,7 @@ namespace DB.SportHive.MongoDb
                 movesAthletis.Add(athlete);
             }
         }
-        public List<AthleticsMoves> movesAthletis { get; set; } = null!;
+        public List<AthleticsMoves> movesAthletis { get; set; } = new();
         public string NameDesipline { get; set; } = null!;
     }
 }

@@ -17,6 +17,6 @@ namespace DB.SportHive.MongoDb
                 liftingsAthlete.Add(athlete);
             }
         }
-        public List<Weightlifting> liftingsAthlete { get; set; } = null!;
+        public List<Weightlifting> liftingsAthlete { get; set; } = new();
     }
 }

@@ -17,7 +17,7 @@ namespace DB.SportHive.MongoDb
                 athleteSwimming.Add(athlete);
             }
         }
-        public List<AthleteSwimming> athleteSwimming { get; set; } = null!;
+        public List<AthleteSwimming> athleteSwimming { get; set; } = new();
         
     }
 }

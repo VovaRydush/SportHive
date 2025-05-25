@@ -1,3 +1,4 @@
+using System.Runtime.Remoting;
 using DB.SportHive.Domain;
 using DB.SportHive.MongoDb;
 using MongoDB.Driver;
@@ -22,7 +23,7 @@ namespace SportHive.Implementations
                 var obj = _disciplineFactory.CreateTeamRecord(new TeamInfo { NameDesipline = move.NameSport });
                 var filter = Builders<MatchEvents>.Filter.And(
                     Builders<MatchEvents>.Filter.Eq(x => x.idMatch, move.idMatch),
-                    Builders<MatchEvents>.Filter.Eq("_t", "TeamDesiplines")
+                    Builders<MatchEvents>.Filter.Eq("_t", obj.GetType().Name)
                 );
                 var update = Builders<MatchEvents>.Update.Combine(
                     Builders<MatchEvents>.Update.Push(nameof(TeamDesiplines.attacksMoves), new AttacksMoves

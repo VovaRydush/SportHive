@@ -17,8 +17,8 @@ namespace DB.SportHive.MongoDb
         public TimeSpan time { get; set; }
         public string FullNamePlayer1 { get; set; } = null!;
         public string FullNamePlayer2 { get; set; } = null!;
-        public List<MinusValue> playerMinusValue {get;set;} = null!;
-        public List<PlayerFouls> playerFouls { get; set; } = null!;
+        public List<MinusValue> playerMinusValue {get;set;} = new();
+        public List<PlayerFouls> playerFouls { get; set; } = new();
     }
 
     internal interface ICompetitionSystem
