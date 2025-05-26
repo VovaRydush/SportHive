@@ -6,7 +6,7 @@ namespace DB.SportHive.MongoDb
     {
         public Archery(ExtremeIndividualInfo info)
         {
-            playerFouls = new List<PlayerFouls>();
+            fouls = new List<PlayerFouls>();
             foreach (var entity in info.entitysName)
             {
                 var athlete = new PlayerFouls
@@ -14,11 +14,11 @@ namespace DB.SportHive.MongoDb
                     FullNamePlayer = entity.EntityName,
                     loginPlayer = entity.loginPlayer ?? ""
                 };
-                playerFouls.Add(athlete);
+                fouls.Add(athlete);
             }
         }
         public string CompetitionType { get; set; } = null!;
-        public List<PlayerFouls> playerFouls { get; set; }  = new();
+        public List<PlayerFouls> fouls { get; set; }  = new();
         public string BowType { get; set; } = null!;
         public float Distance { get; set; }
     }

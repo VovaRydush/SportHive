@@ -6,7 +6,7 @@ namespace DB.SportHive.MongoDb
     {
         public Baseball(ExtremeIndividualInfo info)
         {
-            playerFouls = new List<PlayerFouls>();
+            fouls = new List<PlayerFouls>();
             Tour = info.tour;
             foreach (var entity in info.entitysName)
             {
@@ -15,11 +15,11 @@ namespace DB.SportHive.MongoDb
                     FullNamePlayer = entity.EntityName,
                     loginPlayer = entity.loginPlayer ?? ""
                 };
-                playerFouls.Add(athlete);
+                fouls.Add(athlete);
             }
         }
         public int Tour { get; set; }
         public List<BaseballEvent> baseballEvents{get;set;} = new();
-        public List<PlayerFouls> playerFouls {get;set;} = new();
+        public List<PlayerFouls> fouls {get;set;} = new();
     }
 }

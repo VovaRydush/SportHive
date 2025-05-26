@@ -9,8 +9,9 @@ namespace DB.SportHive.Domain
         public int yards { get; set; }
         public string NameSport { get; set; } = null!;
         public bool realization { get; set; }
-        public string timeMove { get; set; } = null!;
+        public TimeSpan timeMove { get; set; }
         public string typeMove { get; set; } = null!;
+        public int whoPlayer{ get; set; }
         public long idMatch { get; set; }
     }
 }

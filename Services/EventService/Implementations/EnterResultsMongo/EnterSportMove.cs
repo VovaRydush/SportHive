@@ -20,13 +20,11 @@ namespace SportHive.Implementations
         {
             if (EnumWork.TryParseStyleFromText<TypeMoves>(move.typeMove, out int typeMoves))
             {
-                var obj = _disciplineFactory.CreateTeamRecord(new TeamInfo { NameDesipline = move.NameSport });
                 var filter = Builders<MatchEvents>.Filter.And(
-                    Builders<MatchEvents>.Filter.Eq(x => x.idMatch, move.idMatch),
-                    Builders<MatchEvents>.Filter.Eq("_t", obj.GetType().Name)
+                    Builders<MatchEvents>.Filter.Eq(x => x.idMatch, move.idMatch)
                 );
                 var update = Builders<MatchEvents>.Update.Combine(
-                    Builders<MatchEvents>.Update.Push(nameof(TeamDesiplines.attacksMoves), new AttacksMoves
+                    Builders<MatchEvents>.Update.Push("attacksMoves", new AttacksMoves
                     {
                         IdMatch = move.idMatch,
                         FullNamePlayer = move.FullNamePlayer1,
@@ -46,13 +44,11 @@ namespace SportHive.Implementations
         {
             if (EnumWork.TryParseStyleFromText<Foul>(move.typeMove, out int typeMoves))
             {
-                var obj = _disciplineFactory.CreateTeamRecord(new TeamInfo { NameDesipline = move.NameSport });
                 var filter = Builders<MatchEvents>.Filter.And(
-                    Builders<MatchEvents>.Filter.Eq(x => x.idMatch, move.idMatch),
-                    Builders<MatchEvents>.Filter.Eq("_t", obj.GetType().Name)
+                    Builders<MatchEvents>.Filter.Eq(x => x.idMatch, move.idMatch)
                 );
                 var update = Builders<MatchEvents>.Update.Combine(
-                    Builders<MatchEvents>.Update.Push(nameof(TeamDesiplines.fouls), new PlayerFouls
+                    Builders<MatchEvents>.Update.Push("fouls", new PlayerFouls
                     {
                         FullNamePlayer = move.FullNamePlayer,
                         loginPlayer = move.login,
@@ -70,13 +66,11 @@ namespace SportHive.Implementations
         {
             if (EnumWork.TryParseStyleFromText<TypeMove>(move.typeMove, out int typeMoves))
             {
-                var obj = _disciplineFactory.CreateTeamRecord(new TeamInfo { NameDesipline = move.NameSport });
                 var filter = Builders<MatchEvents>.Filter.And(
-                    Builders<MatchEvents>.Filter.Eq(x => x.idMatch, move.idMatch),
-                    Builders<MatchEvents>.Filter.Eq("_t", obj.GetType().Name)
+                    Builders<MatchEvents>.Filter.Eq(x => x.idMatch, move.idMatch)
                 );
                 var update = Builders<MatchEvents>.Update.Combine(
-                    Builders<MatchEvents>.Update.Push(nameof(TeamDesiplines.playMoves), new PlayMoves
+                    Builders<MatchEvents>.Update.Push("playMoves", new PlayMoves
                     {
                         IdMatch = move.idMatch,
                         FullNamePlayer = move.FullNamePlayer1,
@@ -89,15 +83,34 @@ namespace SportHive.Implementations
             else throw new NotFoundException("Not found type move");
         }
 
+        public async Task SetStruggleFouls(TwoPlayerMoveDto move)
+        {
+             if (EnumWork.TryParseStyleFromText<Foul>(move.typeMove, out int typeMoves))
+            {
+                var filter = Builders<MatchEvents>.Filter.And(
+                    Builders<MatchEvents>.Filter.Eq(x => x.idMatch, move.idMatch)
+                );
+                var update = Builders<MatchEvents>.Update.Combine(
+                    Builders<MatchEvents>.Update.Push($"player{move.whoPlayer}Fouls", new PlayerFouls
+                    {
+                        FullNamePlayer = move.FullNamePlayer1 ?? move.FullNamePlayer2,
+                        timeFoul = move.timeMove,
+                        foul = (Foul)typeMoves,
+                    })
+                );
+
+                await _matchEvents.UpdateOneAsync(filter, update);
+            }
+            else throw new NotFoundException("Not found type move");
+        }
+
         public async Task SetTimeOut(TeamMovesDto teamMoves)
         {
-            var obj = _disciplineFactory.CreateTeamRecord(new TeamInfo { NameDesipline = teamMoves.NameSport });
             var filter = Builders<MatchEvents>.Filter.And(
-                Builders<MatchEvents>.Filter.Eq(x => x.idMatch, teamMoves.idMatch),
-                Builders<MatchEvents>.Filter.Eq("_t", obj.GetType().Name)
+                Builders<MatchEvents>.Filter.Eq(x => x.idMatch, teamMoves.idMatch)
             );
             var update = Builders<MatchEvents>.Update.Combine(
-                Builders<MatchEvents>.Update.Push(nameof(TeamDesiplines.timeOuts), new TimeOut
+                Builders<MatchEvents>.Update.Push("timeOuts", new TimeOut
                 {
                     IdMatch = teamMoves.idMatch,
                     NameTeam = teamMoves.NameTeam,
@@ -112,13 +125,11 @@ namespace SportHive.Implementations
         {
             if (EnumWork.TryParseStyleFromText<TypeTouchdown>(move.typeMove, out int typeMoves))
             {
-                var obj = _disciplineFactory.CreateTeamRecord(new TeamInfo { NameDesipline = move.NameSport });
                 var filter = Builders<MatchEvents>.Filter.And(
-                    Builders<MatchEvents>.Filter.Eq(x => x.idMatch, move.idMatch),
-                    Builders<MatchEvents>.Filter.Eq("_t", obj.GetType().Name)
+                    Builders<MatchEvents>.Filter.Eq(x => x.idMatch, move.idMatch)
                 );
                 var update = Builders<MatchEvents>.Update.Combine(
-                    Builders<MatchEvents>.Update.Push(nameof(TeamDesiplines.touchdowns), new Touchdown
+                    Builders<MatchEvents>.Update.Push("touchdowns", new Touchdown
                     {
                         IdMatch = move.idMatch,
                         FullNamePlayer = move.FullNamePlayer1,
@@ -137,13 +148,11 @@ namespace SportHive.Implementations
         {
             if (EnumWork.TryParseStyleFromText<TypeMovePlayer>(playerMoveDto.typeMove, out int typeMoves))
             {
-                var obj = _disciplineFactory.CreateTeamRecord(new TeamInfo { NameDesipline = playerMoveDto.NameSport });
                 var filter = Builders<MatchEvents>.Filter.And(
-                    Builders<MatchEvents>.Filter.Eq(x => x.idMatch, playerMoveDto.idMatch),
-                    Builders<MatchEvents>.Filter.Eq("_t", obj.GetType().Name)
+                    Builders<MatchEvents>.Filter.Eq(x => x.idMatch, playerMoveDto.idMatch)
                 );
                 var update = Builders<MatchEvents>.Update.Combine(
-                    Builders<MatchEvents>.Update.Push(nameof(TeamDesiplines.touchdowns), new MoveTwoPlayer
+                    Builders<MatchEvents>.Update.Push("twoPlayersMoves", new MoveTwoPlayer
                     {
                         IdMatch = playerMoveDto.idMatch,
                         FullNamePlayer1 = playerMoveDto.FullNamePlayer1,

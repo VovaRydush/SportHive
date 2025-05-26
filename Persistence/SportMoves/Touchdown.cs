@@ -9,7 +9,7 @@ namespace DB.SportHive.MongoDb
         public TypeTouchdown typeTouchdown { get; set; }
         public int yards { get; set; }
         public bool realization { get; set; } 
-        public string time { get; set; } = null!;
+        public TimeSpan time { get; set; }
     }
     public enum TypeTouchdown
     {

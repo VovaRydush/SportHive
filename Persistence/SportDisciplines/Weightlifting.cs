@@ -17,6 +17,8 @@ namespace DB.SportHive.MongoDb
                 liftingsAthlete.Add(athlete);
             }
         }
+        public long IdMatch { get; set; }
+        public List<PlayerFouls> fouls { get; set; }
         public List<Weightlifting> liftingsAthlete { get; set; } = new();
     }
 }

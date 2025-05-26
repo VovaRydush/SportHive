@@ -13,7 +13,6 @@ namespace DB.SportHive.MongoDb
         public float Weight { get; set; }
         public int TryCount { get; set; }
         public bool done { get; set; }
-        public Foul Foul { get; set; }
     }
     public enum WeightDesipline
     {

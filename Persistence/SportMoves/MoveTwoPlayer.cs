@@ -8,7 +8,7 @@ namespace DB.SportHive.MongoDb
         public string FullNamePlayer1 { get; set; } = null!;
         public string FullNamePlayer2 { get; set; } = null!;
         public TypeMovePlayer typeMove{get;set;}
-        public string time { get; set; } = null!;
+        public TimeSpan time { get; set; }
     }
     public enum TypeMovePlayer
     {

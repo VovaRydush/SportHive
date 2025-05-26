@@ -16,7 +16,7 @@ namespace DB.SportHive.MongoDb
         public string TimeControl { get; set; } = null!;
         public string Result { get; set; } = null!;
         public List<ChessMove> Moves { get; set; } = new();
-        public List<Foul> Fouls { get; set; } = new();
+        public List<PlayerFouls> fouls { get; set; } = new();
         public DateTime Date { get; set; }
     }
 

@@ -52,9 +52,15 @@ namespace Events.Endpoints
                 return Results.Ok();
             })
                 .RequireAuthorization(new AuthorizeAttribute { Roles = "Trainer,Organization" });
-            route.MapPost("/set-two-players-move",async(TwoPlayerMoveDto move,[FromServices] IEnterSportMove enterDataMatches)=>
+            route.MapPost("/set-two-players-move", async (TwoPlayerMoveDto move, [FromServices] IEnterSportMove enterDataMatches) =>
             {
                 await enterDataMatches.SetTwoPlayersMove(move);
+                return Results.Ok();
+            })
+                .RequireAuthorization(new AuthorizeAttribute { Roles = "Trainer,Organization" });
+             route.MapPost("/set-struggle-fouls",async(TwoPlayerMoveDto move,[FromServices] IEnterSportMove enterDataMatches)=>
+            {
+                await enterDataMatches.SetStruggleFouls(move);
                 return Results.Ok();
             })
                 .RequireAuthorization(new AuthorizeAttribute { Roles = "Trainer,Organization" });
