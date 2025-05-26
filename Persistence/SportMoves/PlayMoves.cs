@@ -6,7 +6,8 @@ namespace DB.SportHive.MongoDb
     {
         public long IdMatch{ get; set; }
         public string FullNamePlayer{get;set;} = null!;
-        public string timeMove {get;set;} = null!;
+        public TypeMove typeMove{ get; set; }
+        public string timeMove { get; set; } = null!;
     }
     public enum TypeMove
     {

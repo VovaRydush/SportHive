@@ -6,7 +6,7 @@ namespace Extensions
     {
         public static void MapEventEndpoints(this IEndpointRouteBuilder app)
         {
-           app.CreateEventsEndpoints(); 
+           app.EventsEndpoints();
         }
     }
 }

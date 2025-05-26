@@ -4,11 +4,11 @@ namespace DB.SportHive.MongoDb
 {
     public class Touchdown 
     {
-        public long IdMatch { get; }
+        public long IdMatch { get; set; }
         public string FullNamePlayer { get; set; } = null!;
         public TypeTouchdown typeTouchdown { get; set; }
         public int yards { get; set; }
-        public bool realization { get; set; }
+        public bool realization { get; set; } 
         public string time { get; set; } = null!;
     }
     public enum TypeTouchdown

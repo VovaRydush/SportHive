@@ -66,24 +66,95 @@ namespace SportHive.Implementations
             else throw new NotFoundException("Not found type move");
         }
 
-        public Task SetPlayMoves(TwoPlayerMoveDto move)
+        public async Task SetPlayMoves(TwoPlayerMoveDto move)
         {
-            throw new NotImplementedException();
+            if (EnumWork.TryParseStyleFromText<TypeMove>(move.typeMove, out int typeMoves))
+            {
+                var obj = _disciplineFactory.CreateTeamRecord(new TeamInfo { NameDesipline = move.NameSport });
+                var filter = Builders<MatchEvents>.Filter.And(
+                    Builders<MatchEvents>.Filter.Eq(x => x.idMatch, move.idMatch),
+                    Builders<MatchEvents>.Filter.Eq("_t", obj.GetType().Name)
+                );
+                var update = Builders<MatchEvents>.Update.Combine(
+                    Builders<MatchEvents>.Update.Push(nameof(TeamDesiplines.playMoves), new PlayMoves
+                    {
+                        IdMatch = move.idMatch,
+                        FullNamePlayer = move.FullNamePlayer1,
+                        typeMove = (TypeMove)typeMoves,
+                        timeMove = move.timeMove
+                    })
+                );
+                await _matchEvents.UpdateOneAsync(filter, update);
+            }
+            else throw new NotFoundException("Not found type move");
         }
 
-        public Task SetTimeOut(TeamMovesDto teamMoves)
+        public async Task SetTimeOut(TeamMovesDto teamMoves)
         {
-            throw new NotImplementedException();
+            var obj = _disciplineFactory.CreateTeamRecord(new TeamInfo { NameDesipline = teamMoves.NameSport });
+            var filter = Builders<MatchEvents>.Filter.And(
+                Builders<MatchEvents>.Filter.Eq(x => x.idMatch, teamMoves.idMatch),
+                Builders<MatchEvents>.Filter.Eq("_t", obj.GetType().Name)
+            );
+            var update = Builders<MatchEvents>.Update.Combine(
+                Builders<MatchEvents>.Update.Push(nameof(TeamDesiplines.timeOuts), new TimeOut
+                {
+                    IdMatch = teamMoves.idMatch,
+                    NameTeam = teamMoves.NameTeam,
+                    TimeStartTimeOut = teamMoves.TimeStartTimeOut,
+                    TimeEndTimeOut = teamMoves.TimeEndTimeOut
+                })
+            );
+            await _matchEvents.UpdateOneAsync(filter, update);
         }
 
-        public Task SetTouchdown(TwoPlayerMoveDto move)
+        public async Task SetTouchdown(TwoPlayerMoveDto move)
         {
-            throw new NotImplementedException();
+            if (EnumWork.TryParseStyleFromText<TypeTouchdown>(move.typeMove, out int typeMoves))
+            {
+                var obj = _disciplineFactory.CreateTeamRecord(new TeamInfo { NameDesipline = move.NameSport });
+                var filter = Builders<MatchEvents>.Filter.And(
+                    Builders<MatchEvents>.Filter.Eq(x => x.idMatch, move.idMatch),
+                    Builders<MatchEvents>.Filter.Eq("_t", obj.GetType().Name)
+                );
+                var update = Builders<MatchEvents>.Update.Combine(
+                    Builders<MatchEvents>.Update.Push(nameof(TeamDesiplines.touchdowns), new Touchdown
+                    {
+                        IdMatch = move.idMatch,
+                        FullNamePlayer = move.FullNamePlayer1,
+                        typeTouchdown = (TypeTouchdown)typeMoves,
+                        time = move.timeMove,
+                        realization = move.realization,
+                        yards = move.yards
+                    })
+                );
+                await _matchEvents.UpdateOneAsync(filter, update);
+            }
+            else throw new NotFoundException("Not found type move");
         }
 
-        public Task SetTwoPlayersMove(TwoPlayerMoveDto playerMoveDto)
+        public async Task SetTwoPlayersMove(TwoPlayerMoveDto playerMoveDto)
         {
-            throw new NotImplementedException();
+            if (EnumWork.TryParseStyleFromText<TypeMovePlayer>(playerMoveDto.typeMove, out int typeMoves))
+            {
+                var obj = _disciplineFactory.CreateTeamRecord(new TeamInfo { NameDesipline = playerMoveDto.NameSport });
+                var filter = Builders<MatchEvents>.Filter.And(
+                    Builders<MatchEvents>.Filter.Eq(x => x.idMatch, playerMoveDto.idMatch),
+                    Builders<MatchEvents>.Filter.Eq("_t", obj.GetType().Name)
+                );
+                var update = Builders<MatchEvents>.Update.Combine(
+                    Builders<MatchEvents>.Update.Push(nameof(TeamDesiplines.touchdowns), new MoveTwoPlayer
+                    {
+                        IdMatch = playerMoveDto.idMatch,
+                        FullNamePlayer1 = playerMoveDto.FullNamePlayer1,
+                        FullNamePlayer2 = playerMoveDto.FullNamePlayer2,
+                        typeMove = (TypeMovePlayer)typeMoves,
+                        time = playerMoveDto.timeMove,
+                    })
+                );
+                await _matchEvents.UpdateOneAsync(filter, update);
+            }
+            else throw new NotFoundException("Not found type move");
         }
     }
 }
