@@ -17,7 +17,6 @@ namespace DB.SportHive.MongoDb
                 athleteSwimming.Add(athlete);
             }
         }
-        public long IdMatch { get; set; }
         public List<PlayerFouls> fouls{ get; set; }
         public List<AthleteSwimmingStyle> athleteSwimmingStyle { get; set; } = new();
         

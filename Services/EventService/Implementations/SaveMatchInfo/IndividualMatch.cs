@@ -29,6 +29,7 @@ namespace SportHive.Implementations
             {
                 FullNamePlayer1 = athlete1,
                 FullNamePlayer2 = athlete2,
+                tour = matchs.tour,
                 NameDesipline = matchs.NameSport,
                 idMatch = IdEvent
             });

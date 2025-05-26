@@ -7,6 +7,7 @@ namespace DB.SportHive.MongoDb
         public CheckersGame(TwoPlayerInfo info)
         {
             idMatch = info.idMatch;
+            Tour = info.tour;
             FullNamePlayer1 = info.FullNamePlayer1;
             FullNamePlayer2 = info.FullNamePlayer2;
         }

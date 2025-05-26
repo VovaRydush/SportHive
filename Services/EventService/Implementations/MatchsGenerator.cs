@@ -21,7 +21,8 @@ namespace SportHive.Implementations
             if (matchs.Entitys.Count % 2 != 0) { await saveEntity.SaveMatch(_appDbContext,matchs, matchs.Entitys[0], "Bye", IdEvent); iterator++; }
             for (int i = iterator; i < matchs.Entitys.Count - 1; i += 2)
             {
-                await saveEntity.SaveMatch(_appDbContext,matchs, matchs.Entitys[i], matchs.Entitys[i + 1], IdEvent);
+                matchs.tour = 1;
+                await saveEntity.SaveMatch(_appDbContext, matchs, matchs.Entitys[i], matchs.Entitys[i + 1], IdEvent);
             }
             await _appDbContext.SaveChangesAsync();
         }

@@ -9,9 +9,11 @@ namespace DB.SportHive.MongoDb
         public Box(TwoPlayerInfo info)
         {
             idMatch = info.idMatch;
+            tour = info.tour;
             FullNamePlayer1 = info.FullNamePlayer1;
             FullNamePlayer2 = info.FullNamePlayer2;
         }
+        public int tour { get; set; }
         public int round { get; set; }
         public BoxWinner boxWinner { get; set; } = null!;
         public TimeSpan time { get; set; }
