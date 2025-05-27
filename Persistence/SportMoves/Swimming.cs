@@ -2,10 +2,12 @@ using System.ComponentModel;
 
 namespace DB.SportHive.MongoDb
 {
-    public class AthleteSwimmingStyle
+    public class AthleteSwimming
     {
         public string FullNamePlayer { get; set; } = null!;
-        public string loginPlayer{get;set;} = null!;
+        public string loginPlayer { get; set; } = null!;
+        public TimeSpan time{ get; set; }
+        public float AvgSpeed { get; set; }
         public SwimmingStyle style { get; set; }
     }
     public enum SwimmingStyle

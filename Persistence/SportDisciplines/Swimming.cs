@@ -6,10 +6,10 @@ namespace DB.SportHive.MongoDb
     {
         public Swimming(ExtremeIndividualInfo info)
         {
-            var athleteSwimming = new List<AthleteSwimmingStyle>();
+            var athleteSwimming = new List<AthleteSwimming>();
             foreach (var entity in info.entitysName)
             {
-                var athlete = new AthleteSwimmingStyle
+                var athlete = new AthleteSwimming
                 {
                     FullNamePlayer = entity.EntityName,
                     loginPlayer = entity.loginPlayer ?? ""
@@ -18,7 +18,7 @@ namespace DB.SportHive.MongoDb
             }
         }
         public List<PlayerFouls> fouls{ get; set; } = new();
-        public List<AthleteSwimmingStyle> athleteSwimmingStyle { get; set; } = new();
+        public List<AthleteSwimming> athleteSwimming { get; set; } = new();
         
     }
 }

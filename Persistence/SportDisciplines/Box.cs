@@ -14,42 +14,14 @@ namespace DB.SportHive.MongoDb
             FullNamePlayer2 = info.FullNamePlayer2;
         }
         public int tour { get; set; }
-        public int round { get; set; }
-        public BoxWinner boxWinner { get; set; } = null!;
+        public WinStruggleResult boxWinner { get; set; } = null!;
         public string FullNamePlayer1 { get; set; } = null!;
         public string FullNamePlayer2 { get; set; } = null!;
-        public List<MinusValue> playerMinusValue {get;set;} = new();
+        public List<RoundPoints> points {get;set;} = new();
         public List<PlayerFouls> fouls { get; set; } = new();
     }
 
     internal interface ICompetitionSystem
     {
-    }
-
-    public enum MethodWin
-    {
-        [Description("Knockout")]
-        Knockout,
-        [Description("Disqualification")]
-        Disqualification,
-        [Description("Pass")]
-        Pass,
-        [Description("TechnicalKnockout")]
-        TechnicalKnockout,
-        [Description("UnanimousDecision")]
-        UnanimousDecision,
-        [Description("SplitDecision")]
-        SplitDecision
-    }
-    public class BoxWinner
-    {
-        public string FullNamePlayer { get; set; } = null!;
-        public string loginWinner { get; set; } = null!;
-        public MethodWin win { get; set; }
-    }
-    public class MinusValue
-    {
-        public string FullNamePlayer { get; set; } = null!;
-        public int value { get; set; }
     }
 }

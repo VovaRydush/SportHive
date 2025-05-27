@@ -1,10 +1,12 @@
 using DB.SportHive.Domain;
+using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
+using StackExchange.Redis;
 
 namespace DB.SportHive.MongoDb
 {
     public class ChessMatch : MatchEvents
     {
-         public ChessMatch(TwoPlayerInfo info)
+        public ChessMatch(TwoPlayerInfo info)
         {
             idMatch = info.idMatch;
             Tour = info.tour;
@@ -15,12 +17,17 @@ namespace DB.SportHive.MongoDb
         public string FullNamePlayer1 { get; set; } = null!;
         public string FullNamePlayer2 { get; set; } = null!;
         public string TimeControl { get; set; } = null!;
-        public string Result { get; set; } = null!;
+        public BoardWinner Result { get; set; } = null!;
         public List<ChessMove> Moves { get; set; } = new();
         public List<PlayerFouls> fouls { get; set; } = new();
-        public DateTime Date { get; set; }
     }
-
+    public class BoardWinner
+    {
+        public string FullNamePlayer { get; set; } = null!;
+        public string loginPlayer { get; set; } = null!;
+        public string typeWin { get; set; } = null!;
+        public float countPoints { get; set; }
+    }
     public class ChessMove
     {
         public int MoveNumber { get; set; }

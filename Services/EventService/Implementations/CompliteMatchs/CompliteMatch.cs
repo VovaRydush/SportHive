@@ -140,7 +140,7 @@ namespace SportHive.Implementations
                         .SetProperty(m => m.DataMatch, data.dateStart)
                         .SetProperty(m => m.TimeMatch, data.timeStart)
                         .SetProperty(m => m.LocationName, m => data.location != null ? data.location.LocationName : m.LocationName)
-   );
+                                   );
             await _appDbContext.SaveChangesAsync();
         }
 

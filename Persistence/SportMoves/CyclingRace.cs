@@ -10,7 +10,6 @@ namespace DB.SportHive.MongoDb
         public int Position { get; set; }
         public float AvgSpeed { get; set; }
         public float? MaxSpeed { get; set; }
-        public List<PlayerFouls> fouls { get; set; } = new();
         public bool DidNotFinish { get; set; }
     }
 }

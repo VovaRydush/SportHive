@@ -21,6 +21,7 @@ namespace DB.SportHive.MongoDb
         public int Tour { get; set; }
         public string BoatType { get; set; } = null!; 
         public string Discipline { get; set; } = null!; 
-        public List<RowingRace> rowingAtheletes {get;set;} = new();
+        public List<PlayerFouls> fouls { get; set; } = new();
+        public List<RowingRace> rowingAtheletes { get; set; } = new();
     }
 }

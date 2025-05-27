@@ -20,6 +20,7 @@ namespace DB.SportHive.MongoDb
         }
         public int Tour { get; set; }
         public List<BaseballEvent> baseballEvents{get;set;} = new();
-        public List<PlayerFouls> fouls {get;set;} = new();
+        public PointBasketball pointBasketball{ get; set; }
+        public List<PlayerFouls> fouls { get; set; } = new();
     }
 }

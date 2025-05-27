@@ -14,7 +14,7 @@ namespace DB.SportHive.MongoDb
         public int Tour{get;set;}
         public string FullNamePlayer1 { get; set; } = null!;
         public string FullNamePlayer2 { get; set; } = null!;
-        public string Result { get; set; } = null!; // "1-0", "0-1", "½-½"
+        public BoardWinner Result { get; set; } = null!; // "1-0", "0-1", "½-½"
         public string TimeControl { get; set; } = null!; // "15+3"
         public List<CheckersMove> Moves { get; set; } = new();
         public List<PlayerFouls> fouls { get; set; } = new();
@@ -24,7 +24,6 @@ namespace DB.SportHive.MongoDb
     public class CheckersMove
     {
         public int MoveNumber { get; set; }
-        
         public string Notation { get; set; } = null!; // "12-16", "14x23", "28-21 (K)"
         public bool IsCapture { get; set; }
         public bool IsKingMove { get; set; }
