@@ -1,4 +1,5 @@
 using DB.SportHive.Domain;
+using DB.SportHive.Persistence;
 
 namespace SportHive.Services.Interfaces
 {
@@ -10,7 +11,7 @@ namespace SportHive.Services.Interfaces
      Task AddExtremeMathes(List<ExtremeMatch> extreameMatches);
      Task SaveExtreameAtheltes(List<string> athletes,long IdExtremeMatches);
      Task<long> GetEventId(string NameTeam);
-     void SaveLocation(LocationDto location);
+     void SaveLocation(AppDbContext appDbContext,LocationDto location);
      
  }
 }

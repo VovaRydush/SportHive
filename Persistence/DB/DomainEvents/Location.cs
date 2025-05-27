@@ -15,5 +15,6 @@ namespace DB.SportHive.Domain
         public string? LocationNameEnd { get; set; } = null!;
         public decimal? LatitudeEnd { get; set; }
         public decimal? LongitudeEnd { get; set; }
+        public long idMatch{ get; set; }
     }
 }

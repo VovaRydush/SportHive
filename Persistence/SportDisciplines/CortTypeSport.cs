@@ -8,11 +8,10 @@ namespace DB.SportHive.MongoDb
         public CortMatches(TwoPlayerInfo info)
         {
             idMatch = info.idMatch;
-            tour = info.tour;
+            cortSport.Tour = info.tour;
             cortSport.FullNamePlayer1 = info.FullNamePlayer1;
             cortSport.FullNamePlayer2 = info.FullNamePlayer2;
         }
-        public int tour{ get; set; }
         public CortTypeSport cortSport { get; set; } = null!;
     }
 }

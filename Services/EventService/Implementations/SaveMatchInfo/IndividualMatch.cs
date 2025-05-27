@@ -31,7 +31,7 @@ namespace SportHive.Implementations
                 FullNamePlayer2 = athlete2,
                 tour = matchs.tour,
                 NameDesipline = matchs.NameSport,
-                idMatch = IdEvent
+                idMatch = IdIndividualMatchs
             });
             appDbContext.IndividualMatches.Add(entity);
         }

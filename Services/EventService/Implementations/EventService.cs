@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json;
+using System.Threading.Tasks;
 using DB.SportHive.Domain;
 using DB.SportHive.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -107,9 +108,9 @@ namespace SportHive.Implementations
             await _dbContext.SaveChangesAsync();
         }
 
-        public void SaveLocation(LocationDto location)
+        public void SaveLocation(AppDbContext appDbContext,LocationDto location)
         {
-            _dbContext.Locations.Add(new Location
+            appDbContext.Locations.Add(new Location
             {
                 LocationName = location.address,
                 Latitude = location.lat,

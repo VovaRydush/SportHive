@@ -12,7 +12,8 @@ namespace DB.SportHive.MongoDb
                 var athlete = new DistanceRunning
                 {
                     FullNamePlayer = entity.EntityName,
-                    loginPlayer = entity.loginPlayer ?? ""
+                    loginPlayer = entity.loginPlayer ?? "",
+                    Round = info.tour
                 };
                 runningAthlets.Add(athlete);
             }

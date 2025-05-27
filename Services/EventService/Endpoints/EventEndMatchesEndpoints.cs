@@ -22,7 +22,7 @@ namespace Events.Endpoints
             })
                 .RequireAuthorization(new AuthorizeAttribute { Roles = "Trainer,Organization" });
 
-            route.MapPost("/add-athletes-em/{IdExtremeMatches}", async (long IdExtremeMatches, [FromBody] List<string> atletes, [FromServices] IEventService eventService) =>
+            route.MapPatch("/add-athletes-em/{IdExtremeMatches}", async (long IdExtremeMatches, [FromBody] List<string> atletes, [FromServices] IEventService eventService) =>
             {
                 await eventService.SaveExtreameAtheltes(atletes, IdExtremeMatches);
                 return Results.Ok();

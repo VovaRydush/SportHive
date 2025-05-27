@@ -16,7 +16,6 @@ namespace DB.SportHive.MongoDb
         public int tour { get; set; }
         public int round { get; set; }
         public BoxWinner boxWinner { get; set; } = null!;
-        public TimeSpan time { get; set; }
         public string FullNamePlayer1 { get; set; } = null!;
         public string FullNamePlayer2 { get; set; } = null!;
         public List<MinusValue> playerMinusValue {get;set;} = new();
