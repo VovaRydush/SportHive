@@ -20,35 +20,58 @@ namespace SportHive.Implementations
 
                 var filter = Builders<MatchEvents>.Filter.And(
                     Builders<MatchEvents>.Filter.Eq(x => x.idMatch, race.IdMatch),
-                    Builders<MatchEvents>.Filter.ElemMatch("atheltesMoves", elemFilter)
+                    Builders<MatchEvents>.Filter.ElemMatch("athleteSwimming", elemFilter)
                 );
 
                 var update = Builders<MatchEvents>.Update
-                    .Set("atheltesMoves.$.AthleteName", race.AthleteName)
-                    .Set("atheltesMoves.$.DistanceKm", race.DistanceKm)
-                    .Set("atheltesMoves.$.FinishTime", race.FinishTime)
-                    .Set("atheltesMoves.$.Position", race.Position)
-                    .Set("atheltesMoves.$.AvgSpeed", race.AvgSpeed)
-                    .Set("atheltesMoves.$.MaxSpeed", race.MaxSpeed)
-                    .Set("atheltesMoves.$.DidNotFinish", race.DidNotFinish);
+                    .Set("athleteSwimming.$.AthleteName", race.AthleteName)
+                    .Set("athleteSwimming.$.DistanceKm", race.DistanceKm)
+                    .Set("athleteSwimming.$.FinishTime", race.FinishTime)
+                    .Set("athleteSwimming.$.Position", race.Position)
+                    .Set("athleteSwimming.$.AvgSpeed", race.AvgSpeed)
+                    .Set("athleteSwimming.$.MaxSpeed", race.MaxSpeed)
+                    .Set("athleteSwimming.$.DidNotFinish", race.DidNotFinish);
 
                 var result = await _matchEvents.UpdateOneAsync(filter, update);
 
                 if (result.MatchedCount == 0)
                 {
-                    var pushUpdate = Builders<MatchEvents>.Update.Push("atheltesMoves", race);
+                    var pushUpdate = Builders<MatchEvents>.Update.Push("athleteSwimming", race);
                     await _matchEvents.UpdateOneAsync(
                         Builders<MatchEvents>.Filter.Eq(x => x.idMatch, race.IdMatch),
                         pushUpdate
                     );
                 }
             }
-
         }
 
-        public Task SetDistanceRunning(List<DistanceRunning> runnings)
+        public async Task SetDistanceRunning(List<DistanceRunning> runnings)
         {
-            throw new NotImplementedException();
+            foreach (var race in runnings)
+            {
+                var elemFilter = Builders<DistanceRunning>.Filter.Eq(a => a.loginPlayer, race.loginPlayer);
+
+                var filter = Builders<MatchEvents>.Filter.And(
+                    Builders<MatchEvents>.Filter.Eq(x => x.idMatch, race.idMatch),
+                    Builders<MatchEvents>.Filter.ElemMatch("runningAthlets", elemFilter)
+                );
+
+                var update = Builders<MatchEvents>.Update
+                    .Set("runningAthlets.$.FullNamePlayer", race.FullNamePlayer)
+                    .Set("runningAthlets.$.loginPlayer", race.loginPlayer)
+                    .Set("runningAthlets.$.timeFinish", race.timeFinish);
+
+                var result = await _matchEvents.UpdateOneAsync(filter, update);
+
+                if (result.MatchedCount == 0)
+                {
+                    var pushUpdate = Builders<MatchEvents>.Update.Push("runningAthlets", race);
+                    await _matchEvents.UpdateOneAsync(
+                        Builders<MatchEvents>.Filter.Eq(x => x.idMatch, race.idMatch),
+                        pushUpdate
+                    );
+                }
+            }
         }
 
         public Task SetPointsBoxStruggleCort(PointsIntBoxStruggle points)
@@ -56,14 +79,64 @@ namespace SportHive.Implementations
             throw new NotImplementedException();
         }
 
-        public Task SetRowingRace(List<RowingRace> races)
+        public async Task SetRowingRace(List<RowingRace> races)
         {
-            throw new NotImplementedException();
+            foreach (var race in races)
+            {
+                var elemFilter = Builders<RowingRace>.Filter.Eq(a => a.AthleteOrTeam, race.AthleteOrTeam);
+
+                var filter = Builders<MatchEvents>.Filter.And(
+                    Builders<MatchEvents>.Filter.Eq(x => x.idMatch, race.idMatch),
+                    Builders<MatchEvents>.Filter.ElemMatch("rowingAtheletes", elemFilter)
+                );
+
+                var update = Builders<MatchEvents>.Update
+                    .Set("rowingAtheletes.$.DistanceMeters", race.DistanceMeters)
+                    .Set("rowingAtheletes.$.ResultTime", race.ResultTime)
+                    .Set("rowingAtheletes.$.Place", race.Place)
+                    .Set("rowingAtheletes.$.AverageSpeedKmh", race.AverageSpeedKmh)
+                    .Set("rowingAtheletes.$.Finished", race.Finished);
+
+                var result = await _matchEvents.UpdateOneAsync(filter, update);
+
+                if (result.MatchedCount == 0)
+                {
+                    var pushUpdate = Builders<MatchEvents>.Update.Push("rowingAtheletes", race);
+                    await _matchEvents.UpdateOneAsync(
+                        Builders<MatchEvents>.Filter.Eq(x => x.idMatch, race.idMatch),
+                        pushUpdate
+                    );
+                }
+            }
         }
 
-        public Task SetSwimmingResults(List<AthleteSwimming> swimmings)
+        public async Task SetSwimmingResults(List<AthleteSwimming> swimmings)
         {
-            throw new NotImplementedException();
+            foreach (var race in swimmings)
+            {
+                var elemFilter = Builders<AthleteSwimming>.Filter.Eq(a => a.loginPlayer, race.loginPlayer);
+
+                var filter = Builders<MatchEvents>.Filter.And(
+                    Builders<MatchEvents>.Filter.Eq(x => x.idMatch, race.idMatch),
+                    Builders<MatchEvents>.Filter.ElemMatch("athleteSwimming", elemFilter)
+                );
+
+                var update = Builders<MatchEvents>.Update
+                    .Set("athleteSwimming.$.time", race.time)
+                    .Set("athleteSwimming.$.AvgSpeed", race.AvgSpeed)
+                    .Set("athleteSwimming.$.style", race.style);
+
+                var result = await _matchEvents.UpdateOneAsync(filter, update);
+
+                if (result.MatchedCount == 0)
+                {
+                    var pushUpdate = Builders<MatchEvents>.Update.Push("athleteSwimming", race);
+                    await _matchEvents.UpdateOneAsync(
+                        Builders<MatchEvents>.Filter.Eq(x => x.idMatch, race.idMatch),
+                        pushUpdate
+                    );
+                }
+            }
         }
 
         public Task SetTeamScore(TeamScoreDto score) // тут і подумати над баскетболом

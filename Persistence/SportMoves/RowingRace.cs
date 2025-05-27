@@ -2,7 +2,7 @@ namespace DB.SportHive.MongoDb
 {
     public class RowingRace
     {
-        public long IdRace { get; set; }
+        public long idMatch { get; set; }
         public string AthleteOrTeam { get; set; } = null!;
         public int DistanceMeters { get; set; }
         public TimeSpan ResultTime { get; set; }
