@@ -8,6 +8,7 @@ namespace Extensions
         {
             app.EventsEndpoints();
             app.CompliteInfoEndpoint();
+            app.EnterIntermidiatleResult();
         }
     }
 }
