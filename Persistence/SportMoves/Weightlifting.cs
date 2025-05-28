@@ -4,12 +4,12 @@ namespace DB.SportHive.MongoDb
 {
     public class Weightlifting
     {
+        public long idMatch{ get; set; }
         public WeightDesipline desipline { get; set; }
         public string WeightCategory { get; set; } = null!;
         public string FullNamePlayer { get; set; } = null!;
         public string loginPlayer { get; set; } = null!;
         public int countYes { get; set; }
-        public int countNo { get; set; }
         public float Weight { get; set; }
         public int TryCount { get; set; }
         public bool done { get; set; }

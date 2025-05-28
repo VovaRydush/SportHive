@@ -15,7 +15,7 @@ namespace DB.SportHive.MongoDb
             FullNamePlayer2 = info.FullNamePlayer2;
         }
         public int tour { get; set; }
-        public WinStruggleResult boxWinner { get; set; } = null!;
+        public WinStruggleResult winner { get; set; } = null!;
         public string FullNamePlayer1 { get; set; } = null!;
         public string FullNamePlayer2 { get; set; } = null!;
         public List<RoundPoints> points {get;set;} = new();

@@ -74,9 +74,38 @@ namespace SportHive.Implementations
             }
         }
 
-        public Task SetPointsBoxStruggleCort(PointsIntBoxStruggle points)
+        public async Task SetPointsBoxStruggleCort(PointsIntBoxStruggle points)
         {
-            throw new NotImplementedException();
+            var filter = Builders<MatchEvents>.Filter.And(
+                   Builders<MatchEvents>.Filter.Eq(x => x.idMatch, points.idMatch)
+               );
+            var update = Builders<MatchEvents>.Update.Combine(
+                Builders<MatchEvents>.Update.Push("points", new RoundPoints
+                {
+                    FullNamePlayer = points.FullNamePlayer,
+                    loginPlayer = points.loginPlayer,
+                    round = points.round,
+                    countPoints = points.count,
+                })
+            );
+
+            await _matchEvents.UpdateOneAsync(filter, update);
+        }
+        public async Task SetWinnerBoxStruggle(BoxWinnerDto winner)
+        {
+            var filter = Builders<MatchEvents>.Filter.And(
+                  Builders<MatchEvents>.Filter.Eq(x => x.idMatch, winner.idMatch)
+              );
+            var update = Builders<MatchEvents>.Update.Combine(
+                Builders<MatchEvents>.Update.Set("winner", new WinStruggleResult
+                {
+                    FullNamePlayer = winner.FullNamePlayer,
+                    loginPlayer = winner.loginWinner,
+                    round = winner.round,
+                    win = winner.win
+                })
+            );
+            await _matchEvents.UpdateOneAsync(filter, update);
         }
 
         public async Task SetRowingRace(List<RowingRace> races)
@@ -143,48 +172,51 @@ namespace SportHive.Implementations
         {
             var filter = Builders<MatchEvents>.Filter.Eq(x => x.idMatch, score.idMatch);
             var update = Builders<MatchEvents>.Update.Set("firstTeamScore", score.Score);
-            if(score.Team == 2) update = Builders<MatchEvents>.Update.Set("secondTeamScore", score.Score);
+            if (score.Team == 2) update = Builders<MatchEvents>.Update.Set("secondTeamScore", score.Score);
             await _matchEvents.UpdateOneAsync(filter, update);
         }
 
-        public Task SetWeightliftingResults(Weightlifting result)
+        public async Task SetWeightliftingResults(Weightlifting result)
         {
-            throw new NotImplementedException();
+            var filter = Builders<MatchEvents>.Filter.And(
+                     Builders<MatchEvents>.Filter.Eq(x => x.idMatch, result.idMatch)
+                 );
+            var update = Builders<MatchEvents>.Update.Combine(
+                Builders<MatchEvents>.Update.Push("liftingsAthlete", result)
+            );
+            await _matchEvents.UpdateOneAsync(filter, update);
         }
 
-        public Task SetWinnerBoxStruggle(BoxWinnerDto winner)
+        public async Task SetWinnerChessCheckers(BoardWinner winner)
         {
-            throw new NotImplementedException();
+            var filter = Builders<MatchEvents>.Filter.And(
+                     Builders<MatchEvents>.Filter.Eq(x => x.idMatch, winner.idMatch)
+                 );
+            var update = Builders<MatchEvents>.Update.Combine(
+                Builders<MatchEvents>.Update.Push("Result", winner)
+            );
+            await _matchEvents.UpdateOneAsync(filter, update);
+        }
+        public async Task UpdateCheckersMove(CheckersMove notationDto)
+        {
+            var filter = Builders<MatchEvents>.Filter.And(
+                     Builders<MatchEvents>.Filter.Eq(x => x.idMatch, notationDto.idMatch)
+                 );
+            var update = Builders<MatchEvents>.Update.Combine(
+                Builders<MatchEvents>.Update.Push("Moves", notationDto)
+            );
+            await _matchEvents.UpdateOneAsync(filter, update);
         }
 
-        public Task SetWinnerChessCheckers(ChessWinnerDto chessWinner)
+        public async Task UpdateChessMove(ChessMove notationDto)
         {
-            throw new NotImplementedException();
-        }
-
-        public Task UpdateBaseballMatch(BaseballEvent move)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task UpdateBaseballPoint(BaseballPointsDto baseballPoints)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task UpdateCheckersMove(CheckersNotationDto notationDto)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task UpdateChessMove(ChessNotationDto notationDto)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task UpdateCortSportMatch()
-        {
-            throw new NotImplementedException();
+            var filter = Builders<MatchEvents>.Filter.And(
+                    Builders<MatchEvents>.Filter.Eq(x => x.idMatch, notationDto.idMatch)
+                );
+            var update = Builders<MatchEvents>.Update.Combine(
+                Builders<MatchEvents>.Update.Push("Moves", notationDto)
+            );
+            await _matchEvents.UpdateOneAsync(filter, update);
         }
     }
 }

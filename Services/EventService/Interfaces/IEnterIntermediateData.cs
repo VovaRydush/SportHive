@@ -5,11 +5,9 @@ namespace SportHive.Services.Interfaces
 {
     public interface IEnterIntermediateData
     {
-        Task UpdateBaseballMatch(BaseballEvent move);
-        Task UpdateBaseballPoint(BaseballPointsDto baseballPoints);
-        Task UpdateCheckersMove(CheckersNotationDto notationDto);
-        Task UpdateChessMove(ChessNotationDto notationDto);
-        Task SetWinnerChessCheckers(ChessWinnerDto chessWinner);
+        Task UpdateCheckersMove(CheckersMove notationDto);
+        Task UpdateChessMove(ChessMove notationDto);
+        Task SetWinnerChessCheckers(BoardWinner chessWinner);
         Task SetPointsBoxStruggleCort(PointsIntBoxStruggle points); // бокс, бородьба та всі види спорту з кортом
         Task SetWinnerBoxStruggle(BoxWinnerDto winner);
         Task SetCyclingRace(List<CyclingRace> races);

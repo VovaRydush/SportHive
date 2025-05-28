@@ -33,12 +33,49 @@ namespace Events.Endpoints
                 await enterData.SetDistanceRunning(races);
             }).DisableAntiforgery()
                 .RequireAuthorization(new AuthorizeAttribute { Roles = "Trainer,Organization" });
-            
-             route.MapPatch("/SetTeamScore", async ([FromBody] TeamScoreDto scoreDto, [FromServices] IEnterIntermediateData enterData) =>
+
+            route.MapPatch("/set-team-score", async ([FromBody] TeamScoreDto scoreDto, [FromServices] IEnterIntermediateData enterData) =>
             {
                 await enterData.SetTeamScore(scoreDto);
             }).DisableAntiforgery()
                 .RequireAuthorization(new AuthorizeAttribute { Roles = "Trainer,Organization" });
+
+            route.MapPatch("/update-chess-move", async ([FromBody] ChessMove move, [FromServices] IEnterIntermediateData enterData) =>
+            {
+                await enterData.UpdateChessMove(move);
+            }).DisableAntiforgery()
+                .RequireAuthorization(new AuthorizeAttribute { Roles = "Trainer,Organization" });
+
+            route.MapPatch("/update-checkers-move", async ([FromBody] CheckersMove move, [FromServices] IEnterIntermediateData enterData) =>
+            {
+                await enterData.UpdateCheckersMove(move);
+            }).DisableAntiforgery()
+                .RequireAuthorization(new AuthorizeAttribute { Roles = "Trainer,Organization" });
+
+            route.MapPatch("/set-board-winner", async ([FromBody] BoardWinner winner, [FromServices] IEnterIntermediateData enterData) =>
+            {
+                await enterData.SetWinnerChessCheckers(winner);
+            }).DisableAntiforgery()
+                .RequireAuthorization(new AuthorizeAttribute { Roles = "Trainer,Organization" });
+
+            route.MapPatch("/set-weightlifting-results", async ([FromBody] Weightlifting result, [FromServices] IEnterIntermediateData enterData) =>
+            {
+                await enterData.SetWeightliftingResults(result);
+            }).DisableAntiforgery()
+                .RequireAuthorization(new AuthorizeAttribute { Roles = "Trainer,Organization" });
+
+            route.MapPatch("/set-struggle-winner", async ([FromBody] BoxWinnerDto winner, [FromServices] IEnterIntermediateData enterData) =>
+            {
+                await enterData.SetWinnerBoxStruggle(winner);
+            }).DisableAntiforgery()
+                .RequireAuthorization(new AuthorizeAttribute { Roles = "Trainer,Organization" });
+            
+            route.MapPatch("/set-ring-points", async ([FromBody] PointsIntBoxStruggle points, [FromServices] IEnterIntermediateData enterData) =>
+            {
+                await enterData.SetPointsBoxStruggleCort(points);
+            }).DisableAntiforgery()
+                .RequireAuthorization(new AuthorizeAttribute { Roles = "Trainer,Organization" });
+           
         }
     }
 }

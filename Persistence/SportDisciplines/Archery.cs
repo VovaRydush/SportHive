@@ -4,6 +4,7 @@ namespace DB.SportHive.MongoDb
 {
     public class Archery : MatchEvents
     {
+        public Archery(){}
         public Archery(ExtremeIndividualInfo info)
         {
             fouls = new List<PlayerFouls>();

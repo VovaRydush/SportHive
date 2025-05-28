@@ -16,17 +16,19 @@ namespace DB.SportHive.MongoDb
         }
         public int tour { get; set; }
         public string typeResult { get; set; } = null!;
-        public string FullNamePlayer1 {get;set;} = null!;
+        public WinStruggleResult winner { get; set; } = null!;
+        public string FullNamePlayer1 { get; set; } = null!;
         public string FullNamePlayer2 {get;set;} = null!;
         public int round { get; set; }
-        public List<RoundPoints> roundPoints { get; set; }
+        public List<RoundPoints> points { get; set; }
         public List<PlayerFouls> player1Fouls { get; set; } = new();
         public List<PlayerFouls> player2Fouls {get;set;} = new();
     }
-    public class WinStruggleResult
+    public class WinStruggleResult 
     {
         public string FullNamePlayer { get; set; } = null!;
         public string loginPlayer { get; set; } = null!;
+        public int? round { get; set; }
         public int countPoints { get; set; }
         public Result win { get; set; }
     }

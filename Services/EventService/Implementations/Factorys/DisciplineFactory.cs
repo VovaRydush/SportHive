@@ -51,7 +51,6 @@ namespace SportHive.Implementations
             return info.NameDesipline switch
             {
                 "AthleticsMatch" => new AthleticsMatch(info),
-                "Baseball" => new Baseball(info),
                 "Cycling" => new Cycling(info),
                 "DistanceRunning" => new DistanceRunningMatch(info),
                 "Rowing" => new Rowing(info),
