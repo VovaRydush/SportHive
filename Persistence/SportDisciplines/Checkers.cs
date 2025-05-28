@@ -4,6 +4,7 @@ namespace DB.SportHive.MongoDb
 {
     public class CheckersGame : MatchEvents
     {
+        public CheckersGame(){}
         public CheckersGame(TwoPlayerInfo info)
         {
             idMatch = info.idMatch;

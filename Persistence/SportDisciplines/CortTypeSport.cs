@@ -5,6 +5,7 @@ namespace DB.SportHive.MongoDb
 {
     public class CortMatches : MatchEvents
     {
+        public CortMatches(){}
         public CortMatches(TwoPlayerInfo info)
         {
             idMatch = info.idMatch;

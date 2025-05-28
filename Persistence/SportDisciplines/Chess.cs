@@ -6,6 +6,7 @@ namespace DB.SportHive.MongoDb
 {
     public class ChessMatch : MatchEvents
     {
+        public ChessMatch(){}
         public ChessMatch(TwoPlayerInfo info)
         {
             idMatch = info.idMatch;

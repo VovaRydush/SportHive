@@ -6,6 +6,7 @@ namespace DB.SportHive.MongoDb
 {
     public class AthleticsMatch : MatchEvents
     {
+        public AthleticsMatch(){}
         public AthleticsMatch(ExtremeIndividualInfo info)
         {
             movesAthletis = new List<AthleticsMoves>();

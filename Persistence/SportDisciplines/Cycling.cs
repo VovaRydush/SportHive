@@ -4,6 +4,7 @@ namespace DB.SportHive.MongoDb
 {
     public class Cycling : MatchEvents
     {
+        public Cycling(){}
         public Cycling(ExtremeIndividualInfo info)
         {
             atheltesMoves = new List<CyclingRace>();
@@ -18,7 +19,7 @@ namespace DB.SportHive.MongoDb
                 atheltesMoves.Add(athlete);
             }
         }
-        public int Tour { get; set; }
+        public int Tour { get; set; } 
         public string RaceType { get; set; } = null!;
         public List<PlayerFouls> fouls { get; set; } = new();
         public List<CyclingRace> atheltesMoves { get; set; } = new();

@@ -7,7 +7,7 @@ using  SportHive.Services.Interfaces;
 namespace Events.Endpoints
 {
     public static class EnterIntermidiatleResults
-    { 
+    {
         public static void EnterIntermidiatleResult(this IEndpointRouteBuilder route)
         {
             route.MapPatch("/set-cycling-race", async ([FromBody] List<CyclingRace> races, [FromServices] IEnterIntermediateData enterData) =>
@@ -31,6 +31,12 @@ namespace Events.Endpoints
             route.MapPatch("/set-distance-running", async ([FromBody] List<DistanceRunning> races, [FromServices] IEnterIntermediateData enterData) =>
             {
                 await enterData.SetDistanceRunning(races);
+            }).DisableAntiforgery()
+                .RequireAuthorization(new AuthorizeAttribute { Roles = "Trainer,Organization" });
+            
+             route.MapPatch("/SetTeamScore", async ([FromBody] TeamScoreDto scoreDto, [FromServices] IEnterIntermediateData enterData) =>
+            {
+                await enterData.SetTeamScore(scoreDto);
             }).DisableAntiforgery()
                 .RequireAuthorization(new AuthorizeAttribute { Roles = "Trainer,Organization" });
         }

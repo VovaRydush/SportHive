@@ -4,6 +4,7 @@ namespace DB.SportHive.MongoDb
 {
     public class TeamDesiplines : MatchEvents
     {
+        public TeamDesiplines(){}
         public TeamDesiplines(TeamInfo info)
         {
             Tour = info.Tour;

@@ -89,7 +89,7 @@ namespace SportHive.Implementations
         }
         public async Task CompliteWeightlifting(List<CompliteWeightliftingDto> data)
         {
-            await CompliteExtremeMatch(_appDbContext,data[0].MatchInfo);
+            await CompliteExtremeMatch(_appDbContext, data[0].MatchInfo);
             if (data[0].MatchInfo.location != null) _eventService.SaveLocation(_appDbContext, new LocationDto
             {
                 address = data[0].MatchInfo.location.LocationName,
@@ -115,8 +115,8 @@ namespace SportHive.Implementations
                 );
 
                 await _matchEvents.UpdateOneAsync(filter, update);
-                await _appDbContext.SaveChangesAsync();
             }
+            await _appDbContext.SaveChangesAsync();
         }
 
         public async Task CompliteExtremeMatch(AppDbContext appDbContext, CompliteMatchInfo data)

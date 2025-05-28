@@ -139,9 +139,12 @@ namespace SportHive.Implementations
             }
         }
 
-        public Task SetTeamScore(TeamScoreDto score) // тут і подумати над баскетболом
+        public async Task SetTeamScore(TeamScoreDto score)
         {
-            throw new NotImplementedException();
+            var filter = Builders<MatchEvents>.Filter.Eq(x => x.idMatch, score.idMatch);
+            var update = Builders<MatchEvents>.Update.Set("firstTeamScore", score.Score);
+            if(score.Team == 2) update = Builders<MatchEvents>.Update.Set("secondTeamScore", score.Score);
+            await _matchEvents.UpdateOneAsync(filter, update);
         }
 
         public Task SetWeightliftingResults(Weightlifting result)
@@ -164,7 +167,7 @@ namespace SportHive.Implementations
             throw new NotImplementedException();
         }
 
-        public Task UpdateBaseballPoint()
+        public Task UpdateBaseballPoint(BaseballPointsDto baseballPoints)
         {
             throw new NotImplementedException();
         }

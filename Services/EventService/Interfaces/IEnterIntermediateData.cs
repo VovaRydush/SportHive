@@ -6,7 +6,7 @@ namespace SportHive.Services.Interfaces
     public interface IEnterIntermediateData
     {
         Task UpdateBaseballMatch(BaseballEvent move);
-        Task UpdateBaseballPoint();
+        Task UpdateBaseballPoint(BaseballPointsDto baseballPoints);
         Task UpdateCheckersMove(CheckersNotationDto notationDto);
         Task UpdateChessMove(ChessNotationDto notationDto);
         Task SetWinnerChessCheckers(ChessWinnerDto chessWinner);

@@ -4,6 +4,7 @@ namespace DB.SportHive.MongoDb
 {
     public class DistanceRunningMatch : MatchEvents
     {
+        public DistanceRunningMatch(){}
         public DistanceRunningMatch(ExtremeIndividualInfo info)
         {
             runningAthlets = new List<DistanceRunning>();
