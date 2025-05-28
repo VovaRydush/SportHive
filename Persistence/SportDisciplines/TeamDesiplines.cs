@@ -8,6 +8,7 @@ namespace DB.SportHive.MongoDb
         public TeamDesiplines(TeamInfo info)
         {
             Tour = info.Tour;
+            idEvent = info.idEvent;
             NameDesipline = info.NameDesipline;
             idMatch = info.idMatch;
             Group = info.Group ?? -1;

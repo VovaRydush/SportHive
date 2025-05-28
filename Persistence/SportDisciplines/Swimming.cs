@@ -7,6 +7,7 @@ namespace DB.SportHive.MongoDb
         public Swimming(){}
         public Swimming(ExtremeIndividualInfo info)
         {
+            idEvent = info.idEvent;
             var athleteSwimming = new List<AthleteSwimming>();
             foreach (var entity in info.entitysName)
             {

@@ -9,6 +9,7 @@ namespace DB.SportHive.MongoDb
         public AthleticsMatch(){}
         public AthleticsMatch(ExtremeIndividualInfo info)
         {
+            idEvent = info.idEvent;
             movesAthletis = new List<AthleticsMoves>();
             NameDesipline = info.NameDesipline;
             foreach (var entity in info.entitysName)

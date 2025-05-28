@@ -9,6 +9,7 @@ namespace DB.SportHive.MongoDb
         {
             atheltesMoves = new List<CyclingRace>();
             Tour = info.tour;
+            idEvent = info.idEvent;
             foreach (var entity in info.entitysName)
             {
                 var athlete = new CyclingRace

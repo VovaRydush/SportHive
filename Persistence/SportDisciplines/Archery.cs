@@ -8,6 +8,7 @@ namespace DB.SportHive.MongoDb
         public Archery(ExtremeIndividualInfo info)
         {
             fouls = new List<PlayerFouls>();
+            idEvent = info.idEvent;
             foreach (var entity in info.entitysName)
             {
                 var athlete = new PlayerFouls

@@ -7,6 +7,7 @@ namespace DB.SportHive.MongoDb
         public WeightliftingMatch(){}
         public WeightliftingMatch(ExtremeIndividualInfo info)
         {
+            idEvent = info.idEvent;
             liftingsAthlete = new List<Weightlifting>();
             foreach (var entity in info.entitysName)
             {

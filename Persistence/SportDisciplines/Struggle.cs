@@ -9,6 +9,7 @@ namespace DB.SportHive.MongoDb
         public Struggle(){}
         public Struggle(TwoPlayerInfo info)
         {
+            idEvent = info.idEvent;
             idMatch = info.idMatch;
             tour = info.tour;
             FullNamePlayer1 = info.FullNamePlayer1;

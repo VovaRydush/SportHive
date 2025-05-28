@@ -5,6 +5,7 @@ namespace DB.SportHive.Domain
     public class ExtremeIndividualInfo
     {
         public long idMatch;
+        public long idEvent;
         public int tour;
         public string NameDesipline { get; set; } = null!;
         public List<EntityInfo> entitysName { get; set; } = null!;
