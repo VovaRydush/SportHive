@@ -3,6 +3,7 @@ using System;
 using DB.SportHive.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Persistence.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250531070820_AddFiledJudge1")]
+    partial class AddFiledJudge1
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -169,6 +172,7 @@ namespace Persistence.Migrations
                         .HasColumnName("Tour");
 
                     b.Property<string>("loginJudge")
+                        .IsRequired()
                         .HasColumnType("character varying(40)");
 
                     b.HasKey("IdExtremeMatches");
@@ -219,6 +223,7 @@ namespace Persistence.Migrations
                         .HasColumnType("character varying(40)");
 
                     b.Property<string>("loginJudge")
+                        .IsRequired()
                         .HasColumnType("character varying(40)");
 
                     b.Property<string>("loginSecondAthlete")
@@ -489,6 +494,7 @@ namespace Persistence.Migrations
                         .HasColumnName("Tour");
 
                     b.Property<string>("loginJudge")
+                        .IsRequired()
                         .HasColumnType("character varying(40)");
 
                     b.HasKey("IdTeamMatch");
@@ -667,7 +673,8 @@ namespace Persistence.Migrations
                     b.HasOne("DB.SportHive.Domain.Judge", "Judge")
                         .WithMany("ExtremeMatch")
                         .HasForeignKey("loginJudge")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Event");
 
@@ -699,7 +706,8 @@ namespace Persistence.Migrations
                     b.HasOne("DB.SportHive.Domain.Judge", "Judge")
                         .WithMany("IndividualMatch")
                         .HasForeignKey("loginJudge")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .IsRequired();
 
                     b.HasOne("DB.SportHive.Domain.Athlete", "SecondAthlete")
                         .WithMany()
@@ -859,7 +867,8 @@ namespace Persistence.Migrations
                     b.HasOne("DB.SportHive.Domain.Judge", "Judge")
                         .WithMany("TeamMatch")
                         .HasForeignKey("loginJudge")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .IsRequired();
 
                     b.Navigation("Event");
 

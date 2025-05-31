@@ -9,7 +9,8 @@ namespace DB.SportHive.Domain
         public IFormFile EventPhoto { get; set; } = null!;
         public DateTime DataStart { get; set; }
         public DateTime DataEnd { get; set; }
-        public string TypeSport{get;set;} = null!;
+        public string TypeSport { get; set; } = null!;
+        public string loginJudge { get; set; } = null!;
         public string description { get; set; } = null!;
 
     }

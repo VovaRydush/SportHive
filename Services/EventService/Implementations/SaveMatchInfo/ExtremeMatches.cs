@@ -31,6 +31,7 @@ namespace SportHive.Implementations
                 {
                     idMatch = IdExtremeMatches,
                     tour = matchs.tour,
+                    loginJudge = matchs.loginJudge,
                     NameDesipline = matchs.NameSport,
                     entitysName = Entitys
                 });
@@ -53,6 +54,7 @@ namespace SportHive.Implementations
                 {
                     idMatch = IdExtremeMatches,
                     tour = matchs.tour,
+                    loginJudge = matchs.loginJudge,
                     NameDesipline = matchs.NameSport,
                     entitysName = Entitys
                 });

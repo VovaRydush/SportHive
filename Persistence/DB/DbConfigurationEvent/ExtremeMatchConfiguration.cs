@@ -16,10 +16,17 @@ namespace SportHive.DbConfiguration
                    .HasForeignKey(em => em.IdEvent)
                    .OnDelete(DeleteBehavior.Cascade);
 
-            builder.HasOne(l => l.Location)             
-                   .WithMany()                      
+            builder.HasOne(l => l.Location)
+                   .WithMany()
                    .HasForeignKey(tm => tm.LocationName)
                    .OnDelete(DeleteBehavior.NoAction);
+
+            builder.HasOne(m => m.Judge)
+                        .WithMany(j => j.ExtremeMatch)
+                        .HasForeignKey(m => m.loginJudge)
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasPrincipalKey(j => j.login);
+
         }
     }
 }

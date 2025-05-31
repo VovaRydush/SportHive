@@ -12,9 +12,10 @@ namespace DB.SportHive.Domain
 
         [Required]
         public long IdEvent { get; set; }
+        public string? loginJudge { get; set; } 
+        public Judge? Judge { get; set; }
 
         public Event Event { get; set; } = null!;
-
         public StatusMatch StatusMatch { get; set; }
 
         [Required]

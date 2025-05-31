@@ -23,6 +23,13 @@ namespace SportHive.DbConfiguration
                    .HasForeignKey(tm => tm.NameFirstTeam)
                    .OnDelete(DeleteBehavior.NoAction);
 
+                     builder.HasOne(m => m.Judge)
+                            .WithMany(j => j.TeamMatch)
+                            .HasForeignKey(m => m.loginJudge)
+                            .OnDelete(DeleteBehavior.SetNull)
+                            .HasPrincipalKey(j => j.login);
+
+
             builder.HasOne(tm => tm.SecondTeam)
                    .WithMany()
                    .HasForeignKey(tm => tm.NameSecondTeam)

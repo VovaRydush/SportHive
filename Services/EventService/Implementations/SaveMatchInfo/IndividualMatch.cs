@@ -20,6 +20,7 @@ namespace SportHive.Implementations
                 IdIndividualMatch  = IdIndividualMatchs,
                 IdEvent = IdEvent,
                 loginFirstAthlete = athlete1,
+                loginJudge = matchs.loginJudge,
                 loginSecondAthlete = athlete2,
                 StatusMatch = StatusMatch.Upcoming,
                 Tour = matchs.tour,
@@ -30,6 +31,7 @@ namespace SportHive.Implementations
                 FullNamePlayer1 = athlete1,
                 FullNamePlayer2 = athlete2,
                 tour = matchs.tour,
+                loginJudge = matchs.loginJudge,
                 NameDesipline = matchs.NameSport,
                 idMatch = IdIndividualMatchs
             });

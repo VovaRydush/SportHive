@@ -9,7 +9,7 @@ namespace SportHive.DbConfiguration
         public void Configure(EntityTypeBuilder<IndividualMatch> builder)
         {
             builder.HasKey(im => im.IdIndividualMatch);
-            
+
             builder.HasOne(im => im.Event)
                    .WithMany()
                    .HasForeignKey(im => im.IdEvent)
@@ -26,11 +26,18 @@ namespace SportHive.DbConfiguration
                    .HasForeignKey(im => im.loginSecondAthlete)
                    .HasPrincipalKey(a => a.login)
                    .OnDelete(DeleteBehavior.Restrict);
-            
-             builder.HasOne(l => l.Location)             
-                   .WithMany()                      
-                   .HasForeignKey(tm => tm.LocationName)
-                   .OnDelete(DeleteBehavior.NoAction);
+
+            builder.HasOne(m => m.Judge)
+                    .WithMany(j => j.IndividualMatch)
+                    .HasForeignKey(m => m.loginJudge)
+                    .OnDelete(DeleteBehavior.SetNull)
+                    .HasPrincipalKey(j => j.login);
+
+
+            builder.HasOne(l => l.Location)
+                  .WithMany()
+                  .HasForeignKey(tm => tm.LocationName)
+                  .OnDelete(DeleteBehavior.NoAction);
         }
     }
 }

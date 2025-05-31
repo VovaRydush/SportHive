@@ -22,6 +22,7 @@ namespace SportHive.Implementations
                 StatusMatch = StatusMatch.Upcoming,
                 NameFirstTeam = Team1,
                 NameSecondTeam = Team2,
+                loginJudge = matchs.loginJudge,
                 Group = matchs.Group ?? -1,
                 Tour = matchs.tour,
                 AddInformation = matchs.AddInformation ?? ""
@@ -31,6 +32,7 @@ namespace SportHive.Implementations
             {
                 idMatch = IdTeamMatchs,
                 NameDesipline = matchs.NameSport,
+                loginJudge = matchs.loginJudge,
                 Group = matchs.Group,
                 Tour = matchs.tour
             });

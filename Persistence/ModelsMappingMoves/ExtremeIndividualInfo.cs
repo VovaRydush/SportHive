@@ -6,6 +6,7 @@ namespace DB.SportHive.Domain
     {
         public long idMatch;
         public long idEvent;
+        public string loginJudge { get; set; } = null!;
         public int tour;
         public string NameDesipline { get; set; } = null!;
         public List<EntityInfo> entitysName { get; set; } = null!;
