@@ -28,7 +28,7 @@ namespace DB.SportHive.Domain
 
         [Column("Tour")]
         public int Tour { get; set; }
-        public string? loginJudge { get; set; } // nullable!
+        public string? loginJudge { get; set; } 
 public Judge? Judge { get; set; }
 
         [Column("AddInformation")]
