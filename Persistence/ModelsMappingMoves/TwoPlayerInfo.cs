@@ -7,5 +7,6 @@ namespace DB.SportHive.Domain
         public string NameDesipline { get; set; } = null!;
         public int tour { get; set; }
         public long idMatch { get; set; }
+        public long idEvent { get; set; }
     }
 }

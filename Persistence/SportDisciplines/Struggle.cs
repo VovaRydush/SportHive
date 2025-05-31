@@ -1,6 +1,5 @@
 using System.ComponentModel;
 using DB.SportHive.Domain;
-using StackExchange.Redis;
 
 namespace DB.SportHive.MongoDb
 {
@@ -21,7 +20,7 @@ namespace DB.SportHive.MongoDb
         public string FullNamePlayer1 { get; set; } = null!;
         public string FullNamePlayer2 {get;set;} = null!;
         public int round { get; set; }
-        public List<RoundPoints> points { get; set; }
+        public List<RoundPoints> points { get; set; } = new();
         public List<PlayerFouls> player1Fouls { get; set; } = new();
         public List<PlayerFouls> player2Fouls {get;set;} = new();
     }
