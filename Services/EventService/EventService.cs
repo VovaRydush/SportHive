@@ -82,12 +82,14 @@ builder.Services.AddScoped<IEnterDataMatches, EnterDataMatches>();
 builder.Services.AddScoped<IEnterSportMove, EnterSportMove>();
 builder.Services.AddScoped<IEnterIntermediateData,EnterIntermediateData>();
 builder.Services.AddScoped<ICompliteMatch, CompliteMatch>();
+builder.Services.AddScoped<ICompliteUserProfile,CompliteUserProfile>();
 
 builder.Services.AddScoped<SaveTeamMatch>();
 builder.Services.AddScoped<SaveIndividualMatch>();
 builder.Services.AddScoped<SaveExtremeMatch>();
 
 builder.Services.AddScoped<SaveMatchFactory>();
+builder.Services.AddScoped<UserProfileFactory>();
 builder.Services.AddScoped<EnumWork>();
 
 builder.Services.AddScoped<IMatchsGenerator, MatchsGenerator>();

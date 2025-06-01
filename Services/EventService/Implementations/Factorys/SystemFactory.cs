@@ -13,7 +13,6 @@ namespace SportHive.Implementations
 
         public ICompetitionSystem Create(string system)
         {
-            Console.WriteLine("SystemFactory");
             var scope = _scopeFactory.CreateScope();
             var provider = scope.ServiceProvider;
 
