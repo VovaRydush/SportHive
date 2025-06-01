@@ -1,5 +1,6 @@
 using SportHive.Services.Interfaces;
 using MongoDB.Driver;
+using Microsoft.Extensions.Configuration;
 
 namespace SportHive.Implementations
 {
@@ -12,8 +13,8 @@ namespace SportHive.Implementations
         public MongoDbService(IConfiguration configuration)
         {
             _configuration = configuration;
-            _client = new MongoClient(_configuration.GetValue<string>("MongoDb:ConnectionString"));
-            DbContext = _client.GetDatabase(_configuration.GetValue<string>("MongoDb:Database"));
+            _client = new MongoClient("mongodb://admin:adminpass@127.0.0.1:27017");
+            DbContext = _client.GetDatabase("SportHive");
         }
 
         public IMongoCollection<T> GetCollection<T>(string name)

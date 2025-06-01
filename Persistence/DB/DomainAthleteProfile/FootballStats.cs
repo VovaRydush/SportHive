@@ -1,7 +1,14 @@
 namespace DB.SportHive.Domain
 {
-    public class FootballStats
+    public class FootballStats : ISportStats
     {
+        public FootballStats()
+        {
+        }
+        public FootballStats(string fullName, string Login, string sportType)
+        {
+        }
+
         public int Matches { get; set; }
         public int Goals { get; set; }
         public int Assists { get; set; }

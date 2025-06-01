@@ -1,6 +1,6 @@
 namespace DB.SportHive.Domain
 {
-    public class WeightliftingStats
+    public class WeightliftingStats : ISportStats
     {
         public string WeightClass { get; set; } = null!;
         public int BestSnatchKg { get; set; }

@@ -5,6 +5,10 @@ namespace DB.SportHive.Domain
 {
     public class AthleteProfile
     {
+        public AthleteProfile()
+        {
+
+        }
         public AthleteProfile(string fullName, string Login, string sportType)
         {
             FullName = fullName;
@@ -20,6 +24,6 @@ namespace DB.SportHive.Domain
         public string? Position { get; set; } // Якщо є
         public DateOnly dateLastUpdate { get; set; }
         public List<TournamentResult> TournamentHistory { get; set; } = new();
-        public object SportStats { get; set; } = null!; // Тут буде конкретний клас по виду спорту
+        public ISportStats SportStats { get; set; } = null!; // Тут буде конкретний клас по виду спорту
     }
 }

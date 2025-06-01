@@ -16,10 +16,11 @@ namespace SportHive.Implementations
         public async Task CreateProfileInMongoAsync(string fullName, string Login, string sportType)
         {
             var profile = _userProfileFactory.CreateUserProfile(sportType);
-            await _playerProfile.InsertOneAsync(new AthleteProfile(fullName, Login, sportType)
+            _playerProfile.InsertOne(new AthleteProfile(fullName, Login, sportType)
             {
-                SportStats = profile 
+                SportStats = profile
             });
+            await Task.CompletedTask;
         }
     }
 }

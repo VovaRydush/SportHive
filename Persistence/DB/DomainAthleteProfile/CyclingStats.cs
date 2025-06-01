@@ -1,6 +1,6 @@
 namespace DB.SportHive.Domain
 { 
-    public class CyclingStats
+    public class CyclingStats : ISportStats
 {
     public int Races { get; set; }
     public double BestTime { get; set; }            // у секундах

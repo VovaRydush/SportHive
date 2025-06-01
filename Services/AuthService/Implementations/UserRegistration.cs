@@ -16,8 +16,10 @@ namespace SportHive.Implementations
         private readonly IEmailService _emailService;
         private readonly ISaveDataDb _saveDataDb;
         private readonly IPhotoProcessing _photoprocessing;
-        public UserRegistration(ISaveDataDb saveDataDb, AppDbContext context, IRedisService database, IEmailService emailService, IPhotoProcessing photo)
+        private readonly ICompliteUserProfile _userProfile;
+        public UserRegistration(ICompliteUserProfile userProfile,ISaveDataDb saveDataDb, AppDbContext context, IRedisService database, IEmailService emailService, IPhotoProcessing photo)
         {
+            _userProfile = userProfile;
             _saveDataDb = saveDataDb;
             _photoprocessing = photo;
             _emailService = emailService;
@@ -83,6 +85,7 @@ namespace SportHive.Implementations
                 default:
                     throw new NotFoundException("Unknown role");
             }
+            await _userProfile.CreateProfileInMongoAsync(entity.FistName+" "+entity.LastName,entity.Login,entity.TypeSport);
         }
 
         public async Task ComplitePrifileOrganization(OrganizationInfoDto entity)
@@ -158,12 +161,10 @@ namespace SportHive.Implementations
             var existingUser = await _context.Users
                                     .AsNoTracking()
                                     .Where(u => u.Email == entity.Email || u.login == entity.Login)
-                                    .Select(u => new{u.login})
+                                    .Select(u => new { u.login })
                                     .FirstOrDefaultAsync();
 
             if (existingUser != null) throw new Exception("Користувач з таким email або логіном вже існує.");
-
-
 
             var user = new User
             {
@@ -178,8 +179,6 @@ namespace SportHive.Implementations
             var jsonObj = JsonSerializer.Serialize(user);
 
             _ = _saveDataDb.SaveDataToDb(jsonObj, "user_regist");
-
-
 
             _ = _emailService.SendEmail(new EmailMessageDto
             {

@@ -1,7 +1,11 @@
 namespace DB.SportHive.Domain
 {
-    public class RacketSportsStats
+    public class RacketSportsStats : ISportStats
     {
+        public RacketSportsStats()
+        {
+        }
+
         public int MatchesPlayed { get; set; }
         public int MatchesWon { get; set; }
         public int SetsWon { get; set; }

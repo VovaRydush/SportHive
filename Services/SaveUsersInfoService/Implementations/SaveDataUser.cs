@@ -21,51 +21,51 @@ namespace SportHive.Implementations
         {
             using var scope = _scopeFactory.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        try
-        {
-            switch (topic)
+            try
             {
-                case "user_regist":
-                    var user = JsonSerializer.Deserialize<User>(jsonObj);
-                    dbContext.Users.Add(user);
-                    break;
+                switch (topic)
+                {
+                    case "user_regist":
+                        var user = JsonSerializer.Deserialize<User>(jsonObj);
+                        dbContext.Users.Add(user);
+                        break;
 
-                case "user-athlete":
-                    var athlete = JsonSerializer.Deserialize<Athlete>(jsonObj);
-                    dbContext.Athletes.Add(athlete);
-                    break;
+                    case "user-athlete":
+                        var athlete = JsonSerializer.Deserialize<Athlete>(jsonObj);
+                        dbContext.Athletes.Add(athlete);
+                        break;
 
-                case "user-trainer":
-                    var trainer = JsonSerializer.Deserialize<Trainer>(jsonObj);
-                    dbContext.Trainers.Add(trainer);
-                    break;
+                    case "user-trainer":
+                        var trainer = JsonSerializer.Deserialize<Trainer>(jsonObj);
+                        dbContext.Trainers.Add(trainer);
+                        break;
 
-                case "user-judge":
-                    var judge = JsonSerializer.Deserialize<Judge>(jsonObj);
-                    dbContext.Judges.Add(judge);
-                    break;
+                    case "user-judge":
+                        var judge = JsonSerializer.Deserialize<Judge>(jsonObj);
+                        dbContext.Judges.Add(judge);
+                        break;
 
-                case "user-photo":
-                    var userphoto = JsonSerializer.Deserialize<UserPhoto>(jsonObj);
-                    dbContext.UserPhotos.Add(userphoto);
-                    break;
+                    case "user-photo":
+                        var userphoto = JsonSerializer.Deserialize<UserPhoto>(jsonObj);
+                        dbContext.UserPhotos.Add(userphoto);
+                        break;
 
-                case "user-organization":
-                    var organization = JsonSerializer.Deserialize<Organization>(jsonObj);
-                    dbContext.Organizations.Add(organization);
-                    break;
+                    case "user-organization":
+                        var organization = JsonSerializer.Deserialize<Organization>(jsonObj);
+                        dbContext.Organizations.Add(organization);
+                        break;
 
-                default:
-                    _logger.LogWarning($"Unknown topic: {topic}");
-                    return;
+                    default:
+                        _logger.LogWarning($"Unknown topic: {topic}");
+                        return;
+                }
+
+                await dbContext.SaveChangesAsync();
             }
-
-            await dbContext.SaveChangesAsync();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError($"{ex.Message}");
-        }
+            catch (Exception ex)
+            {
+                _logger.LogError($"{ex.Message}");
+            }
         }
     }
 }

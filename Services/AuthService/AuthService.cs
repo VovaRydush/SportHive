@@ -7,6 +7,7 @@ using StackExchange.Redis;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Persistence.Services;
+using DB.SportHive.Domain;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -32,7 +33,28 @@ builder.Services.AddScoped<IEmailService, EmailServiceKafka>();
 builder.Services.AddScoped<IPhotoProcessing, PhotoProcessing>();
 builder.Services.AddScoped<IJWTService,JWTService>();
 builder.Services.AddScoped<ILoginService,LoginService>();
-builder.Services.AddScoped<IProfileManipulete,ProfileManipulete>();
+builder.Services.AddScoped<IProfileManipulete, ProfileManipulete>();
+builder.Services.AddScoped<IMongoDbService, MongoDbService>();
+builder.Services.AddScoped<UserProfileFactory>();
+builder.Services.AddScoped<ICompliteUserProfile, CompliteUserProfile>();
+
+builder.Services.AddScoped<FootballStats>();
+builder.Services.AddScoped<AmericanFootballStats>();
+builder.Services.AddScoped<ArcheryStats>();
+builder.Services.AddScoped<BasketballStats>();
+builder.Services.AddScoped<CheckersChessStats>();
+builder.Services.AddScoped<BoxingStats>();
+builder.Services.AddScoped<CyclingStats>();
+builder.Services.AddScoped<IceHockeyStats>();
+builder.Services.AddScoped<PowerliftingStats>();
+builder.Services.AddScoped<RacketSportsStats>();
+builder.Services.AddScoped<RowingStats>();
+builder.Services.AddScoped<RugbyStats>();
+builder.Services.AddScoped<StruggleStats>();
+builder.Services.AddScoped<SwimmingStats>();
+builder.Services.AddScoped<VolleyballStats>();
+builder.Services.AddScoped<WeightliftingStats>();
+
 
 var app = builder.Build();
 if (app.Environment.IsDevelopment())
