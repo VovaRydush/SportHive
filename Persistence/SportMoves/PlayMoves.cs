@@ -6,7 +6,8 @@ namespace DB.SportHive.MongoDb
     {
         public long IdMatch{ get; set; }
         public string FullNamePlayer{get;set;} = null!;
-        public TypeMove typeMove{ get; set; }
+        public string loginPlayer { get; set; } = null!;
+        public TypeMove typeMove { get; set; }
         public TimeSpan timeMove { get; set; }
     }
     public enum TypeMove
@@ -32,6 +33,10 @@ namespace DB.SportHive.MongoDb
         [Description("Safety")]
         Safety,
         [Description("DropGoal")]
-        DropGoal
+        DropGoal,
+        [Description("Tackles")]
+        Tackles,
+        [Description("Bullseyes")]
+        Bullseyes
     }
 }

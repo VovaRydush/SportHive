@@ -7,6 +7,7 @@ namespace DB.SportHive.Domain
         public int Tackles { get; set; }
         public int PointsScored { get; set; }
         public int Wins { get; set; }
+        public int Losses { get; set; }
          // Наприклад: "Flanker", "Hooker"
     }
 

@@ -27,7 +27,7 @@ namespace SportHive.Implementations
                     Builders<MatchEvents>.Update.Push("attacksMoves", new AttacksMoves
                     {
                         IdMatch = move.idMatch,
-                        FullNamePlayer = move.FullNamePlayer1,
+                        FullNamePlayer = move.FullNamePlayer,
                         move = (TypeMoves)typeMoves,
                         time = move.timeMove,
                         realization = move.realization
@@ -73,7 +73,7 @@ namespace SportHive.Implementations
                     Builders<MatchEvents>.Update.Push("playMoves", new PlayMoves
                     {
                         IdMatch = move.idMatch,
-                        FullNamePlayer = move.FullNamePlayer1,
+                        FullNamePlayer = move.FullNamePlayer,
                         typeMove = (TypeMove)typeMoves,
                         timeMove = move.timeMove
                     })
@@ -93,7 +93,7 @@ namespace SportHive.Implementations
                 var update = Builders<MatchEvents>.Update.Combine(
                     Builders<MatchEvents>.Update.Push($"player{move.whoPlayer}Fouls", new PlayerFouls
                     {
-                        FullNamePlayer = move.FullNamePlayer1 ?? move.FullNamePlayer2,
+                        FullNamePlayer = move.FullNamePlayer,
                         timeFoul = move.timeMove,
                         foul = (Foul)typeMoves,
                     })
@@ -132,7 +132,7 @@ namespace SportHive.Implementations
                     Builders<MatchEvents>.Update.Push("touchdowns", new Touchdown
                     {
                         IdMatch = move.idMatch,
-                        FullNamePlayer = move.FullNamePlayer1,
+                        FullNamePlayer = move.FullNamePlayer,
                         typeTouchdown = (TypeTouchdown)typeMoves,
                         time = move.timeMove,
                         realization = move.realization,
@@ -155,8 +155,8 @@ namespace SportHive.Implementations
                     Builders<MatchEvents>.Update.Push("twoPlayersMoves", new MoveTwoPlayer
                     {
                         IdMatch = playerMoveDto.idMatch,
-                        FullNamePlayer1 = playerMoveDto.FullNamePlayer1,
-                        FullNamePlayer2 = playerMoveDto.FullNamePlayer2,
+                        FullNamePlayer = playerMoveDto.FullNamePlayer,
+                        loginPlayer = playerMoveDto.loginPlayer,
                         typeMove = (TypeMovePlayer)typeMoves,
                         time = playerMoveDto.timeMove,
                     })

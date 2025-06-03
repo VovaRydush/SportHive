@@ -6,9 +6,9 @@ namespace DB.SportHive.Domain
         {
         }
 
-        public int MatchesPlayed { get; set; }
-        public int MatchesWon { get; set; }
-        public int SetsWon { get; set; }
+        public int Matches { get; set; }
+        public int Losses { get; set; }
+        public int Wins { get; set; }
         public int Aces { get; set; }              // Подачі напряму в очко
         public int DoubleFaults { get; set; }      // Подвійні помилки
         public int TotalPointsWon { get; set; }

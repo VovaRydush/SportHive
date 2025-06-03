@@ -62,8 +62,8 @@ builder.Services.AddScoped<IPhotoProcessing,PhotoProcessing>();
 builder.Services.AddScoped<ISaveDataDb,SaveDataDb>();
 builder.Services.AddScoped<IEventService,EventService>();
 builder.Services.AddScoped<ISystemSelectionService,SystemSelectionService>();
-builder.Services.AddScoped<IEventService,EventService>();
-
+builder.Services.AddScoped<IEventService, EventService>();
+builder.Services.AddScoped<INuclearRap, NuclearRap>();
 builder.Services.AddScoped<PlayOffSystem>();
 builder.Services.AddScoped<DoubleEliminationSystem>();
 builder.Services.AddScoped<GroupSystem>();
@@ -77,6 +77,8 @@ builder.Services.AddScoped<SwissSystem>();
 builder.Services.AddScoped<SystemFactory>();
 
 builder.Services.AddScoped<DisciplineFactory>();
+
+builder.Services.AddScoped<AthleteProfileFactory>();
 
 builder.Services.AddScoped<IEnterDataMatches, EnterDataMatches>();
 builder.Services.AddScoped<IEnterSportMove, EnterSportMove>();

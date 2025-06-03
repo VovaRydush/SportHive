@@ -20,7 +20,10 @@ namespace DB.SportHive.MongoDb
             }
         }
         public string CompetitionType { get; set; } = null!;
-        public List<PlayerFouls> fouls { get; set; }  = new();
+        public string NameDesipline { get; set; } = null!;
+        public List<PlayerFouls> fouls { get; set; } = new();
+        public List<PlayMoves> playMoves{ get; set; } = new();
+        public List<RoundPoints> points { get; set; } = new();
         public string BowType { get; set; } = null!;
         public float Distance { get; set; }
     }
