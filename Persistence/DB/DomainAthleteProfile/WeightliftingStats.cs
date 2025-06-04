@@ -5,7 +5,7 @@ namespace DB.SportHive.Domain
         public string WeightCategory { get; set; } = null!;
         public int BestSnatchKg { get; set; }
         public int BestCleanAndJerkKg { get; set; }
-        public int TotalKg => BestSnatchKg + BestCleanAndJerkKg;
-        public List<string> Competitions { get; set; } = new();
+        public int TotalKg => BestSnatchKg + BestCleanAndJerkKg; 
+        
     }
 }

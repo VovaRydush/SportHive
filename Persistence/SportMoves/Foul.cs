@@ -198,6 +198,4 @@ namespace DB.SportHive.MongoDb
         [Description("TooManyArrows")]
         TooManyArrows
     }
-
-
 }

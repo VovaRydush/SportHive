@@ -8,6 +8,5 @@ namespace DB.SportHive.Domain
         public int TechnicalWins { get; set; }   // За технічними балами
         public int PinWins { get; set; }         // Утримання
         public string WeightCategory { get; set; } = null!;
-        public List<string> TournamentMedals { get; set; } = new();
     }
 }

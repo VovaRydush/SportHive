@@ -31,7 +31,6 @@ namespace SportHive.Implementations
                 filter: Builders<AthleteProfile>.Filter.Eq(x => x.login, athlet.loginPlayer),
                 update: update
             );
-            throw new NotImplementedException();
         }
         public async Task<RowingStats> GetRowingStatsAsync(string athleteOrTeam)
         {

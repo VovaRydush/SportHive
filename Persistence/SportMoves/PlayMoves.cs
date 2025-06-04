@@ -12,6 +12,8 @@ namespace DB.SportHive.MongoDb
     }
     public enum TypeMove
     {
+        [Description("Tries")]
+        Tries,
         [Description("StealBasketball")]
         StealBasketball,
         [Description("Offside")]
