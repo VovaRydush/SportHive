@@ -69,7 +69,6 @@ builder.Services.AddScoped<DoubleEliminationSystem>();
 builder.Services.AddScoped<GroupSystem>();
 builder.Services.AddScoped<KnockoutSystem>();
 builder.Services.AddScoped<QualificationByStandard>();
-builder.Services.AddScoped<MixsedSystem>();
 builder.Services.AddScoped<OlympicSystem>();
 builder.Services.AddScoped<RoundRobinSystem>();
 builder.Services.AddScoped<SwissSystem>();
