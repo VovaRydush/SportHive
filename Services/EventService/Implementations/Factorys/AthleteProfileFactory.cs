@@ -11,7 +11,7 @@ namespace SportHive.Implementations
             _provider = provider;
         }
 
-        public IProfileInfo CreateIndividual(string typeSport)
+        public IProfileInfo CreateTypeSport(string typeSport)
         {
             return typeSport switch
             {
@@ -23,7 +23,7 @@ namespace SportHive.Implementations
                 "Chess" => _provider.GetRequiredService<CheckersChessInfo>(),
                 "Cycling" => _provider.GetRequiredService<CyclingInfo>(),
                 "Football" => _provider.GetRequiredService<FootballInfo>(),
-                "IceHockey"=> _provider.GetRequiredService<IceHockeyInfo>(),
+                "IceHockey"=> _provider.GetRequiredService<HockeyInfo>(),
                 "Powerlifting" => _provider.GetRequiredService<PowerliftingInfo>(),
                 "RacketSports" => _provider.GetRequiredService<RacketSportsInfo>(),
                 "Rowing" => _provider.GetRequiredService<RowingInfo>(),

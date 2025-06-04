@@ -22,7 +22,6 @@ namespace SportHive.Implementations
                 "DoubleElimination" => provider.GetRequiredService<DoubleEliminationSystem>(),
                 "Group" => provider.GetRequiredService<GroupSystem>(),
                 "Knockout" => provider.GetRequiredService<KnockoutSystem>(),
-                "Mixsed" => provider.GetRequiredService<MixsedSystem>(),
                 "Olympic" => provider.GetRequiredService<OlympicSystem>(),
                 "RoundRobin" => provider.GetRequiredService<RoundRobinSystem>(),
                 "Swiss" => provider.GetRequiredService<SwissSystem>(),
