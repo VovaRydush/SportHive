@@ -10,15 +10,32 @@ namespace SportHive.Implementations
         private readonly INuclearRap _userUps;
         private readonly IMongoCollection<AthleteProfile> _playerProfile;
         private readonly IMongoCollection<MatchEvents> _matchEvents;
+        public BasketballInfo()
+        { }
         public BasketballInfo(INuclearRap userUps, IMongoDbService mongoDbService)
         {
             _userUps = userUps;
             _matchEvents = mongoDbService.GetCollection<MatchEvents>("MatchEvents");
             _playerProfile = mongoDbService.GetCollection<AthleteProfile>("PlayerProfile");
         }
-        public Task SportInfo(AthletesTeamDto athlet)
+        public async Task SportInfo(AthletesTeamDto athlet)
         {
-            throw new NotImplementedException();
+            var update = Builders<AthleteProfile>.Update
+               .Set("SportStats.Matches", _userUps.CountMatchs(athlet.loginPlayer))
+               .Set("SportStats.Losses", _userUps.CountLossTeam(athlet))
+               .Set("SportStats.Wins", _userUps.CountWinTeam(athlet))
+               .Set("SportStats.Points", GetPointsAsync(athlet.loginPlayer))
+               .Set("SportStats.Rebounds", GetReboundsAsync(athlet.loginPlayer))
+               .Set("SportStats.Assists", GetAssistsAsync(athlet.loginPlayer))
+               .Set("SportStats.Blocks", GetBlocksAsync(athlet.loginPlayer))
+               .Set("SportStats.ThreePointPercentage", GetThreePointPercentageAsync(athlet.loginPlayer))
+               .Set("SportStats.FreeThrowPercentage",GetFreeThrowPercentageAsync(athlet.loginPlayer))
+               .Set(x => x.dateLastUpdate, DateTime.UtcNow);
+
+            await _playerProfile.UpdateOneAsync(
+                filter: Builders<AthleteProfile>.Filter.Eq(x => x.login, athlet.loginPlayer),
+                update: update
+            );
         }
         private async Task<List<TeamDesiplines>> GetAllTeamDesiplinesMatchesAsync()
         {

@@ -8,7 +8,6 @@ namespace DB.SportHive.Domain
         public double AverageSpeedKmH { get; set; }     // середня швидкість
         public int Wins { get; set; }
         public List<string> RaceTypes { get; set; } = null!;     // "Road", "Track", "MTB", "BMX"
-        public List<string> Medals { get; set; } = new();
     }
 
 }

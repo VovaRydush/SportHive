@@ -5,13 +5,13 @@ using SportHive.Services.Interfaces;
 
 namespace SportHive.Implementations
 {
-    public class FootballInfo : IProfileInfo
+    public class HockeyInfo : IProfileInfo
     {
         private readonly INuclearRap _userUps;
         private readonly IMongoCollection<AthleteProfile> _playerProfile;
         private readonly IMongoCollection<MatchEvents> _matchEvents;
         private readonly BasketballInfo basketball;
-        public FootballInfo(INuclearRap userUps, IMongoDbService mongoDbService)
+        public HockeyInfo(INuclearRap userUps, IMongoDbService mongoDbService)
         {
             basketball = new BasketballInfo();
             _userUps = userUps;
@@ -22,12 +22,10 @@ namespace SportHive.Implementations
         {
             var update = Builders<AthleteProfile>.Update
                 .Set("SportStats.Matches", _userUps.CountMatchs(athlet.loginPlayer))
+                .Set("SportStats.Goals", GetHockeyGoalsAsync(athlet.loginPlayer))
                 .Set("SportStats.Assists", basketball.GetAssistsAsync(athlet.loginPlayer))
                 .Set("SportStats.Wins", _userUps.CountWinTeam(athlet))
                 .Set("SportStats.Losses", _userUps.CountLossTeam(athlet))
-                .Set("SportStats.Goals", GetGoalsAsync(athlet.loginPlayer))
-                .Set("SportStats.YellowCards", GetYellowCardsAsync(athlet.loginPlayer))
-                .Set("SportStats.RedCards",GetRedCardsAsync(athlet.loginPlayer))
                 .Set(x => x.dateLastUpdate, DateTime.UtcNow);
 
             await _playerProfile.UpdateOneAsync(
@@ -35,9 +33,9 @@ namespace SportHive.Implementations
                 update: update
             );
         }
-        public async Task<int> GetGoalsAsync(string loginPlayer)
+        public async Task<int> GetHockeyGoalsAsync(string loginPlayer)
         {
-            var filter = Builders<TeamDesiplines>.Filter.Eq(td => td.NameDesipline, "Football");
+            var filter = Builders<TeamDesiplines>.Filter.Eq(td => td.NameDesipline, "Hockey");
             var documents = await _matchEvents.OfType<TeamDesiplines>()
                                              .Find(filter)
                                              .ToListAsync();
@@ -48,37 +46,6 @@ namespace SportHive.Implementations
                 totalGoals += doc.playMoves.Count(pm => pm.loginPlayer == loginPlayer && pm.typeMove == TypeMove.Goal);
             }
             return totalGoals;
-        }
-
-
-        public async Task<int> GetYellowCardsAsync(string loginPlayer)
-        {
-            var filter = Builders<TeamDesiplines>.Filter.Eq("NameDesipline", "Football");
-            var documents = await _matchEvents.OfType<TeamDesiplines>()
-                                             .Find(filter)
-                                             .ToListAsync();
-
-            int totalYellowCards = 0;
-            foreach (var doc in documents)
-            {
-                totalYellowCards += doc.fouls.Count(f => f.loginPlayer == loginPlayer && f.card == Card.Yellow);
-            }
-            return totalYellowCards;
-        }
-
-        public async Task<int> GetRedCardsAsync(string loginPlayer)
-        {
-            var filter = Builders<TeamDesiplines>.Filter.Eq("NameDesipline", "Football");
-            var documents = await _matchEvents.OfType<TeamDesiplines>()
-                                             .Find(filter)
-                                             .ToListAsync();
-
-            int totalRedCards = 0;
-            foreach (var doc in documents)
-            {
-                totalRedCards += doc.fouls.Count(f => f.loginPlayer == loginPlayer && f.card == Card.Red);
-            }
-            return totalRedCards;
         }
     }
 }

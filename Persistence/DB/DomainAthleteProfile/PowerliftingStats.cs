@@ -7,6 +7,5 @@ namespace DB.SportHive.Domain
         public int BestBenchPressKg { get; set; }
         public int BestDeadliftKg { get; set; }
         public int TotalKg => BestSquatKg + BestBenchPressKg + BestDeadliftKg;
-        public List<string> Medals { get; set; } = new();
     }
 }

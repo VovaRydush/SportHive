@@ -9,7 +9,6 @@ namespace DB.SportHive.Domain
         public int RoundsFought { get; set; }
         public double AverageScorePerRound { get; set; }
         public string WeightCategory { get; set; } = null!;
-        public List<string> Titles { get; set; } = new();
     }
 
 }
