@@ -52,7 +52,7 @@ namespace Events.Endpoints
             }).DisableAntiforgery()
                 .RequireAuthorization(new AuthorizeAttribute { Roles = "Trainer,Organization" });
 
-            route.MapPatch("/set-board-winner", async ([FromBody] BoardWinner winner, [FromServices] IEnterIntermediateData enterData) =>
+            route.MapPatch("/set-board-winner", async ([FromBody] BoardWinner winner, [FromServices] ISetWinner enterData) =>
             {
                 await enterData.SetWinnerChessCheckers(winner);
             }).DisableAntiforgery()
@@ -64,7 +64,7 @@ namespace Events.Endpoints
             }).DisableAntiforgery()
                 .RequireAuthorization(new AuthorizeAttribute { Roles = "Trainer,Organization" });
 
-            route.MapPatch("/set-struggle-winner", async ([FromBody] BoxWinnerDto winner, [FromServices] IEnterIntermediateData enterData) =>
+            route.MapPatch("/set-struggle-winner", async ([FromBody] BoxWinnerDto winner, [FromServices] ISetWinner enterData) =>
             {
                 await enterData.SetWinnerBoxStruggle(winner);
             }).DisableAntiforgery()

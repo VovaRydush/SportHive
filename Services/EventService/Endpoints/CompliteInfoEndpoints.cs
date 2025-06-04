@@ -32,7 +32,7 @@ namespace Events.Endpoints
                 await compliteMatch.CompliteRowing(data);
             }).DisableAntiforgery()
                 .RequireAuthorization(new AuthorizeAttribute { Roles = "Trainer,Organization" });
-           
+
             route.MapPatch("/complite-weightlifting-info", async ([FromBody] List<CompliteWeightliftingDto> data, [FromServices] ICompliteMatch compliteMatch) =>
             {
                 await compliteMatch.CompliteWeightlifting(data);

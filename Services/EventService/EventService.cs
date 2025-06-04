@@ -61,7 +61,8 @@ builder.Services.AddScoped<IRedisService, RedisService>();
 builder.Services.AddScoped<IPhotoProcessing,PhotoProcessing>();
 builder.Services.AddScoped<ISaveDataDb,SaveDataDb>();
 builder.Services.AddScoped<IEventService,EventService>();
-builder.Services.AddScoped<ISystemSelectionService,SystemSelectionService>();
+builder.Services.AddScoped<ISystemSelectionService, SystemSelectionService>();
+builder.Services.AddScoped<ISetWinner,SetWinners>();
 builder.Services.AddScoped<IEventService, EventService>();
 builder.Services.AddScoped<INuclearRap, NuclearRap>();
 builder.Services.AddScoped<PlayOffSystem>();
@@ -94,6 +95,7 @@ builder.Services.AddScoped<UserProfileFactory>();
 builder.Services.AddScoped<EnumWork>();
 
 builder.Services.AddScoped<IMatchsGenerator, MatchsGenerator>();
+builder.Services.AddScoped<IGetPointMatch, GetPointMatch>();
 
 
 var app = builder.Build();

@@ -91,22 +91,6 @@ namespace SportHive.Implementations
 
             await _matchEvents.UpdateOneAsync(filter, update);
         }
-        public async Task SetWinnerBoxStruggle(BoxWinnerDto winner)
-        {
-            var filter = Builders<MatchEvents>.Filter.And(
-                  Builders<MatchEvents>.Filter.Eq(x => x.idMatch, winner.idMatch)
-              );
-            var update = Builders<MatchEvents>.Update.Combine(
-                Builders<MatchEvents>.Update.Set("winner", new WinStruggleResult
-                {
-                    FullNamePlayer = winner.FullNamePlayer,
-                    loginPlayer = winner.loginWinner,
-                    round = winner.round,
-                    win = winner.win
-                })
-            );
-            await _matchEvents.UpdateOneAsync(filter, update);
-        }
 
         public async Task SetRowingRace(List<RowingRace> races)
         {
@@ -175,7 +159,6 @@ namespace SportHive.Implementations
             if (score.Team == 2) update = Builders<MatchEvents>.Update.Set("secondTeamScore", score.Score);
             await _matchEvents.UpdateOneAsync(filter, update);
         }
-
         public async Task SetWeightliftingResults(Weightlifting result)
         {
             var filter = Builders<MatchEvents>.Filter.And(
@@ -183,17 +166,6 @@ namespace SportHive.Implementations
                  );
             var update = Builders<MatchEvents>.Update.Combine(
                 Builders<MatchEvents>.Update.Push("liftingsAthlete", result)
-            );
-            await _matchEvents.UpdateOneAsync(filter, update);
-        }
-
-        public async Task SetWinnerChessCheckers(BoardWinner winner)
-        {
-            var filter = Builders<MatchEvents>.Filter.And(
-                     Builders<MatchEvents>.Filter.Eq(x => x.idMatch, winner.idMatch)
-                 );
-            var update = Builders<MatchEvents>.Update.Combine(
-                Builders<MatchEvents>.Update.Push("Result", winner)
             );
             await _matchEvents.UpdateOneAsync(filter, update);
         }
@@ -207,7 +179,6 @@ namespace SportHive.Implementations
             );
             await _matchEvents.UpdateOneAsync(filter, update);
         }
-
         public async Task UpdateChessMove(ChessMove notationDto)
         {
             var filter = Builders<MatchEvents>.Filter.And(
