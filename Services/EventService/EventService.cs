@@ -62,7 +62,6 @@ builder.Services.AddScoped<IPhotoProcessing,PhotoProcessing>();
 builder.Services.AddScoped<ISaveDataDb,SaveDataDb>();
 builder.Services.AddScoped<IEventService,EventService>();
 builder.Services.AddScoped<ISystemSelectionService, SystemSelectionService>();
-builder.Services.AddScoped<ISetWinner,SetWinners>();
 builder.Services.AddScoped<IEventService, EventService>();
 builder.Services.AddScoped<INuclearRap, NuclearRap>();
 builder.Services.AddScoped<PlayOffSystem>();
@@ -93,6 +92,7 @@ builder.Services.AddScoped<SaveExtremeMatch>();
 builder.Services.AddScoped<SaveMatchFactory>();
 builder.Services.AddScoped<UserProfileFactory>();
 builder.Services.AddScoped<EnumWork>();
+builder.Services.AddScoped<ISetResultMatch, SetResultMatch>();
 
 builder.Services.AddScoped<IMatchsGenerator, MatchsGenerator>();
 builder.Services.AddScoped<IGetPointMatch, GetPointMatch>();

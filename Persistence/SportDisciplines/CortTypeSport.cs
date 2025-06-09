@@ -1,5 +1,4 @@
 using DB.SportHive.Domain;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 
 namespace DB.SportHive.MongoDb
 {
@@ -19,6 +18,7 @@ namespace DB.SportHive.MongoDb
         public TypeTenis type { get; set; }
         public string FullNamePlayer1 { get; set; } = null!;
         public string FullNamePlayer2 { get; set; } = null!;
+        public string winner { get; set; } = null!;
         public int Tour { get; set; }
         public int SetCount { get; set; }
         public TimeOut? timeOut { get; set; }

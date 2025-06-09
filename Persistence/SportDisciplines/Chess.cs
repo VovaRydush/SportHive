@@ -21,13 +21,12 @@ namespace DB.SportHive.MongoDb
         public string FullNamePlayer1 { get; set; } = null!;
         public string FullNamePlayer2 { get; set; } = null!;
         public string TimeControl { get; set; } = null!;
-        public BoardWinner Result { get; set; } = null!;
+        public BoardWinner winner { get; set; } = null!;
         public List<ChessMove> Moves { get; set; } = new();
         public List<PlayerFouls> fouls { get; set; } = new();
     }
     public class BoardWinner
     {
-        public long idMatch{ get; set; } 
         public string FullNamePlayer { get; set; } = null!;
         public string loginPlayer { get; set; } = null!;
         public string typeWin { get; set; } = null!;

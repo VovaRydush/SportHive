@@ -18,7 +18,8 @@ namespace DB.SportHive.MongoDb
         public string NameDesipline { get; set; } = null!;
         public TeamScore firstTeamScore { get; set; } = null!;
         public TeamScore secondTeamScore { get; set; } = null!;
-        public List<PlayerFouls> fouls { get; set; }  = new();
+        public string winner { get; set; } = null!;
+        public List<PlayerFouls> fouls { get; set; } = new();
         public List<MoveTwoPlayer> twoPlayersMoves { get; set; }  = new();
         public List<PlayMoves> playMoves { get; set; } = new();
         public List<AttacksMoves> attacksMoves { get; set; } = new();

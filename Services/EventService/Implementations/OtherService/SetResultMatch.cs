@@ -22,11 +22,6 @@ namespace SportHive.Implementations
             _matchEvents = mongoDbService.GetCollection<MatchEvents>("MatchEvents");
             _sytemGrid = mongoDbService.GetCollection<TeamIndivGrid>("TeamIndivGrid");
         }
-        public async Task SetResultMatches(string nameWinner, string resultWinner, long idMatch, string typeMatch)
-        {
-            await ChangeStatusMatch(typeMatch, idMatch);
-
-        }
         public async Task ChangeStatusMatch(string typeMatch, long idMatch)
         {
             if (typeMatch == "TeamMatch")
@@ -43,9 +38,76 @@ namespace SportHive.Implementations
             }
             await _appDbContext.SaveChangesAsync();
         }
-        public async Task SetResultsInGrid()
+        public async Task SetQualificationGrid(long idMatch, string NameWinner, bool isNext)
         {
-            await Task.CompletedTask;
+            var filter = Builders<TeamIndivGrid>.Filter.And(
+                Builders<TeamIndivGrid>.Filter.Eq(x => x.idMatch, idMatch)
+            );
+            var update = Builders<TeamIndivGrid>.Update.Combine(
+                Builders<TeamIndivGrid>.Update.Set("isNext", isNext),
+                Builders<TeamIndivGrid>.Update.Set("NameEntity", NameWinner)
+            );
+            await _sytemGrid.UpdateOneAsync(filter, update);
+        }
+
+        public async Task SetResultMatches(long idMatch, string NameWinner, int ScoreEntity1, int ScoreEntity2, int tour)
+        {
+            var filter = Builders<TeamIndivGrid>.Filter.And(
+                Builders<TeamIndivGrid>.Filter.Eq(x => x.idMatch, idMatch)
+            );
+            var update = Builders<TeamIndivGrid>.Update.Combine(
+                Builders<TeamIndivGrid>.Update.Set("NameWinner", NameWinner),
+                Builders<TeamIndivGrid>.Update.Set("totalScoreEntity1", ScoreEntity1),
+                Builders<TeamIndivGrid>.Update.Set("totalScoreEntity2", ScoreEntity2),
+                Builders<TeamIndivGrid>.Update.Set("played", true)
+            );
+            await _sytemGrid.UpdateOneAsync(filter, update);
+        }
+
+        public async Task SetWinnerInMatch(WinnerDto winner)
+        {
+            var filter = Builders<MatchEvents>.Filter.And(
+                Builders<MatchEvents>.Filter.Eq(x => x.idMatch, winner.idMatch)
+            );
+            var update = Builders<MatchEvents>.Update.Combine(
+                Builders<MatchEvents>.Update.Set("winner", winner.FullNamePlayer)
+            );
+            await _matchEvents.UpdateOneAsync(filter, update);
+        }
+
+        public async Task SetWinnerInMatchBoard(WinnerDto winner)
+        {
+            var filter = Builders<MatchEvents>.Filter.And(
+                Builders<MatchEvents>.Filter.Eq(x => x.idMatch, winner.idMatch)
+            );
+            var update = Builders<MatchEvents>.Update.Combine(
+                Builders<MatchEvents>.Update.Set("winner", new BoardWinner
+                {
+                    FullNamePlayer = winner.FullNamePlayer,
+                    loginPlayer = winner.loginWinner,
+                    typeWin = winner.win,
+                    countPoints = winner.countPoints ?? -1,
+                })
+            );
+            await _matchEvents.UpdateOneAsync(filter, update);
+        }
+
+        public async Task SetWinnerInMatchStruggle(WinnerDto winner)
+        {
+            var filter = Builders<MatchEvents>.Filter.And(
+                Builders<MatchEvents>.Filter.Eq(x => x.idMatch, winner.idMatch)
+            );
+            EnumWork.TryParseStyleFromText<Result>(winner.win, out int typeMoves);
+            var update = Builders<MatchEvents>.Update.Combine(
+                Builders<MatchEvents>.Update.Set("winner", new WinStruggleResult
+                {
+                    FullNamePlayer = winner.FullNamePlayer,
+                    loginPlayer = winner.loginWinner,
+                    win = (Result)typeMoves,
+                    countPoints = Convert.ToInt16(winner.countPoints),
+                })
+            );
+            await _matchEvents.UpdateOneAsync(filter, update);
         }
     }
 }

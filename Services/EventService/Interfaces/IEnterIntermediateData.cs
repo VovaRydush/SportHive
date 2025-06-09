@@ -7,9 +7,7 @@ namespace SportHive.Services.Interfaces
     {
         Task UpdateCheckersMove(CheckersMove notationDto);
         Task UpdateChessMove(ChessMove notationDto);
-        Task SetWinnerChessCheckers(BoardWinner chessWinner);
         Task SetPointsBoxStruggleCort(PointsIntBoxStruggle points); // бокс, бородьба та всі види спорту з кортом
-        Task SetWinnerBoxStruggle(BoxWinnerDto winner);
         Task SetCyclingRace(List<CyclingRace> races);
         Task SetDistanceRunning(List<DistanceRunning> runnings);
         Task SetRowingRace(List<RowingRace> races);

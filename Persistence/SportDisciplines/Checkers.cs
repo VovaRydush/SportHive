@@ -18,7 +18,7 @@ namespace DB.SportHive.MongoDb
         public int Tour{get;set;}
         public string FullNamePlayer1 { get; set; } = null!;
         public string FullNamePlayer2 { get; set; } = null!;
-        public BoardWinner Result { get; set; } = null!; // "1-0", "0-1", "½-½"
+        public BoardWinner winner { get; set; } = null!; // "1-0", "0-1", "½-½"
         public string TimeControl { get; set; } = null!; // "15+3"
         public List<CheckersMove> Moves { get; set; } = new();
         public List<PlayerFouls> fouls { get; set; } = new();

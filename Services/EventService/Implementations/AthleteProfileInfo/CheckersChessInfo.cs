@@ -46,7 +46,7 @@ namespace SportHive.Implementations
             var matches = await _matchEvents.Find(filter).Project<ChessMatch>(projection).ToListAsync();
 
             return matches
-                .Where(m => m.Result?.loginPlayer == loginPlayer)
+                .Where(m => m.winner?.loginPlayer == loginPlayer)
                 .Select(m => m.Moves?.Count ?? int.MaxValue)
                 .DefaultIfEmpty(int.MaxValue)
                 .Min();

@@ -24,7 +24,7 @@ namespace DB.SportHive.MongoDb
         public List<PlayerFouls> player1Fouls { get; set; } = new();
         public List<PlayerFouls> player2Fouls {get;set;} = new();
     }
-    public class WinStruggleResult 
+    public class WinStruggleResult
     {
         public string FullNamePlayer { get; set; } = null!;
         public string loginPlayer { get; set; } = null!;

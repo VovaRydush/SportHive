@@ -4,6 +4,7 @@ namespace DB.SportHive.Domain
     {
         public int ratingElo1 { get; set; }
         public int ratingElo2 { get; set; }
+        public string NameWinner { get; set; } = null!;
     }
     public class SwissSystemPlayed
     {
