@@ -1,4 +1,5 @@
 using DB.SportHive.Domain;
+using DB.SportHive.Persistence;
 using MongoDB.Driver;
 using SportHive.Services.Interfaces;
 
@@ -7,9 +8,13 @@ namespace SportHive.Implementations
     public class DoubleEliminationSystem : ICompetitionSystem
     {
         private readonly IMatchsGenerator _matchsGenerator;
+        private readonly SaveMatchFactory _saveMatchFactory;
+        private readonly AppDbContext _appDbContext;
         private readonly IMongoCollection<TeamIndivGrid> _sytemGrid;
-        public DoubleEliminationSystem(IMatchsGenerator matchsGenerator, IMongoDbService mongoDbService)
+        public DoubleEliminationSystem(IMatchsGenerator matchsGenerator, IMongoDbService mongoDbService,SaveMatchFactory saveMatchFactory,AppDbContext appDbContext)
         {
+            _appDbContext = appDbContext;
+            _saveMatchFactory = saveMatchFactory;
             _sytemGrid = mongoDbService.GetCollection<TeamIndivGrid>("TeamIndivGrid");
             _matchsGenerator = matchsGenerator;
         }
@@ -18,25 +23,23 @@ namespace SportHive.Implementations
             await _matchsGenerator.GenerateInitialBracketAsync(matchs, IdEvent);
         }
 
-        public async Task GenerateNextRoundAsync(Matchs matchs, long IdEvent, List<Matchs> previousMatches)
+        public async Task GenerateNextRoundAsync(Matchs matchs, long IdEvent)
         {
+            var saveEntity = _saveMatchFactory.Create(matchs.typeSport);
             var allMatches = await _sytemGrid.Find(x => x.idEvent == IdEvent).ToListAsync();
 
             var topMatches = allMatches.OfType<TopGrig>().OrderBy(x => x.tour).ToList();
             var bottomMatches = allMatches.OfType<BottomGrid>().OrderBy(x => x.tour).ToList();
 
-            // Знаходимо поточний максимальний тур верхньої та нижньої сітки
             int maxTopTour = topMatches.LastOrDefault()?.tour ?? 0;
             int maxBottomTour = bottomMatches.LastOrDefault()?.tour ?? 0;
 
             var lastTopTourMatches = topMatches.Where(m => m.tour == maxTopTour).ToList();
             var lastBottomTourMatches = bottomMatches.Where(m => m.tour == maxBottomTour).ToList();
 
-            // Перевіряємо чи всі матчі зіграні
             if (lastTopTourMatches.Any(m => !m.played) || lastBottomTourMatches.Any(m => !m.played))
                 return;
 
-            // Визначаємо переможців і програвших
             var topWinners = new List<string>();
             var topLosers = new List<string>();
 
@@ -61,15 +64,14 @@ namespace SportHive.Implementations
                 bottomLosers.Add(loser);
             }
 
-            // Формуємо нові матчі у верхній сітці (тільки якщо є >1 переможець)
             if (topWinners.Count > 1)
             {
                 var newTopMatches = new List<TopGrig>();
                 for (int i = 0; i < topWinners.Count; i += 2)
                 {
-                    if (i + 1 >= topWinners.Count) break; // непарна кількість
+                    if (i + 1 >= topWinners.Count) break;
 
-                    newTopMatches.Add(new TopGrig
+                    var newMatch = new TopGrig
                     {
                         idEvent = IdEvent,
                         idMatch = GenerateUniqueMatchId(),
@@ -79,13 +81,14 @@ namespace SportHive.Implementations
                         ParentMatch1 = lastTopTourMatches[i].idMatch.ToString(),
                         ParentMatch2 = lastTopTourMatches[i + 1].idMatch.ToString(),
                         played = false
-                    });
+                    };
+                    newTopMatches.Add(newMatch);
+                    await saveEntity.SaveMatch(_appDbContext, matchs, newMatch.NameFirstEntity, newMatch.NameSecondEntity, IdEvent);
                 }
 
                 await _sytemGrid.InsertManyAsync(newTopMatches);
             }
 
-            // Формуємо матчі у нижній сітці (з поразок із верху + переможців з низу)
             var bottomCandidates = bottomWinners.Concat(topLosers).ToList();
             if (bottomCandidates.Count > 1)
             {
@@ -94,17 +97,19 @@ namespace SportHive.Implementations
                 {
                     if (i + 1 >= bottomCandidates.Count) break;
 
-                    newBottomMatches.Add(new BottomGrid
+                    var newBottom = new BottomGrid
                     {
                         idEvent = IdEvent,
                         idMatch = GenerateUniqueMatchId(),
                         tour = maxBottomTour + 1,
                         NameFirstEntity = bottomCandidates[i],
                         NameSecondEntity = bottomCandidates[i + 1],
-                        ParentMatch1 = "", // можеш додати, якщо хочеш зберегти походження
+                        ParentMatch1 = "",
                         ParentMatch2 = "",
                         played = false
-                    });
+                    };
+                    newBottomMatches.Add(newBottom);
+                    await saveEntity.SaveMatch(_appDbContext, matchs, newBottom.NameFirstEntity, newBottom.NameSecondEntity, IdEvent);
                 }
 
                 await _sytemGrid.InsertManyAsync(newBottomMatches);

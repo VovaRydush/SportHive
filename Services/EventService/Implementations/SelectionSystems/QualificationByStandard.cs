@@ -20,7 +20,7 @@ namespace SportHive.Implementations
             await _appDbContext.SaveChangesAsync();
         }
 
-        public Task GenerateNextRoundAsync(Matchs matchs, long IdEvent, List<Matchs> previousMatches)
+        public Task GenerateNextRoundAsync(Matchs matchs, long IdEvent)
         {
             throw new NotImplementedException();
         }
