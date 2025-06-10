@@ -9,7 +9,7 @@ using StackExchange.Redis;
 using JwtAuthentication;
 using Extensions;
 using Microsoft.OpenApi.Models;
-using DB.SportHive.MongoDb;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -64,12 +64,9 @@ builder.Services.AddScoped<IEventService,EventService>();
 builder.Services.AddScoped<ISystemSelectionService, SystemSelectionService>();
 builder.Services.AddScoped<IEventService, EventService>();
 builder.Services.AddScoped<INuclearRap, NuclearRap>();
-builder.Services.AddScoped<PlayOffSystem>();
 builder.Services.AddScoped<DoubleEliminationSystem>();
 builder.Services.AddScoped<GroupSystem>();
-builder.Services.AddScoped<KnockoutSystem>();
 builder.Services.AddScoped<QualificationByStandard>();
-builder.Services.AddScoped<OlympicSystem>();
 builder.Services.AddScoped<RoundRobinSystem>();
 builder.Services.AddScoped<SwissSystem>();
 
@@ -95,6 +92,7 @@ builder.Services.AddScoped<EnumWork>();
 builder.Services.AddScoped<ISetResultMatch, SetResultMatch>();
 
 builder.Services.AddScoped<IMatchsGenerator, MatchsGenerator>();
+builder.Services.AddScoped<IInitalSystemGrid,InitalSystemGrid>();
 builder.Services.AddScoped<IGetPointMatch, GetPointMatch>();
 
 

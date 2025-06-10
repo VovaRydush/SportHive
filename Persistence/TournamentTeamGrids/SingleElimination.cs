@@ -1,6 +1,6 @@
 namespace DB.SportHive.Domain
 {
-    public class SingleElimination : TeamIndivGrid
+    public class SingleEliminationGrid : TeamIndivGrid
     { 
         public string ParentMatch1 { get; set; } = null!;
         public string ParentMatch2 { get; set; } = null!;

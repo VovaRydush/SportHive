@@ -8,9 +8,11 @@ namespace SportHive.Implementations
     public class RoundRobinSystem : ICompetitionSystem
     {
         private readonly SaveMatchFactory _saveMatchFactory;
+        private readonly IInitalSystemGrid _initalSystemGrid;
         private readonly AppDbContext _appDbContext;
-        public RoundRobinSystem(SaveMatchFactory saveMatchFactory,AppDbContext appDbContext)
+        public RoundRobinSystem(SaveMatchFactory saveMatchFactory,AppDbContext appDbContext, IInitalSystemGrid initalSystemGrid)
         {
+            _initalSystemGrid = initalSystemGrid;
             _appDbContext = appDbContext;
             _saveMatchFactory = saveMatchFactory;
         }
@@ -22,7 +24,8 @@ namespace SportHive.Implementations
             {
                 for (int j = i + 1; j < matchs.Entitys.Count; j++)
                 {
-                    await saveEntity.SaveMatch(_appDbContext,matchs, matchs.Entitys[i], matchs.Entitys[j], IdEvent);
+                    await saveEntity.SaveMatch(_appDbContext, matchs, matchs.Entitys[i], matchs.Entitys[j], IdEvent);
+                    await _initalSystemGrid.InitalSystemGrids(matchs.IdEvent, matchs.Entitys[i], matchs.Entitys[j], matchs);
                 }
             }
            await _appDbContext.SaveChangesAsync(); 

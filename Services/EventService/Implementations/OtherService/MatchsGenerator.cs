@@ -7,9 +7,11 @@ namespace SportHive.Implementations
     public class MatchsGenerator : IMatchsGenerator
     {
         private readonly SaveMatchFactory _saveMatchFactory;
+        private readonly IInitalSystemGrid _initalSystemGrid;
         private readonly AppDbContext _appDbContext;
-        public MatchsGenerator(SaveMatchFactory saveMatchFactory, AppDbContext appDbContext)
+        public MatchsGenerator(SaveMatchFactory saveMatchFactory, AppDbContext appDbContext,IInitalSystemGrid initalSystemGrid)
         {
+            _initalSystemGrid = initalSystemGrid;
             _appDbContext = appDbContext;
             _saveMatchFactory = saveMatchFactory;
         }
@@ -23,6 +25,7 @@ namespace SportHive.Implementations
             {
                 matchs.tour = 1;
                 await saveEntity.SaveMatch(_appDbContext, matchs, matchs.Entitys[i], matchs.Entitys[i + 1], IdEvent);
+                await _initalSystemGrid.InitalSystemGrids(matchs.IdEvent, matchs.Entitys[i], matchs.Entitys[i + 1], matchs);
             }
             await _appDbContext.SaveChangesAsync();
         }

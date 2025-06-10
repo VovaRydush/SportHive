@@ -25,6 +25,11 @@ namespace SportHive.Implementations
                         NameTeam = team.ToString()
                     };
                     Entitys.Add(new EntityInfo { EntityName = team.ToString()});
+                    await _dataMatches.SaveMatches(new QualificationGrid
+                    {
+                        NameEntity = team.ToString(),
+                        idMatch = IdExtremeMatches
+                    });
                     entities.Add(entity);
                 }
                 await _dataMatches.SaveMatches(new ExtremeIndividualInfo
@@ -48,6 +53,11 @@ namespace SportHive.Implementations
                         loginAthlete = athlete.ToString()
                     };
                     Entitys.Add(new EntityInfo { EntityName = athlete.ToString()});
+                    await _dataMatches.SaveMatches(new QualificationGrid
+                    {
+                        NameEntity = athlete.ToString(),
+                        idMatch = IdExtremeMatches
+                    });
                     entities.Add(entity);
                 }
                 await _dataMatches.SaveMatches(new ExtremeIndividualInfo

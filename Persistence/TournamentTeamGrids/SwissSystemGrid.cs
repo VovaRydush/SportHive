@@ -8,6 +8,7 @@ namespace DB.SportHive.Domain
     }
     public class SwissSystemPlayed
     {
+        public long IdEvent { get; set; }
         public string NameFirstEntity { get; set; } = null!;
         public string NameSecondEntity { get; set; } = null!;
     }

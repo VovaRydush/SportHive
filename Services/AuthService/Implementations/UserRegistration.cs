@@ -79,7 +79,7 @@ namespace SportHive.Implementations
                         FirsName = entity.FistName,
                         LastName = entity.LastName,
                     });
-                    _ = _saveDataDb.SaveDataToDb(jsonJudge, "user-Judge");
+                    _ = _saveDataDb.SaveDataToDb(jsonJudge, "user-judge");
                     break;
 
                 default:

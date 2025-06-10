@@ -1,14 +1,12 @@
 using DB.SportHive.Domain;
-using DB.SportHive.Persistence;
 using SportHive.Services.Interfaces;
 
 namespace SportHive.Implementations
 {
-    public class PlayOffSystem : ICompetitionSystem
+    public class SingleElimination : ICompetitionSystem 
     {
-       
         private readonly IMatchsGenerator _matchsGenerator;
-        public PlayOffSystem(IMatchsGenerator matchsGenerator)
+        public SingleElimination(IMatchsGenerator matchsGenerator)
         {
             _matchsGenerator = matchsGenerator;
         }

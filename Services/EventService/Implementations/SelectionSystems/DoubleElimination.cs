@@ -1,4 +1,5 @@
 using DB.SportHive.Domain;
+using MongoDB.Driver;
 using SportHive.Services.Interfaces;
 
 namespace SportHive.Implementations
@@ -6,8 +7,10 @@ namespace SportHive.Implementations
     public class DoubleEliminationSystem : ICompetitionSystem
     {
         private readonly IMatchsGenerator _matchsGenerator;
-        public DoubleEliminationSystem(IMatchsGenerator matchsGenerator)
+        private readonly IMongoCollection<TeamIndivGrid> _sytemGrid;
+        public DoubleEliminationSystem(IMatchsGenerator matchsGenerator,IMongoDbService mongoDbService)
         {
+            _sytemGrid = mongoDbService.GetCollection<TeamIndivGrid>("TeamIndivGrid");
             _matchsGenerator = matchsGenerator;
         }
         public async Task GenerateFirstRoundAsync(Matchs matchs, long IdEvent)

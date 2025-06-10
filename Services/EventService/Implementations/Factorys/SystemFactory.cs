@@ -18,11 +18,11 @@ namespace SportHive.Implementations
 
             return system switch
             {
-                "PlayOff" => provider.GetRequiredService<PlayOffSystem>(),
+                "PlayOff" => provider.GetRequiredService<SingleElimination>(),
                 "DoubleElimination" => provider.GetRequiredService<DoubleEliminationSystem>(),
                 "Group" => provider.GetRequiredService<GroupSystem>(),
-                "Knockout" => provider.GetRequiredService<KnockoutSystem>(),
-                "Olympic" => provider.GetRequiredService<OlympicSystem>(),
+                "Knockout" => provider.GetRequiredService<SingleElimination>(),
+                "Olympic" => provider.GetRequiredService<SingleElimination>(),
                 "RoundRobin" => provider.GetRequiredService<RoundRobinSystem>(),
                 "Swiss" => provider.GetRequiredService<SwissSystem>(),
                 _ => throw new NotImplementedException($"Unknown system: {system}")
