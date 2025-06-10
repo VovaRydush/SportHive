@@ -9,9 +9,11 @@ namespace SportHive.Implementations
     public class GroupSystem : ICompetitionSystem
     {
         private readonly SaveMatchFactory _saveMatchFactory;
+        private readonly IInitalSystemGrid _initalSystemGrid;
         private readonly AppDbContext _appDbContext;
-        public GroupSystem(SaveMatchFactory saveMatchFactory, AppDbContext appDbContext)
+        public GroupSystem(SaveMatchFactory saveMatchFactory, AppDbContext appDbContext, IInitalSystemGrid initalSystemGrid)
         {
+            _initalSystemGrid = initalSystemGrid;
             _appDbContext = appDbContext;
             _saveMatchFactory = saveMatchFactory;
         }
@@ -33,6 +35,7 @@ namespace SportHive.Implementations
                     {
                         matchs.Group = 1;
                         await saveEntity.SaveMatch(_appDbContext, matchs, skippedTeams[i], skippedTeams[j], IdEvent);
+                        await _initalSystemGrid.InitalSystemGrids(matchs.IdEvent, skippedTeams[i], skippedTeams[j], matchs);
                     }
                 }
             }
@@ -41,8 +44,9 @@ namespace SportHive.Implementations
             {
                 for (int j = i + 1; j < mainTeams.Count; j++)
                 {
-                    matchs.Group = i+1;
+                    matchs.Group = i + 1;
                     await saveEntity.SaveMatch(_appDbContext, matchs, mainTeams[i], mainTeams[j], IdEvent);
+                    await _initalSystemGrid.InitalSystemGrids(matchs.IdEvent, mainTeams[i], mainTeams[j], matchs);
                 }
             }
             await _appDbContext.SaveChangesAsync();

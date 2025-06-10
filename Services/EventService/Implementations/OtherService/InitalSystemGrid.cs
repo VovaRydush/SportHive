@@ -13,7 +13,7 @@ namespace SportHive.Implementations
         }
         public async Task InitalSystemGrids(long IdEvent, string NameFirstEntity, string NameSecondEntity, Matchs matchs)
         {
-            TeamIndivGrid entity = null;
+            TeamIndivGrid entity = null!;
 
             switch (matchs.system)
             {
