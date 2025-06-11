@@ -1,0 +1,79 @@
+:root {
+  --bg-color: #ffffff;
+  --text-color: #000000;
+  --accent-color: #111111;
+  --button-bg: #000000;
+  --button-text: #ffffff;
+  --hover-bg: #333333;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+/* Header */
+.site-header {
+  background-color: var(--bg-color);
+  border-bottom: 2px solid var(--accent-color);
+  padding: 1rem 0;
+}
+
+.header-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  font-size: 2rem;
+  font-weight: bold;
+  color: var(--accent-color);
+}
+
+/* Buttons */
+.btn {
+  background-color: var(--button-bg);
+  color: var(--button-text);
+  padding: 0.5rem 1rem;
+  border: none;
+  margin-left: 0.5rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.btn:hover {
+  background-color: var(--hover-bg);
+}
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+}
+
+/* Footer */
+.site-footer {
+  margin-top: auto;
+  border-top: 2px solid var(--accent-color);
+  text-align: center;
+  padding: 1rem 0;
+  background-color: var(--bg-color);
+  color: var(--accent-color);
+  font-size: 0.9rem;
+}

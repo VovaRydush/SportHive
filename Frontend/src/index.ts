@@ -1,11 +1,3 @@
-// src/index.ts
-import UserPage from "./core/userPage";
+import './styles/main.css';
 
-document.addEventListener("DOMContentLoaded", async () => {
-    const userPage = new UserPage();
-    const app = document.getElementById("app");
-
-    if (app) {
-        app.appendChild(await userPage.render());
-    }
-});
+console.log("Hello from index.ts");
