@@ -35,7 +35,7 @@ namespace SportHive.Implementations
                                     .FirstOrDefaultAsync();
 
             if (user == null)
-                throw new NotFoundException("Not Found");
+                throw new NotFoundException("Not Found User");
 
             string photoPath = null;
             if (entity.ProfilePhoto != null)

@@ -2,7 +2,8 @@ using Microsoft.AspNetCore.Http;
 
 namespace DB.SportHive.Domain
 {
-    public class RoleInfoDto{
+    public class RoleInfoDto
+    {
         public string FistName{get;set;} = null!;
         public string LastName{get;set;} = null!;
         public string Login{get;set;} = null!;

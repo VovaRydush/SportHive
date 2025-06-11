@@ -1,5 +1,5 @@
 import { RegistrationModal } from './components/RegistrationModal';
-
+import { LoginModal } from './components/LoginModalWin'
 
 document.addEventListener('DOMContentLoaded', () => {
     const nav = document.getElementById('nav-buttons');
@@ -13,8 +13,9 @@ document.addEventListener('DOMContentLoaded', () => {
         nav.innerHTML = ` <button class="btn" id="login-btn" >Увійти</button> <button class="btn" id="register-btn" >Зареєструватись</button> `;
 
         document.getElementById('login-btn')?.addEventListener('click', () => {
-            // Показати модальне вікно входу (додамо пізніше)
-            console.log('login');
+            const loginModal = new LoginModal();
+            loginModal.show();
+
         });
 
         document.getElementById('register-btn')?.addEventListener('click', () => {

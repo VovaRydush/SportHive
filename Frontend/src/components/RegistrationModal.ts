@@ -1,24 +1,25 @@
 import './reg.css';
 
 export class RegistrationModal {
-  private container: HTMLElement;
-  private currentStep = 1;
-  private userEmail: string = '';
+    private container: HTMLElement;
+    private currentStep = 1;
+    private userEmail: string = '';
+    private userRole: string = '';
 
-  constructor() {
-    this.container = document.createElement('div');
-    this.container.classList.add('modal');
-    document.body.appendChild(this.container);
-    this.renderStep1();
-  }
+    constructor() {
+        this.container = document.createElement('div');
+        this.container.classList.add('modal');
+        document.body.appendChild(this.container);
+        this.renderStep1();
+    }
 
-  private clear() {
-    this.container.innerHTML = '';
-  }
+    private clear() {
+        this.container.innerHTML = '';
+    }
 
-  private renderStep1() {
-    this.clear();
-    this.container.innerHTML = `
+    private renderStep1() {
+        this.clear();
+        this.container.innerHTML = `
       <div class="modal-content">
         <h2>Реєстрація</h2>
         <input type="email" placeholder="Email" id="reg-email" />
@@ -34,30 +35,33 @@ export class RegistrationModal {
       </div>
     `;
 
-    this.container.querySelector('#next-step')?.addEventListener('click', async () => {
-      const email = (document.getElementById('reg-email') as HTMLInputElement).value.trim();
-      const login = (document.getElementById('reg-login') as HTMLInputElement).value.trim();
-      const password = (document.getElementById('reg-password') as HTMLInputElement).value.trim();
-      const role = (document.getElementById('reg-role') as HTMLSelectElement).value;
+        this.container.querySelector('#next-step')?.addEventListener('click', async () => {
+            const email = (document.getElementById('reg-email') as HTMLInputElement).value.trim();
+            const login = (document.getElementById('reg-login') as HTMLInputElement).value.trim();
+            localStorage.setItem('login', login);
+            localStorage.setItem('email', email);
+            const password = (document.getElementById('reg-password') as HTMLInputElement).value.trim();
+            const role = (document.getElementById('reg-role') as HTMLSelectElement).value;
 
-      if (!email || !login || !password || !role) {
-        alert('Будь ласка, заповніть всі поля!');
-        return;
-      }
+            if (!email || !login || !password || !role) {
+                alert('Будь ласка, заповніть всі поля!');
+                return;
+            }
 
-      try {
-        await this.register({ email, login, password, role });
-        this.userEmail = email; // 👈 зберігаємо email для другого кроку
-        this.renderStep2();
-      } catch (error: any) {
-        alert(`Помилка: ${error.message}`);
-      }
-    });
-  }
+            try {
+                await this.register({ email, login, password, role });
+                this.userEmail = email;
+                this.userRole = role;
+                this.renderStep2();
+            } catch (error: any) {
+                alert(`Помилка: ${error.message}`);
+            }
+        });
+    }
 
-  private renderStep2() {
-    this.clear();
-    this.container.innerHTML = `
+    private renderStep2() {
+        this.clear();
+        this.container.innerHTML = `
       <div class="modal-content">
         <h2>Підтвердження Email</h2>
         <p>Ми надіслали код підтвердження на вашу пошту</p>
@@ -66,73 +70,182 @@ export class RegistrationModal {
       </div>
     `;
 
-    const confirmInput = this.container.querySelector<HTMLInputElement>('#confirm-code');
-    this.container.querySelector('#verify-code')?.addEventListener('click', async () => {
-      if (!confirmInput) return;
+        const confirmInput = this.container.querySelector<HTMLInputElement>('#confirm-code');
+        this.container.querySelector('#verify-code')?.addEventListener('click', async () => {
+            if (!confirmInput) return;
 
-      const code = confirmInput.value.trim();
-      if (!code) {
-        alert('Введіть код підтвердження');
-        return;
-      }
+            const code = confirmInput.value.trim();
+            if (!code) {
+                alert('Введіть код підтвердження');
+                return;
+            }
 
-      await this.verifyCode(this.userEmail, code); // 👈 використовуємо збережений email
-    });
-  }
+            await this.verifyCode(this.userEmail, code);
+        });
+    }
 
-  private renderStep3() {
-    this.clear();
-    this.container.innerHTML = `
+    private renderProfileForm() {
+        this.clear();
+
+        const isPerson = this.userRole === 'Athlete' || this.userRole === 'Trainer';
+        const isOrg = this.userRole === 'Organization';
+
+        const commonFields = isPerson
+            ? `
+        <input type="text" placeholder="Ім'я" id="first-name" />
+        <input type="text" placeholder="Прізвище" id="last-name" />
+        <input type="date" placeholder="Дата народження" id="birth-date" />
+        <input type="file" id="user-photo" />
+        <select id="sport-type">
+          <option disabled selected>Оберіть вид спорту</option>
+          <optgroup label="Індивідуальні">
+            <option value="Boxing">Бокс</option>
+            <option value="Wrestling">Боротьба</option>
+          </optgroup>
+          <optgroup label="Командні">
+            <option value="Football">Футбол</option>
+            <option value="Basketball">Баскетбол</option>
+          </optgroup>
+        </select>
+      `
+            : `
+        <input type="text" placeholder="Назва організації" id="org-name" />
+        <input type="text" placeholder="Тип організації" id="org-type" />
+        <textarea placeholder="Опис організації" id="org-desc"></textarea>
+        <input type="date" placeholder="Дата заснування" id="org-founded" />
+        <input type="text" placeholder="Країна" id="org-country" />
+        <input type="file" id="org-photo" />
+      `;
+
+        this.container.innerHTML = `
       <div class="modal-content">
-        <h2>Успішна реєстрація!</h2>
-        <p>Тепер ви можете увійти у свій обліковий запис.</p>
-        <button id="close-modal">Закрити</button>
+        <h2>Заповніть профіль (${this.userRole})</h2>
+        ${commonFields}
+        <button id="submit-profile">Завершити</button>
       </div>
     `;
 
-    this.container.querySelector('#close-modal')?.addEventListener('click', () => {
-      this.container.remove();
-    });
-
-    setTimeout(() => {
-      this.container.remove();
-    }, 5000);
-  }
-
-  private async register(user: {
-    email: string;
-    login: string;
-    password: string;
-    role: string;
-  }) {
-    const response = await fetch('http://localhost:5154/registr', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(user),
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.detail || 'Сталася помилка при реєстрації');
+        this.container.querySelector('#submit-profile')?.addEventListener('click', () => {
+            if (this.userRole === 'Athlete' || this.userRole === 'Trainer') {
+                this.submitAthleteOrTrainerProfile();
+            } else if (this.userRole === 'Organization') {
+                this.submitOrganizationProfile();
+            }
+            this.container.remove();
+        });
     }
-  }
 
-  private async verifyCode(email: string, code: string): Promise<void> {
+    private async register(user: {
+        email: string;
+        login: string;
+        password: string;
+        role: string;
+    }) {
+        const response = await fetch('http://localhost:5154/registr', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(user),
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'Сталася помилка при реєстрації');
+        }
+    }
+
+    private async verifyCode(email: string, code: string): Promise<void> {
+        try {
+            const response = await fetch('http://localhost:5154/verify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, code }),
+            });
+
+            if (response.ok) {
+                this.renderProfileForm();
+            
+            } else {
+                const errorData = await response.json();
+                alert(errorData.detail || 'Помилка підтвердження коду');
+            }
+        } catch (error) {
+            alert('Помилка мережі при підтвердженні коду');
+        }
+    }
+    private async submitAthleteOrTrainerProfile(): Promise<void> {
     try {
-      const response = await fetch('http://localhost:5154/verify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, code }),
-      });
+        const formData = new FormData();
 
-      if (response.ok) {
-        this.renderStep3();
-      } else {
-        const errorData = await response.json();
-        alert(errorData.detail || 'Помилка підтвердження коду');
-      }
-    } catch (error) {
-      alert('Помилка мережі при підтвердженні коду');
+        const firstName = (document.getElementById('first-name') as HTMLInputElement).value;
+        const lastName = (document.getElementById('last-name') as HTMLInputElement).value;
+        const login = localStorage.getItem('login') || '';
+        const profilePhoto = (document.getElementById('user-photo') as HTMLInputElement).files?.[0];
+        const sportType = (document.getElementById('sport-type') as HTMLSelectElement).value;
+
+        formData.append('FistName', firstName);
+        formData.append('LastName', lastName);
+        formData.append('Login', login);
+        if (profilePhoto) formData.append('ProfilePhoto', profilePhoto);
+        formData.append('TypeSport', sportType);
+        console.log(login);
+        
+        const response = await fetch('http://localhost:5154/complite-profile', {
+            method: 'POST',
+            body: formData,
+        });
+
+        if (!response.ok) {
+    const contentType = response.headers.get('content-type');
+
+    if (contentType && contentType.includes('application/json')) {
+        const error = await response.json();
+        throw new Error(error.detail || 'Помилка при збереженні профілю');
+    } else {
+        const text = await response.text();
+        throw new Error(`Сервер повернув не JSON: ${text.slice(0, 100)}...`);
     }
-  }
+}
+
+        alert('Профіль успішно заповнено!');
+    } catch (err: any) {
+        console.error('Помилка при відправці профілю:', err);
+        alert(err.message || 'Невідома помилка');
+    }
+}
+
+    private async submitOrganizationProfile(): Promise<void> {
+    try {
+        const formData = new FormData();
+
+        const name = (document.getElementById('org-name') as HTMLInputElement).value;
+        const type = (document.getElementById('org-type') as HTMLInputElement).value;
+        const email = localStorage.getItem('email') || '';
+        const country = (document.getElementById('org-country') as HTMLInputElement).value;
+        const description = (document.getElementById('org-desc') as HTMLTextAreaElement).value;
+        const photo = (document.getElementById('org-photo') as HTMLInputElement).files?.[0];
+
+        formData.append('NameOrganization', name);
+        formData.append('TypeOrganozation', type);
+        formData.append('Email', email);
+        formData.append('Country', country);
+        formData.append('Description', description);
+        if (photo) formData.append('ProfilePhoto', photo);
+
+        const response = await fetch('http://localhost:5154/complite-profile-organization', {
+            method: 'POST',
+            body: formData,
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'Помилка при збереженні організації');
+        }
+
+        alert('Профіль організації успішно заповнено!');
+    } catch (err: any) {
+        console.error('Помилка при відправці організації:', err);
+        alert(err.message || 'Невідома помилка');
+    }
+}
+
 }
