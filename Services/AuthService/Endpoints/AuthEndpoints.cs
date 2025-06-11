@@ -26,7 +26,7 @@ namespace AuthService.Endpoints
                 return Results.Ok();
             }).AllowAnonymous().DisableAntiforgery();
 
-            route.MapGet("/verify", async ([FromBody] UserVerificationDto info, IUserRegistration userService) =>
+            route.MapPost("/verify", async ([FromBody] UserVerificationDto info, IUserRegistration userService) =>
             {
                 await userService.VeryfyEmail(info);
                 return Results.Ok();
