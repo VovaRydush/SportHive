@@ -42,6 +42,7 @@ export class RegistrationModal {
             localStorage.setItem('email', email);
             const password = (document.getElementById('reg-password') as HTMLInputElement).value.trim();
             const role = (document.getElementById('reg-role') as HTMLSelectElement).value;
+            localStorage.setItem('userRole', role);
 
             if (!email || !login || !password || !role) {
                 alert('Будь ласка, заповніть всі поля!');

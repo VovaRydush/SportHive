@@ -1,5 +1,6 @@
 import { RegistrationModal } from './components/RegistrationModal';
-import { LoginModal } from './components/LoginModalWin'
+import { LoginModal } from './components/LoginModalWin';
+import { UserProfile } from './components/AthleteProfile';
 
 document.addEventListener('DOMContentLoaded', () => {
     const nav = document.getElementById('nav-buttons');
@@ -9,13 +10,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const role = localStorage.getItem('userRole');
 
     if (!token) {
-        // Не авторизований — показати кнопки входу/реєстрації
-        nav.innerHTML = ` <button class="btn" id="login-btn" >Увійти</button> <button class="btn" id="register-btn" >Зареєструватись</button> `;
 
+        nav.innerHTML = `
+  <button class="nav-btn" id="login-btn">Увійти</button>
+  <button class="nav-btn" id="register-btn">Зареєструватись</button>
+`;
+
+        // Додаємо обробники тільки після того, як кнопки зʼявилися в DOM
         document.getElementById('login-btn')?.addEventListener('click', () => {
+            localStorage.setItem("userRole", "Athlete");
             const loginModal = new LoginModal();
             loginModal.show();
-
         });
 
         document.getElementById('register-btn')?.addEventListener('click', () => {
@@ -24,24 +29,37 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     else {
-        // Авторизований — показати ім'я або меню користувача за роллю
         let content = '';
-
+        console.log(role);
         switch (role) {
-            case 'admin': content = '<a class="btn" href="#admin">Адмін-панель</a>';
+            case 'Organization': content = '<button class="nav-btn" href="#admin">Адмін-панель</button>';
                 break;
-            case 'organizer': content = '<a class="btn" href="#dashboard">Мій кабінет</a>';
+            case 'Trainer': content = '<button class="nav-btn" href="#dashboard">Мій кабінет</button>';
                 break;
-            case 'user': default: content = '<a class="btn" href="#profile">Профіль</a>';
+            case 'Athlete': content = `<button class="nav-btn" id="profile-btn">Профіль</button>`;
+                break;
+            default: content = '<button class="nav-btn" id="profile" href="#profile">Профіл</button>';
                 break;
         }
 
+        const nav1 = document.getElementById('nav-buttons');
+        nav1!.innerHTML = content;
+
+        // Після вставки кнопки — тепер елемент точно є
+        setTimeout(() => {
+            const btn = document.getElementById('profile-btn');
+            if (btn) {
+                btn.addEventListener('click', () => {
+                    console.log("vfvf");
+                    const profile = new UserProfile("app");
+                    profile.render();
+                });
+            }
+        }, 0);
         nav.innerHTML = `
   ${content}
-  <button class="btn" id="logout-btn">Вийти</button>
+  <button class="nav-btn" id="logout-btn">Вийти</button>
 `;
-
-
         document.getElementById('logout-btn')?.addEventListener('click', () => {
             localStorage.removeItem('accessToken');
             localStorage.removeItem('userRole');

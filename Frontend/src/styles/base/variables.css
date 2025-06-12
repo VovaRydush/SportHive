@@ -1,79 +1,90 @@
-:root {
-  --bg-color: #ffffff;
-  --text-color: #000000;
-  --accent-color: #111111;
-  --button-bg: #000000;
-  --button-text: #ffffff;
-  --hover-bg: #333333;
+
+.nav-btn:hover {
+    background-color: #222;
 }
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+/* ===== Хедер ===== */
+.light-header {
+    background: #f9f3f3;
+    padding: 1rem 0;
+    border-radius: 0 0 20px 20px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+    position: sticky;
+    top: 0;
+    z-index: 10;
 }
 
-body {
-  background-color: var(--bg-color);
-  color: var(--text-color);
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
-
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 1rem;
-}
-
-/* Header */
-.site-header {
-  background-color: var(--bg-color);
-  border-bottom: 2px solid var(--accent-color);
-  padding: 1rem 0;
-}
-
-.header-inner {
+.header-container {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
+
 .logo {
-  font-size: 2rem;
-  font-weight: bold;
-  color: var(--accent-color);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.logo img {
+    display: block;
 }
 
-/* Buttons */
-.btn {
-  background-color: var(--button-bg);
-  color: var(--button-text);
-  padding: 0.5rem 1rem;
-  border: none;
-  margin-left: 0.5rem;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
+/* Розташування кнопок */
+#nav-buttons {
+    display: flex;
+    gap: 1rem;
+}
+.nav-btn {
+    background-color: #000;
+    color: #fff;
+    padding: 0.5rem 1rem;
+    border-radius: 12px;
+    border: none;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
 }
 
-.btn:hover {
-  background-color: var(--hover-bg);
+/* ===== Футер ===== */
+.light-footer {
+    background: #f4f4f4;
+    padding: 2rem 1rem;
+    border-radius: 20px 20px 0 0;
+    box-shadow: 0 -2px 12px rgba(0,0,0,0.05);
+    margin-top: 4rem;
 }
 
-.nav-actions {
-  display: flex;
-  align-items: center;
+.footer-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    text-align: center;
 }
 
-/* Footer */
-.site-footer {
-  margin-top: auto;
-  border-top: 2px solid var(--accent-color);
-  text-align: center;
-  padding: 1rem 0;
-  background-color: var(--bg-color);
-  color: var(--accent-color);
-  font-size: 0.9rem;
+.footer-links {
+    margin-top: 1rem;
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+}
+
+.footer-links a {
+    text-decoration: none;
+    color: #000;
+    font-size: 0.95rem;
+    transition: color 0.3s;
+}
+
+.footer-links a:hover {
+    color: #555;
+}
+
+/* ===== Базовий Reset + інтерлініяж ===== */
+body {
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    padding: 0;
+    line-height: 1.6;
+    background-color: #fff;
 }
