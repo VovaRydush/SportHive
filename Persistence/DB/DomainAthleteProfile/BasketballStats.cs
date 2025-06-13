@@ -1,7 +1,11 @@
+using MongoDB.Bson.Serialization.Attributes;
+
 namespace DB.SportHive.Domain
 {
+    [BsonDiscriminator("BasketballStats", RootClass = false)]
     public class BasketballStats : SportStats
     {
+        public BasketballStats() { }
         public int Matches { get; set; }
         public int Losses { get; set; }
         public int Wins { get; set; }

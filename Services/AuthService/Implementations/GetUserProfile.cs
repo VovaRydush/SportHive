@@ -27,8 +27,16 @@ namespace SportHive.Implementations
             if (result == null)
                 return null;
 
-            // Явно кастимо SportStats до конкретного типу, якщо потрібно
-            result.SportStats = result.SportStats as FootballStats;
+            switch (result.SportType)
+            {
+                case "Football":
+                    result.SportStats = result.SportStats as FootballStats;
+                    break;
+                case "Struggle":
+                    result.SportStats = result.SportStats as StruggleStats;
+                    break;
+            };
+            
 
             // Повертаємо JSON без метаданих типу (_t)
             var json = JsonConvert.SerializeObject(result, new JsonSerializerSettings

@@ -2,6 +2,7 @@ import { ISportStatsRenderer } from "./ISportStatsRenderer";
 
 export class StruggleStatsRenderer implements ISportStatsRenderer {
   renderStats(stats: any): string {
+    console.log(stats);
     return `
       <div class="stats-section">
         <div class="stats-summary">
@@ -28,7 +29,7 @@ export class StruggleStatsRenderer implements ISportStatsRenderer {
               <span class="stat-label">Перемог утриманням</span>
             </div>
             <div class="stat-card weight-category">
-              <span class="stat-value">${stats.WeightCategory}</span>
+              <span class="stat-value">${stats.WeightCategory || "n/a"}</span>
               <span class="stat-label">Вагова категорія</span>
             </div>
           </div>

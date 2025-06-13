@@ -1,4 +1,3 @@
-import { FootballStats } from "../../interfaces/FootballStats";
 import { ISportStatsRenderer } from "./ISportStatsRenderer";
 
 export class FootballStatsRenderer implements ISportStatsRenderer {

@@ -32,7 +32,7 @@ export class UserProfile {
     const athleteInfo = await this.getUserInfo(login);
     const obj = JSON.parse(athleteInfo);
     let statsRenderer : ISportStatsRenderer;
-    switch(athleteInfo.SportType) {
+    switch(obj.SportType) {
       case 'Football':
         statsRenderer = new FootballStatsRenderer();
         break;
@@ -93,7 +93,7 @@ export class UserProfile {
       <div class="profile-header">
         <div class="profile-photo">
           <img src="${photoUrl}" alt="Фото спортсмена">
-          <div class="sport-badge">⚽ Футбол</div>
+          <div class="sport-badge"> ${obj.SportType}</div>
         </div>
           
           <div class="profile-main">
@@ -106,7 +106,7 @@ export class UserProfile {
               </div>
               <div class="detail-block">
                 <h3>Статус</h3>
-                <p><strong>Позиція:</strong> ${obj.Position}</p>
+                <p><strong>Позиція:</strong> ${obj.Position || "Не відомо"}</p>
                 <p><strong>Команда:</strong> ${obj.Team || "Не відомо"}</p>
               </div>
             </div>

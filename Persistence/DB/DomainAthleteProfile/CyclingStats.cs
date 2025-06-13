@@ -1,7 +1,11 @@
+using MongoDB.Bson.Serialization.Attributes;
+
 namespace DB.SportHive.Domain
 {
+    [BsonDiscriminator("CyclingStats", RootClass = false)]
     public class CyclingStats : SportStats
     {
+        public CyclingStats() { }
         public int Matches { get; set; }
         public double BestTime { get; set; }            // у секундах
         public string BestDistance { get; set; } = null!;       // "10km", "40km", "Time Trial"

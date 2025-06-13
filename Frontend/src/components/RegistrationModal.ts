@@ -106,7 +106,7 @@ export class RegistrationModal {
             <option value="CortMatch">Теніс</option>
             <option value="CortMatch">Бадмінтон</option>
             <option value="Checkers">Шашки</option>
-            <option value="Struggle">Chess</option>
+            <option value="Chess">Шахи</option>
           </optgroup>
           <optgroup label="Командні">
             <option value="Football">Футбол</option>
