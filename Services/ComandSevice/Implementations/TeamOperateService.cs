@@ -4,6 +4,7 @@ using DB.SportHive.Persistence;
 using Microsoft.EntityFrameworkCore;
 using SportHive.Exceptions;
 using System.Text.Json;
+using MongoDB.Driver;
 namespace SportHive.Implementations
 {
     class TeamOperateService : ITeamOperateService
@@ -11,8 +12,10 @@ namespace SportHive.Implementations
         private readonly AppDbContext _context;
         private readonly IPhotoProcessing _photoProcessing;
         private readonly ISaveDataDb _saveDataDb;
-        public TeamOperateService(AppDbContext context,IPhotoProcessing photoProcessing,ISaveDataDb saveDataDb )
+        private readonly IMongoCollection<AthleteProfile> _playerProfile;
+        public TeamOperateService(AppDbContext context, IPhotoProcessing photoProcessing, ISaveDataDb saveDataDb, IMongoDbService mongoDbService)
         {
+            _playerProfile = mongoDbService.GetCollection<AthleteProfile>("AthleteProfile");
             _saveDataDb = saveDataDb;
             _photoProcessing = photoProcessing;
             _context = context;
@@ -34,9 +37,9 @@ namespace SportHive.Implementations
 
         public async Task ChangeStatusAthlete(NewSatatusAthlete newSatatus)
         {
-           var athlet = await GetAthlete(newSatatus.LoginAthlete,newSatatus.NameTeam);
-           athlet.AthleteStatus= newSatatus.NewStatus;
-           await  _context.SaveChangesAsync();
+            var athlet = await GetAthlete(newSatatus.LoginAthlete, newSatatus.NameTeam);
+            athlet.AthleteStatus = newSatatus.NewStatus;
+            await _context.SaveChangesAsync();
         }
 
         public async Task CreateTeamAsync(TeamModelDto team)
@@ -55,7 +58,7 @@ namespace SportHive.Implementations
                 login = team.NameTeam,
                 ProfilePhoto = photoPath
             });
-           _ = _saveDataDb.SaveDataToDb(jsonObJuserPhoto, "user-photo");
+            _ = _saveDataDb.SaveDataToDb(jsonObJuserPhoto, "user-photo");
 
             var Command = new Team
             {
@@ -66,28 +69,37 @@ namespace SportHive.Implementations
             };
             _context.Teams.Add(Command);
 
-           
             var entities = team.Athlets.Select(d => new TeamAthlete
             {
-                 NameTeam = team.NameTeam,
+                NameTeam = team.NameTeam,
                 loginAthlets = d.LoginAthlets,
                 AthleteStatus = d.AthleteStatus
             }).ToList();
 
             _context.teamAthletes.AddRange(entities);
 
-            await _context.SaveChangesAsync();
+            foreach (var athleteDto in team.Athlets)
+            {
+                var filter = Builders<AthleteProfile>.Filter.Eq(a => a.login, athleteDto.LoginAthlets);
+                var update = Builders<AthleteProfile>.Update
+                    .Set(a => a.Team, team.NameTeam)
+                    .Set(a => a.Position, athleteDto.AthleteStatus)
+                    .Set(a => a.dateLastUpdate, DateTime.UtcNow);
 
+                await _playerProfile.UpdateOneAsync(filter, update);
+            }
+            await _context.SaveChangesAsync();
         }
 
         public async Task<TeamAthlete> GetAthlete(string loginAthlets, string NameTeam)
         {
-           return await _context.teamAthletes.FirstAsync(a => a.loginAthlets == loginAthlets && a.NameTeam == NameTeam);
+            return await _context.teamAthletes.FirstAsync(a => a.loginAthlets == loginAthlets && a.NameTeam == NameTeam);
         }
 
         public async Task LinkOrganizationTeam(OrganizationTeamDto entity)
         {
-            var OrgTeam = new OrganizationTeam{
+            var OrgTeam = new OrganizationTeam
+            {
                 LoginOrganization = entity.LoginOrganization,
                 NameComand = entity.NameTeam
             };
@@ -97,9 +109,9 @@ namespace SportHive.Implementations
 
         public async Task RemoveAthlet(NewSatatusAthlete newSatatus)
         {
-           var athlet = await GetAthlete(newSatatus.LoginAthlete,newSatatus.NameTeam);
-           _context.teamAthletes.Remove(athlet);
-           await _context.SaveChangesAsync();
+            var athlet = await GetAthlete(newSatatus.LoginAthlete, newSatatus.NameTeam);
+            _context.teamAthletes.Remove(athlet);
+            await _context.SaveChangesAsync();
         }
     }
 }

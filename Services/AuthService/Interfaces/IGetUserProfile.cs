@@ -7,6 +7,5 @@ namespace SportHive.Services.Interfaces
     {
         Task<string> GetUserPhoto(string loginUser);
         Task<string> GetAllInfoUser(string loginUser);
-        Task<List<string>> GetLastMatches(string loginUser);
     }
 }

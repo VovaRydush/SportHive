@@ -119,7 +119,7 @@ export class UserProfile {
           <h2>Останні матчі</h2>
           <div class="matches-list">
             <div class="match-card win">
-              <div class="match-result">W</div>
+              <div class="match-result">В</div>
               <div class="match-teams">
                 <div class="team">
                   <img src="https://upload.wikimedia.org/wikipedia/ru/thumb/2/24/FC_Barcelona.svg/200px-FC_Barcelona.svg.png" alt="Барселона">
@@ -135,7 +135,7 @@ export class UserProfile {
             </div>
 
             <div class="match-card loss">
-              <div class="match-result">L</div>
+              <div class="match-result">П</div>
               <div class="match-teams">
                 <div class="team">
                   <img src="https://upload.wikimedia.org/wikipedia/ru/thumb/2/24/FC_Barcelona.svg/200px-FC_Barcelona.svg.png" alt="Барселона">
@@ -151,7 +151,7 @@ export class UserProfile {
             </div>
 
             <div class="match-card draw">
-              <div class="match-result">D</div>
+              <div class="match-result">Н</div>
               <div class="match-teams">
                 <div class="team">
                   <img src="https://upload.wikimedia.org/wikipedia/ru/thumb/2/24/FC_Barcelona.svg/200px-FC_Barcelona.svg.png" alt="Барселона">

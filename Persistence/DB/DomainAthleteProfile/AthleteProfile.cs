@@ -21,6 +21,7 @@ namespace DB.SportHive.Domain
         public string FullName { get; set; } = null!;
         public string login { get; set; } = null!;
         public string SportType { get; set; } = null!; // Наприклад, "Футбол", "Баскетбол"
+        public string Team { get; set; } = null!;
         public string Position { get; set; } // Якщо є
         public DateTime dateLastUpdate { get; set; }
         public List<TournamentResult> TournamentHistory { get; set; } = new();
