@@ -1,6 +1,6 @@
 namespace DB.SportHive.Domain
 {
-    public class BoardStats : ISportStats
+    public class BoardStats : SportStats
     {
         public int Matches { get; set; }
         public int Wins { get; set; }

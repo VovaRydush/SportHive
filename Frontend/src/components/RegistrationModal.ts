@@ -100,12 +100,32 @@ export class RegistrationModal {
         <select id="sport-type">
           <option disabled selected>Оберіть вид спорту</option>
           <optgroup label="Індивідуальні">
-            <option value="Boxing">Бокс</option>
-            <option value="Wrestling">Боротьба</option>
+            <option value="Box">Бокс</option>
+            <option value="Struggle">Боротьба</option>
+            <option value="CortMatch">Настільний теніс</option>
+            <option value="CortMatch">Теніс</option>
+            <option value="CortMatch">Бадмінтон</option>
+            <option value="Checkers">Шашки</option>
+            <option value="Struggle">Chess</option>
           </optgroup>
           <optgroup label="Командні">
             <option value="Football">Футбол</option>
             <option value="Basketball">Баскетбол</option>
+            <option value="Volleyball">Волейбол</option>
+            <option value="BeachVolleyball">Пляжний волейбол</option>
+            <option value="AmericanFootball">Американський футбол</option>
+            <option value="Hockey">Хокей</option>
+            <option value="Rugby">Регбі</option>
+            <option value="Baseball">Бейсбол</option>
+          </optgroup>
+          <optgroup label="Екстримальні">
+            <option value="AthleticsMatch">Атлетика</option>
+            <option value="Cycling">Велоспорт</option>
+            <option value="DistanceRunning">Біг на дистанції</option>
+            <option value="Rowing">Веслування</option>
+            <option value="Swimming">Плавання</option>
+            <option value="WeightliftingMatch">Важка атлетика</option>
+            <option value="Archery">Стрільба з лука</option>
           </optgroup>
         </select>
       `
@@ -164,7 +184,7 @@ export class RegistrationModal {
 
             if (response.ok) {
                 this.renderProfileForm();
-            
+
             } else {
                 const errorData = await response.json();
                 alert(errorData.detail || 'Помилка підтвердження коду');
@@ -174,79 +194,79 @@ export class RegistrationModal {
         }
     }
     private async submitAthleteOrTrainerProfile(): Promise<void> {
-    try {
-        const formData = new FormData();
+        try {
+            const formData = new FormData();
 
-        const firstName = (document.getElementById('first-name') as HTMLInputElement).value;
-        const lastName = (document.getElementById('last-name') as HTMLInputElement).value;
-        const login = localStorage.getItem('login') || '';
-        const profilePhoto = (document.getElementById('user-photo') as HTMLInputElement).files?.[0];
-        const sportType = (document.getElementById('sport-type') as HTMLSelectElement).value;
+            const firstName = (document.getElementById('first-name') as HTMLInputElement).value;
+            const lastName = (document.getElementById('last-name') as HTMLInputElement).value;
+            const login = localStorage.getItem('login') || '';
+            const profilePhoto = (document.getElementById('user-photo') as HTMLInputElement).files?.[0];
+            const sportType = (document.getElementById('sport-type') as HTMLSelectElement).value;
 
-        formData.append('FistName', firstName);
-        formData.append('LastName', lastName);
-        formData.append('Login', login);
-        if (profilePhoto) formData.append('ProfilePhoto', profilePhoto);
-        formData.append('TypeSport', sportType);
-        console.log(login);
-        
-        const response = await fetch('http://localhost:5154/complite-profile', {
-            method: 'POST',
-            body: formData,
-        });
+            formData.append('FistName', firstName);
+            formData.append('LastName', lastName);
+            formData.append('Login', login);
+            if (profilePhoto) formData.append('ProfilePhoto', profilePhoto);
+            formData.append('TypeSport', sportType);
+            console.log(login);
 
-        if (!response.ok) {
-    const contentType = response.headers.get('content-type');
+            const response = await fetch('http://localhost:5154/complite-profile', {
+                method: 'POST',
+                body: formData,
+            });
 
-    if (contentType && contentType.includes('application/json')) {
-        const error = await response.json();
-        throw new Error(error.detail || 'Помилка при збереженні профілю');
-    } else {
-        const text = await response.text();
-        throw new Error(`Сервер повернув не JSON: ${text.slice(0, 100)}...`);
+            if (!response.ok) {
+                const contentType = response.headers.get('content-type');
+
+                if (contentType && contentType.includes('application/json')) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Помилка при збереженні профілю');
+                } else {
+                    const text = await response.text();
+                    throw new Error(`Сервер повернув не JSON: ${text.slice(0, 100)}...`);
+                }
+            }
+
+            alert('Профіль успішно заповнено!');
+        } catch (err: any) {
+            console.error('Помилка при відправці профілю:', err);
+            alert(err.message || 'Невідома помилка');
+        }
     }
-}
-
-        alert('Профіль успішно заповнено!');
-    } catch (err: any) {
-        console.error('Помилка при відправці профілю:', err);
-        alert(err.message || 'Невідома помилка');
-    }
-}
 
     private async submitOrganizationProfile(): Promise<void> {
-    try {
-        const formData = new FormData();
+        try {
+            const formData = new FormData();
 
-        const name = (document.getElementById('org-name') as HTMLInputElement).value;
-        const type = (document.getElementById('org-type') as HTMLInputElement).value;
-        const email = localStorage.getItem('email') || '';
-        const country = (document.getElementById('org-country') as HTMLInputElement).value;
-        const description = (document.getElementById('org-desc') as HTMLTextAreaElement).value;
-        const photo = (document.getElementById('org-photo') as HTMLInputElement).files?.[0];
+            const name = (document.getElementById('org-name') as HTMLInputElement).value;
+            const type = (document.getElementById('org-type') as HTMLInputElement).value;
+            const email = localStorage.getItem('email') || '';
+            const country = (document.getElementById('org-country') as HTMLInputElement).value;
+            const description = (document.getElementById('org-desc') as HTMLTextAreaElement).value;
+            const photo = (document.getElementById('org-photo') as HTMLInputElement).files?.[0];
 
-        formData.append('NameOrganization', name);
-        formData.append('TypeOrganozation', type);
-        formData.append('Email', email);
-        formData.append('Country', country);
-        formData.append('Description', description);
-        if (photo) formData.append('ProfilePhoto', photo);
+            formData.append('NameOrganization', name);
+            formData.append('TypeOrganozation', type);
+            formData.append('Email', email);
+            formData.append('Country', country);
+            formData.append('Description', description);
+            if (photo) formData.append('ProfilePhoto', photo);
 
-        const response = await fetch('http://localhost:5154/complite-profile-organization', {
-            method: 'POST',
-            body: formData,
-        });
+            const response = await fetch('http://localhost:5154/complite-profile-organization', {
+                method: 'POST',
+                body: formData,
+            });
 
-        if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.detail || 'Помилка при збереженні організації');
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.detail || 'Помилка при збереженні організації');
+            }
+
+            alert('Профіль організації успішно заповнено!');
+        } catch (err: any) {
+            console.error('Помилка при відправці організації:', err);
+            alert(err.message || 'Невідома помилка');
         }
-
-        alert('Профіль організації успішно заповнено!');
-    } catch (err: any) {
-        console.error('Помилка при відправці організації:', err);
-        alert(err.message || 'Невідома помилка');
     }
-}
 
 }

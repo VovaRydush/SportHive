@@ -1,6 +1,9 @@
+using MongoDB.Bson.Serialization.Attributes;
+
 namespace DB.SportHive.Domain
 {
-    public class FootballStats : ISportStats
+    [BsonDiscriminator("FootballStats", RootClass = false)]
+    public class FootballStats : SportStats
     {
         public FootballStats()
         {

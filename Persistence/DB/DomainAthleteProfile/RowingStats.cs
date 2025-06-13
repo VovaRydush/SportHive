@@ -1,6 +1,6 @@
 namespace DB.SportHive.Domain
 {
-    public class RowingStats : ISportStats
+    public class RowingStats : SportStats
     {
         public int Matches { get; set; }
         public string BoatType { get; set; } = null!;           // "Single", "Double", "Four", "Eight"

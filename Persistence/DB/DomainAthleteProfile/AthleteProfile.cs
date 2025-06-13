@@ -21,9 +21,10 @@ namespace DB.SportHive.Domain
         public string FullName { get; set; } = null!;
         public string login { get; set; } = null!;
         public string SportType { get; set; } = null!; // Наприклад, "Футбол", "Баскетбол"
-        public string? Position { get; set; } // Якщо є
+        public string Position { get; set; } // Якщо є
         public DateTime dateLastUpdate { get; set; }
         public List<TournamentResult> TournamentHistory { get; set; } = new();
-        public ISportStats SportStats { get; set; } = null!; // Тут буде конкретний клас по виду спорту
+        [BsonElement("SportStats")]
+        public SportStats SportStats { get; set; } = null!; // Тут буде конкретний клас по виду спорту
     }
 }

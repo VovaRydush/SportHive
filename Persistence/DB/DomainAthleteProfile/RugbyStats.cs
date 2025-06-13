@@ -1,6 +1,6 @@
 namespace DB.SportHive.Domain
 {
-    public class RugbyStats : ISportStats
+    public class RugbyStats : SportStats
     {
         public int Matches { get; set; }
         public int Tries { get; set; }        // Аналог тачдауну

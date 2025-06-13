@@ -22,7 +22,6 @@ namespace SportHive.Implementations
 
         public async Task<string> GetPhotoBase64Async(string relativePath)
         {
-            /*
             var fullPath = Path.Combine(_webRootPath, relativePath);
             if (!File.Exists(fullPath))
                 return string.Empty;
@@ -30,8 +29,6 @@ namespace SportHive.Implementations
             var bytes = await File.ReadAllBytesAsync(fullPath);
             var extension = Path.GetExtension(fullPath).ToLower().Trim('.');
             return $"data:image/{extension};base64,{Convert.ToBase64String(bytes)}";
-            */
-            return "Доробити це вже при деплоії";
         }
 
         public async Task<string> SavePhotoAsync(IFormFile file)

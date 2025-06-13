@@ -33,7 +33,7 @@ namespace SportHive.Implementations
                 "Basketball",
                 "Volleyball",
                 "BeachVolleyball",
-                "AmericanFootball",
+                "AmericanFootball", 
                 "Hockey",
                 "Rugby",
                 "Baseball"

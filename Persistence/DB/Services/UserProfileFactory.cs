@@ -1,5 +1,7 @@
 using DB.SportHive.Domain;
 using Microsoft.Extensions.DependencyInjection;
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization;
 
 
 namespace SportHive.Implementations
@@ -11,9 +13,9 @@ namespace SportHive.Implementations
         {
             _scopeFactory = scopeFactory;
         }
-        public ISportStats CreateUserProfile(string sportType)
+        public SportStats CreateUserProfile(string sportType)
         {
-            return sportType switch
+            SportStats stats = sportType switch
             {
                 "AmericanFootball" => new AmericanFootballStats(),
                 "Archery" => new ArcheryStats(),
@@ -33,8 +35,13 @@ namespace SportHive.Implementations
                 "Struggle" => new StruggleStats(),
                 "Swimming" => new SwimmingStats(),
                 "VolleyballStats" => new VolleyballStats(),
-                "Weightlifting" => new WeightliftingStats()
+                "Weightlifting" => new WeightliftingStats(),
+                _ => throw new ArgumentException($"Unknown sport type: {sportType}", nameof(sportType))
             };
+            var document = stats.ToBsonDocument();
+            document["_t"] = stats.GetType().Name; 
+
+            return BsonSerializer.Deserialize<SportStats>(document);
         }
     }
 }

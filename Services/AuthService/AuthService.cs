@@ -8,6 +8,7 @@ using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Persistence.Services;
 using DB.SportHive.Domain;
+using MongoDB.Bson.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -45,8 +46,10 @@ builder.Services.AddScoped<IJWTService,JWTService>();
 builder.Services.AddScoped<ILoginService,LoginService>();
 builder.Services.AddScoped<IProfileManipulete, ProfileManipulete>();
 builder.Services.AddScoped<IMongoDbService, MongoDbService>();
+builder.Services.AddScoped<IGetUserProfile, GetUserProfile>();
 builder.Services.AddScoped<UserProfileFactory>();
 builder.Services.AddScoped<ICompliteUserProfile, CompliteUserProfile>();
+builder.Services.AddSingleton<IMongoMappingService, MongoMappingService>();
 
 builder.Services.AddScoped<FootballStats>();
 builder.Services.AddScoped<AmericanFootballStats>();
@@ -64,7 +67,8 @@ builder.Services.AddScoped<StruggleStats>();
 builder.Services.AddScoped<SwimmingStats>();
 builder.Services.AddScoped<VolleyballStats>();
 builder.Services.AddScoped<WeightliftingStats>();
-
+BsonClassMap.RegisterClassMap<SportStats>();
+BsonClassMap.RegisterClassMap<FootballStats>();
 
 var app = builder.Build();
 if (app.Environment.IsDevelopment())
@@ -72,6 +76,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
 app.UseCors("AllowFrontend");
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseStaticFiles();

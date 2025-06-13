@@ -49,10 +49,9 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => {
             const btn = document.getElementById('profile-btn');
             if (btn) {
-                btn.addEventListener('click', () => {
-                    console.log("vfvf");
+                btn.addEventListener('click', async () => {
                     const profile = new UserProfile("app");
-                    profile.render();
+                    await profile.render();
                 });
             }
         }, 0);
