@@ -1,5 +1,4 @@
 using DB.SportHive.Domain;
-using StackExchange.Redis;
 
 namespace DB.SportHive.MongoDb
 {
