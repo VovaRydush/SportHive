@@ -46,10 +46,10 @@ export class LoginModal {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({
-				email: '', // якщо бекенд вимагає
+				email: '', 
 				login,
 				password,
-				role: ''   // якщо бекенд вимагає
+				role: ''   
 			}),
 		});
 
@@ -58,9 +58,11 @@ export class LoginModal {
 			throw new Error(`Помилка входу: ${text}`);
 		}
 
-		const token = await response.text(); // ← просто рядок
-		if (token && typeof token === 'string') {
-			localStorage.setItem('accessToken', token);
+		const token = await response.json(); 
+
+		if (token.token && typeof token.token === 'string') {
+			localStorage.setItem('userRole', token.role);
+			localStorage.setItem('accessToken', token.token);
 			this.close();
 		} else {
 			throw new Error('Невірна відповідь: токен не отримано');

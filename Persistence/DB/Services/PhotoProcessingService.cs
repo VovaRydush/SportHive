@@ -25,7 +25,6 @@ namespace SportHive.Implementations
             var fullPath = Path.Combine(_webRootPath, relativePath);
             if (!File.Exists(fullPath))
             {
-                Console.WriteLine("NotFoundAAAAAAALE");
                 return string.Empty;
             }
 

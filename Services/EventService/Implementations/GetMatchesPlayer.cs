@@ -23,9 +23,9 @@ namespace SportHive.Implementations
             _matchEvents = mongoDbService.GetCollection<MatchEvents>("MatchEvents");
             _appDbContext = appDbContext;
         }
-        public Task GetBoxMatches(string loginUser)
+        public async Task GetBoxMatches(string loginUser)
         {
-            throw new NotImplementedException();
+            await Task.CompletedTask;
         }
 
         public Task GetCheckersGame(string loginUser)

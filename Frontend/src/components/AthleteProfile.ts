@@ -18,8 +18,9 @@ import { VolleyballStatsRenderer } from './sportsInfo/VolleyballRender';
 import { WeightliftingStatsRenderer } from './sportsInfo/WeightliftingRender';
 export class UserProfile {
   private container: HTMLElement;
-
-  constructor(containerId: string) {
+  private login:string;
+  constructor(containerId: string,Login:string) {
+    this.login = Login;
     const element = document.getElementById(containerId);
     if (!element) {
       throw new Error(`Element with id '${containerId}' not found`);
@@ -28,11 +29,10 @@ export class UserProfile {
   }
 
   async render() {
-    const login = localStorage.getItem('login') ?? "";
     let matches = new UserTeamMatchRender();
-    const photoUrl = await this.getUserPhoto(login);
-    const athleteInfo = await this.getUserInfo(login);
-    const userMatch = await this.getUserTeamMatchs(login);
+    const photoUrl = await this.getUserPhoto(this.login);
+    const athleteInfo = await this.getUserInfo(this.login);
+    const userMatch = await this.getUserTeamMatchs(this.login);
     //const matchesUser = JSON.parse(userMatch);
     const obj = JSON.parse(athleteInfo);
     console.log(userMatch);

@@ -1,0 +1,144 @@
+
+.boxing-match-entry {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+  font-family: 'Inter', sans-serif;
+  color: #111;
+  background: #fff;
+  border: 2px solid #111;
+  box-shadow: 8px 8px 0 0 #111;
+}
+
+.boxing-header {
+  text-align: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #111;
+}
+
+.boxers-names {
+  display: flex;
+  justify-content: center;
+  margin-top: 1.5rem;
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.boxers-names .vs {
+  margin: 0 1rem;
+}
+
+.rounds-section, .points-entry, .fouls-section, .result-section, .summary-section {
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  border: 2px solid #111;
+}
+
+.rounds-list {
+  margin-top: 1rem;
+}
+
+.round-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem;
+  border-bottom: 1px solid #eee;
+}
+
+.fouls-list table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+.fouls-list th, .fouls-list td {
+  padding: 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+.fouls-list th {
+  background-color: #f8f8f8;
+}
+
+.summary-box {
+  background: #f8f8f8;
+  padding: 1rem;
+  border: 2px solid #111;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.winner-row {
+  font-weight: 700;
+  color: #2e7d32;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.form-group input, .form-group select {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid #111;
+  font-size: 1rem;
+}
+
+.btn {
+  padding: 0.75rem 1.5rem;
+  border: 2px solid #111;
+  background: #111;
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: all 0.2s;
+}
+
+.btn:hover {
+  background: #222;
+  transform: translateY(-2px);
+  box-shadow: 4px 4px 0 0 #111;
+}
+
+.btn-save {
+  background: #2e7d32;
+  border-color: #2e7d32;
+}
+
+.btn-small {
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+}
+
+.btn-delete {
+  background: #d32f2f;
+  border-color: #d32f2f;
+}
+
+@media (max-width: 600px) {
+  .boxing-match-entry {
+    padding: 1rem;
+  }
+  
+  .rounds-section, .points-entry, .fouls-section, .result-section, .summary-section {
+    padding: 1rem;
+  }
+  
+  .fouls-list th, .fouls-list td {
+    padding: 0.5rem;
+    font-size: 0.9rem;
+  }
+}

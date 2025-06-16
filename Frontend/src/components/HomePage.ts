@@ -1,5 +1,7 @@
+import { UserProfile } from './AthleteProfile';
 import { EventPageLook } from './EventPageLook';
 import './homePage.css';
+import { MatchPage } from './MatchPage';
 import { TeamPageLook } from './TeamPage';
 
 export class HomePage {
@@ -21,7 +23,7 @@ export class HomePage {
     // Initialize with mock data
     this.allEvents = [
       { id: 1, name: "Чемпіонат міста з футболу", date: "2023-11-20", sport: "Футбол", teams: ["Динамо", "Скіфи"] },
-      
+
     ];
 
     this.allRecentResults = [
@@ -30,23 +32,23 @@ export class HomePage {
       { team1: "Стрибуни", team2: "Форхенди", score: "6:4, 6:3", date: "2023-11-13", sport: "Теніс" },
       { team1: "Вікторія", team2: "Скіфи", score: "1:1", date: "2023-11-12", sport: "Футбол" }
     ];
-this.allLiveMatches = [
-      { 
-        team1: "Динамо", 
-        team2: "Шахтар", 
-        score: "1:0", 
-        date: "2023-11-19T15:00", 
-        status: "live", 
+    this.allLiveMatches = [
+      {
+        team1: "Динамо",
+        team2: "Шахтар",
+        score: "1:0",
+        date: "2023-11-19T15:00",
+        status: "live",
         sport: "Футбол",
         time: "62'", // Хвилина матчу
         events: ["⚽ Гол на 35' - Іваненко О. (Динамо)"] // Події матчу
       },
-      { 
-        team1: "Олімпійці", 
-        team2: "Гіганти", 
-        score: "45:42", 
-        date: "2023-11-19T16:30", 
-        status: "live", 
+      {
+        team1: "Олімпійці",
+        team2: "Гіганти",
+        score: "45:42",
+        date: "2023-11-19T16:30",
+        status: "live",
         sport: "Баскетбол",
         time: "3-тя чверть",
         events: ["🏀 3 очки на 25' - Петренко М. (Олімпійці)"]
@@ -153,7 +155,6 @@ this.allLiveMatches = [
     // Render initial content
     this.renderFilteredContent();
     this.setupEventListeners();
-    
   }
 
   private renderFilteredContent(filterSport: string = 'all', searchQuery: string = '') {
@@ -205,15 +206,22 @@ this.allLiveMatches = [
                 </ul>
               </div>
             ` : ''}
-            <button class="btn btn-outline watch-live">Переглянути</button>
+            <button class="btn btn-outline watch-live look-matchik">Переглянути</button>
           </div>
         `).join('');
+        document.querySelectorAll('.look-matchik').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const loginModal = new MatchPage('app');
+            loginModal.render();
+          });
+        });
       } else {
         liveMatchesList.innerHTML = `
           <div class="no-live-matches">
             <p>Наразі немає матчів у прямому ефірі</p>
           </div>
         `;
+
       }
     }
     // Render sport tabs for results
@@ -233,7 +241,7 @@ this.allLiveMatches = [
     const resultsList = document.getElementById('resultsList');
     if (resultsList) {
       resultsList.innerHTML = filteredRecentResults.map(match => `
-        <div class="result-card">
+        <div class="result-card match-trigger">
           <div class="teams">
             <span class="team">${match.team1}</span>
             <span class="vs">vs</span>
@@ -246,6 +254,8 @@ this.allLiveMatches = [
           </div>
         </div>
       `).join('');
+
+
     }
 
     // Render sport tabs for matches
@@ -265,7 +275,7 @@ this.allLiveMatches = [
     const matchesList = document.getElementById('matchesList');
     if (matchesList) {
       matchesList.innerHTML = filteredUpcomingMatches.map(match => `
-        <div class="match-card ${match.status}">
+        <div class="match-card ${match.status} match-trigger">
           <div class="teams">
             <span class="team">${match.team1}</span>
             <span class="vs">vs</span>
@@ -273,7 +283,7 @@ this.allLiveMatches = [
           </div>
           <div class="match-time">
             ${new Date(match.date).toLocaleDateString()} • 
-            ${new Date(match.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+            ${new Date(match.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
           </div>
           <div class="match-status">
             ${this.getStatusText(match.status)}
@@ -283,13 +293,19 @@ this.allLiveMatches = [
           </div>
         </div>
       `).join('');
+      document.querySelectorAll('.match-trigger').forEach(card => {
+        card.addEventListener('click', () => {
+          const loginModal = new MatchPage('app');
+          loginModal.render();
+        });
+      });
     }
 
     // Render top teams
     const teamsGrid = document.getElementById('teamsGrid');
     if (teamsGrid) {
       teamsGrid.innerHTML = filteredTopTeams.map(team => `
-        <div class="team-card">
+        <div class="team-card team-trigger">
           <img src="${team.logo}" alt="${team.name}" onerror="this.src=''">
           <h3>${team.name}</h3>
           <p>${this.getSportIcon(team.sport)} ${team.sport}</p>
@@ -299,16 +315,16 @@ this.allLiveMatches = [
         </div>
       `).join('');
     }
-document.getElementById('look-event')?.addEventListener('click', () => {
-           console.log('dvdmvd');
+    
+    document.getElementById('look-event')?.addEventListener('click', () => {
       const loginModal = new EventPageLook('app');
-            loginModal.render();
-        });
+      loginModal.render();
+    });
     // Render top athletes
     const athletesGrid = document.getElementById('athletesGrid');
     if (athletesGrid) {
       athletesGrid.innerHTML = filteredTopAthletes.map(athlete => `
-        <div class="athlete-card">
+        <div class="athlete-card trigger-athelete">
           <img src="${athlete.photo}" alt="${athlete.name}" class="athlete-photo" 
                onerror="this.src='https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=crop&w=100&q=80'">
           <div class="athlete-info">
@@ -321,15 +337,27 @@ document.getElementById('look-event')?.addEventListener('click', () => {
         </div>
       `).join('');
     }
-    
+     document.querySelectorAll('.team-trigger').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const profile = new TeamPageLook("app"); 
+        await profile.render();
+      });
+    });
+    document.querySelectorAll('.trigger-athelete').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const profile = new UserProfile("app","Vova"); 
+        await profile.render();
+      });
+    });
+
   }
 
-  
+
 
   private filterData(data: any[], sportFilter: string, searchQuery: string): any[] {
     return data.filter(item => {
       const matchesSport = sportFilter === 'all' || item.sport === sportFilter;
-      const matchesSearch = searchQuery === '' || 
+      const matchesSearch = searchQuery === '' ||
         JSON.stringify(item).toLowerCase().includes(searchQuery.toLowerCase());
       return matchesSport && matchesSearch;
     });

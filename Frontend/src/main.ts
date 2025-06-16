@@ -3,19 +3,12 @@ import { LoginModal } from './components/LoginModalWin';
 import { UserProfile } from './components/AthleteProfile';
 import { OrganizationProfile } from './components/OrganizationProfile';
 import { TrainerProfile } from './components/TrainerProfile';
-import { MatchPage } from './components/MatchPage';
 import { HomePage } from './components/HomePage';
-import { JudgeModal } from './components/JudgeOperate';
 import { CreateTeamModal } from './components/CreateTeam';
-import { MatchEditModal } from './components/MatchEditModal';
-import { PlayerPositionModal } from './components/ChangePosition';
 import { CreateEventPage } from './components/EventPage';
-import { TeamPageLook } from './components/TeamPage';
-import { DeleteConfirmationModal } from './components/ModalConfig';
-import { MatchDataEntry } from './EnterResultsPages/MatchDataEntry';
+import { BoxingMatchEntry } from './EnterResultsPages/BoxDataEntry';
 
 document.addEventListener('DOMContentLoaded', () => {
-
 
     const nav = document.getElementById('nav-buttons');
     if (!nav) return;
@@ -26,30 +19,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!token) {
 
         nav.innerHTML = `
-        <button class="nav-btn" id="judge-btn">Управління складом</button>
-        <button class="nav-btn" id="teamLook-btn">Команда</button>
-        <button class="nav-btn" id="matchResult-btn">Внесення результатів</button>
-        <button class="nav-btn" id="event-btn">Створення заходу</button>
-         <button class="nav-btn" id="chenge-btn">Зміна позиції</button>
-         <button class="nav-btn" id="rmAthlete-btn">Видалити спортіка</button>
-        <button class="nav-btn" id="editmatch-btn">Редагування матчу</button>
-        <button class="nav-btn" id="team-btn">Створення команди</button>
-        <button class="nav-btn" id="match-btn">Матч</button>
-  <button class="nav-btn" id="login-btn">Увійти</button>
-  <button class="nav-btn" id="register-btn">Зареєструватись</button>
+            <button class="nav-btn" id="box-btn">Бокс</button>
+            <button class="nav-btn" id="login-btn">Увійти</button>
+            <button class="nav-btn" id="register-btn">Зареєструватись</button>
 `;
-
-        document.getElementById('teamLook-btn')?.addEventListener('click', () => {
-            const team: any = {}
-            const loginModal = new TeamPageLook('app',team);
-            loginModal.render();
-        });
-        document.getElementById('matchResult-btn')?.addEventListener('click', () => {
-            const loginModal = new MatchDataEntry('app',"Football");
-            loginModal.render();
-        });
-        document.getElementById('rmAthlete-btn')?.addEventListener('click', () => {
-            const loginModal = new DeleteConfirmationModal();
+        document.getElementById('box-btn')?.addEventListener('click', () => {
+            const loginModal = new BoxingMatchEntry('app');
             loginModal.render();
         });
         document.getElementById('team-btn')?.addEventListener('click', () => {
@@ -60,46 +35,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const loginModal = new CreateEventPage('app');
             loginModal.render();
         });
-        document.getElementById('chenge-btn')?.addEventListener('click', () => {
-            // Приклад виклику модального вікна
-            const positionModal = new PlayerPositionModal();
-
-            positionModal.show({
-                id: 'player123',
-                name: 'Олександр Іваненко',
-                currentPosition: 'Нападник',
-                availablePositions: ['Воротар', 'Захисник', 'Півзахисник', 'Нападник'],
-                teamId: 'team456' // Опціонально, якщо гравець у команді
-            });
-        });
-        document.getElementById('editmatch-btn')?.addEventListener('click', () => {
-            // Приклад виклику модального вікна
-            const editModal = new MatchEditModal();
-
-            editModal.show({
-                id: 'match123',
-                currentLocation: 'Стадіон "Динамо"',
-                currentDate: '2023-12-15T15:00:00',
-                availableLocations: [
-                    'Стадіон "Динамо"',
-                    'Палац спорту',
-                    'Спорткомплекс "Олімпійський"'
-                ]
-            });
-        });
-        document.getElementById('judge-btn')?.addEventListener('click', () => {
-            const loginModal = new JudgeModal();
-            loginModal.show("1", "1");
-        });
-        document.getElementById('match-btn')?.addEventListener('click', () => {
-            const loginModal = new MatchPage('app');
-            loginModal.render();
-        });
         document.getElementById('login-btn')?.addEventListener('click', () => {
             const loginModal = new LoginModal();
             loginModal.show();
         });
-
         document.getElementById('register-btn')?.addEventListener('click', () => {
             new RegistrationModal();
         });
@@ -107,15 +46,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     else {
         let content = '';
-        localStorage.setItem('userRole', "Organization");
         switch (role) {
-            case 'Organization': content = '<button class="nav-btn" id="profil-btn" href="#admin">Профіль Організації</button>';
+            case 'Organization': content = `<button class="nav-btn" id="event-btn">Створити захід</button>
+            <button class="nav-btn" id="profil-btn" href="#admin">Профіль Організації</button>
+            `;
                 break;
-            case 'Trainer': content = '<button class="nav-btn" id="profi-btn" href="#dashboard">Мій кабінет</button>';
+            case 'Trainer': content = `
+            <button class="nav-btn" id="team-btn">Створити команду</button>
+            <button class="nav-btn" id="profi-btn" href="#dashboard">Мій кабінет</button>`;
                 break;
             case 'Athlete': content = `<button class="nav-btn" id="profile-btn">Профіль</button>`;
                 break;
-            default: content = '<button class="nav-btn" id="profile" href="#profile">Профіл</button>';
+            default: content = '<button class="nav-btn" id="profile" href="#profile">N/A</button>';
                 break;
         }
 
@@ -127,7 +69,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const btn = document.getElementById('profile-btn');
             if (btn) {
                 btn.addEventListener('click', async () => {
-                    const profile = new UserProfile("app");
+                    var login = localStorage.getItem('userRole');
+                    const profile = new UserProfile("app",login || "");
                     await profile.render();
                 });
             }

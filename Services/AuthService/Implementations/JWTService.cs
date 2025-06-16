@@ -58,7 +58,7 @@ namespace SportHive.Implementations
             user.refreshToken = refreshToken;
             await _db.SaveChangesAsync();
 
-            return new List<string> { accessToken, refreshToken };
+            return new List<string> { accessToken, refreshToken,user.Role };
         }
 
         public string GenereteToken(string login, string role, int days)

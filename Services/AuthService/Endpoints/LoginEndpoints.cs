@@ -13,7 +13,11 @@ namespace AuthService.Endpoints
             {
                 List<string> tokens = await loginService.Login(user);
                 await loginService.SetRefreshTokenCookie(httpContext, tokens[1]);
-                return Results.Ok(tokens[0]);
+                return Results.Ok(new TokenRole
+                {
+                    token = tokens[0],
+                    role = tokens[2]
+                });
             });
 
             route.MapGet("/refresh-token", async (string login, IJWTService jWTService, ILoginService loginService, HttpContext httpContext) =>

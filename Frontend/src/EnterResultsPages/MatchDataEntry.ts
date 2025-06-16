@@ -1,4 +1,5 @@
-// MatchDataEntry.ts
+
+import { NotificationKarina } from '../components/Notification';
 import './matchDataEntry.css';
 
 interface TeamDiscipline {
@@ -85,14 +86,12 @@ enum CardType {
 }
 
 enum FoulType {
-    // Team sports
     Personal = "Personal",
     Technical = "Technical",
     Handball = "Handball",
     Blocking = "Blocking",
     Shooting = "Shooting",
     Tripping = "Tripping",
-    // ... other foul types
 }
 
 enum TypeMovePlayer {
@@ -117,7 +116,6 @@ enum TypeMoves {
     Serving = "Serving",
     Attack = "Attack",
     Block = "Block",
-    // ... other move types
 }
 
 enum TypeTouchdown {
@@ -487,7 +485,6 @@ export class MatchDataEntry {
     }
 
     private getPlayersOptions(): string {
-        // In a real app, this would come from the team roster
         return `
       <option value="Гравець 1">Гравець 1</option>
       <option value="Гравець 2">Гравець 2</option>
@@ -496,7 +493,6 @@ export class MatchDataEntry {
     }
 
     private getFoulTypesOptions(): string {
-        // Filter foul types based on sport type
         const teamSportsFouls = [
             FoulType.Personal,
             FoulType.Technical,
@@ -511,7 +507,6 @@ export class MatchDataEntry {
     }
 
     private getPlayMoveTypesOptions(): string {
-        // Filter move types based on sport type
         const teamSportsMoves = [
             TypeMove.Tries,
             TypeMove.StealBasketball,
@@ -617,24 +612,23 @@ export class MatchDataEntry {
     }
 
     private setupEventListeners() {
-        // Tab switching
         document.querySelectorAll('.tab-button').forEach(button => {
             button.addEventListener('click', () => {
                 const tabId = button.getAttribute('data-tab');
 
-                // Update active tab
+                
                 document.querySelectorAll('.tab-button').forEach(btn =>
                     btn.classList.remove('active'));
                 button.classList.add('active');
 
-                // Show corresponding content
+                
                 document.querySelectorAll('.tab-content').forEach(content =>
                     content.classList.remove('active'));
                 document.getElementById(`${tabId}Tab`)?.classList.add('active');
             });
         });
 
-        // Move type switching
+       
         document.getElementById('moveTypeSelect')?.addEventListener('change', (e) => {
             const moveType = (e.target as HTMLSelectElement).value;
             document.querySelectorAll('.move-form').forEach(form =>
@@ -642,24 +636,22 @@ export class MatchDataEntry {
             document.querySelector(`.${moveType}-form`)?.classList.add('active');
         });
 
-        // Moves tabs switching
+        
         document.querySelectorAll('.moves-tab').forEach(tab => {
             tab.addEventListener('click', () => {
                 const moveType = tab.getAttribute('data-move-type');
 
-                // Update active tab
+                
                 document.querySelectorAll('.moves-tab').forEach(t =>
                     t.classList.remove('active'));
                 tab.classList.add('active');
 
-                // Show corresponding content
                 document.querySelectorAll('.moves-content').forEach(content =>
                     content.classList.remove('active'));
                 document.querySelector(`.moves-content[data-move-type="${moveType}"]`)?.classList.add('active');
             });
         });
 
-        // Add Foul
         document.getElementById('addFoulBtn')?.addEventListener('click', () => {
             const player = (document.getElementById('foulPlayer') as HTMLSelectElement).value;
             const time = (document.getElementById('foulTime') as HTMLInputElement).value;
@@ -677,11 +669,9 @@ export class MatchDataEntry {
             this.matchData.fouls.push(newFoul);
             document.getElementById('foulsTableBody')!.innerHTML += this.renderFoulRow(newFoul);
 
-            // Clear form
             (document.getElementById('foulTime') as HTMLInputElement).value = '';
         });
 
-        // Add Two Players Move
         document.getElementById('addTwoPlayersMoveBtn')?.addEventListener('click', () => {
             const player = (document.getElementById('twoPlayersPlayer') as HTMLSelectElement).value;
             const time = (document.getElementById('twoPlayersTime') as HTMLInputElement).value;
@@ -698,11 +688,9 @@ export class MatchDataEntry {
             this.matchData.twoPlayersMoves.push(newMove);
             document.getElementById('twoPlayersMovesTableBody')!.innerHTML += this.renderTwoPlayersMoveRow(newMove);
 
-            // Clear form
             (document.getElementById('twoPlayersTime') as HTMLInputElement).value = '';
         });
 
-        // Add Play Move
         document.getElementById('addPlayMoveBtn')?.addEventListener('click', () => {
             const player = (document.getElementById('playMovePlayer') as HTMLSelectElement).value;
             const time = (document.getElementById('playMoveTime') as HTMLInputElement).value;
@@ -719,11 +707,9 @@ export class MatchDataEntry {
             this.matchData.playMoves.push(newMove);
             document.getElementById('playMovesTableBody')!.innerHTML += this.renderPlayMoveRow(newMove);
 
-            // Clear form
             (document.getElementById('playMoveTime') as HTMLInputElement).value = '';
         });
 
-        // Add Attack Move
         document.getElementById('addAttackBtn')?.addEventListener('click', () => {
             const player = (document.getElementById('attackPlayer') as HTMLSelectElement).value;
             const time = (document.getElementById('attackTime') as HTMLInputElement).value;
@@ -742,12 +728,10 @@ export class MatchDataEntry {
             this.matchData.attacksMoves.push(newAttack);
             document.getElementById('attacksTableBody')!.innerHTML += this.renderAttackRow(newAttack);
 
-            // Clear form
             (document.getElementById('attackTime') as HTMLInputElement).value = '';
             (document.getElementById('attackRealization') as HTMLInputElement).checked = false;
         });
 
-        // Add Timeout
         document.getElementById('addTimeoutBtn')?.addEventListener('click', () => {
             const team = (document.getElementById('timeoutTeam') as HTMLSelectElement).value;
             const start = (document.getElementById('timeoutStart') as HTMLInputElement).value;
@@ -763,12 +747,10 @@ export class MatchDataEntry {
             this.matchData.timeOuts?.push(newTimeout);
             document.getElementById('timeoutsTableBody')!.innerHTML += this.renderTimeoutRow(newTimeout);
 
-            // Clear form
             (document.getElementById('timeoutStart') as HTMLInputElement).value = '';
             (document.getElementById('timeoutEnd') as HTMLInputElement).value = '';
         });
 
-        // Add Touchdown (if applicable)
         if (this.sportType === 'Американський футбол') {
             document.getElementById('addTouchdownBtn')?.addEventListener('click', () => {
                 const player = (document.getElementById('touchdownPlayer') as HTMLSelectElement).value;
@@ -790,20 +772,16 @@ export class MatchDataEntry {
                 this.matchData.touchdowns?.push(newTouchdown);
                 document.getElementById('touchdownsTableBody')!.innerHTML += this.renderTouchdownRow(newTouchdown);
 
-                // Clear form
                 (document.getElementById('touchdownTime') as HTMLInputElement).value = '';
                 (document.getElementById('touchdownYards') as HTMLInputElement).value = '';
                 (document.getElementById('touchdownRealization') as HTMLInputElement).checked = false;
             });
         }
 
-        // Save button
         document.querySelector('.btn-save')?.addEventListener('click', () => {
-            // Update scores
             this.matchData.firstTeamScore = (document.getElementById('team1Score') as HTMLInputElement).value;
             this.matchData.secondTeamScore = (document.getElementById('team2Score') as HTMLInputElement).value;
 
-            // Determine winner
             const team1Score = parseInt(this.matchData.firstTeamScore);
             const team2Score = parseInt(this.matchData.secondTeamScore);
 
@@ -824,12 +802,11 @@ export class MatchDataEntry {
                 this.matchData.Draws = this.matchData.composition;
             }
 
-            // In a real app, you would send this data to the server
             console.log('Match data saved:', this.matchData);
-            alert('Дані матчу збережено!');
+            var modalConfig = new NotificationKarina();
+            modalConfig.show('Дані матчу збережено!','success')
         });
 
-        // Delete buttons (delegated event listeners)
         this.container.addEventListener('click', (e) => {
             const target = e.target as HTMLElement;
 
