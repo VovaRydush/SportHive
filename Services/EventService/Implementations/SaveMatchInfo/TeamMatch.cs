@@ -12,7 +12,7 @@ namespace SportHive.Implementations
         {
             _dataMatches = dataMatches;
         }
-        public async Task SaveMatch(AppDbContext appDbContext,Matchs matchs,string Team1, string Team2,long IdEvent)
+        public async Task SaveMatch(AppDbContext appDbContext, Matchs matchs, string team1, string team2, long IdEvent)
         {
             var IdTeamMatchs = Interlocked.Increment(ref _counter);
             var entity = new TeamMatch
@@ -20,21 +20,23 @@ namespace SportHive.Implementations
                 IdTeamMatch = IdTeamMatchs,
                 IdEvent = IdEvent,
                 StatusMatch = StatusMatch.Upcoming,
-                NameFirstTeam = Team1,
-                NameSecondTeam = Team2,
+                NameFirstTeam = team1,
+                NameSecondTeam = team2,
                 loginJudge = matchs.loginJudge,
                 Group = matchs.Group ?? -1,
                 Tour = matchs.tour,
                 AddInformation = matchs.AddInformation ?? ""
             };
-          
-           await _dataMatches.SaveMatches(new TeamInfo
+
+            await _dataMatches.SaveMatches(new TeamInfo
             {
                 idMatch = IdTeamMatchs,
                 NameDesipline = matchs.NameSport,
                 loginJudge = matchs.loginJudge,
                 Group = matchs.Group,
-                Tour = matchs.tour
+                Tour = matchs.tour,
+                Team1 = team1,
+                Team2 = team2,
             });
             appDbContext.TeamMatches.Add(entity);
         }

@@ -18,6 +18,7 @@ namespace DB.SportHive.MongoDb
                     loginPlayer = entity.loginPlayer ?? ""
                 };
                 atheltesMoves.Add(athlete);
+                composition.Add(entity.EntityName);
             }
         }
         public int Tour { get; set; } 

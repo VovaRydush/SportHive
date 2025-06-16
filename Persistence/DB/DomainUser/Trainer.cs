@@ -30,6 +30,5 @@ namespace DB.SportHive.Domain
 
         public List<Team>? Teams { get; set; }
         public List<OrganizationTrainer>? OrganizationTrainer{get;set;} = null!;
-
     }
 }

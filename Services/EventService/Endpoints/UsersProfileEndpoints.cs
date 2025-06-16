@@ -21,6 +21,12 @@ namespace Events.Endpoints
                 return Results.Ok();
             })
                 .RequireAuthorization(new AuthorizeAttribute { Roles = "Trainer,Organization" });
+
+            route.MapGet("/get-team-matchs/{login}", async (string login, [FromServices] IGetMatchesPlayer _userMatch) =>
+            {
+                return Results.Ok(await _userMatch.GetTeamMatches(login));
+            }).RequireAuthorization(new AuthorizeAttribute { Roles = "Trainer,Organization,Athlete" });
+           
         }
     }
 }

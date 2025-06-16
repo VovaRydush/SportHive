@@ -19,6 +19,7 @@ namespace DB.SportHive.MongoDb
 
                 };
                 runningAthlets.Add(athlete);
+                composition.Add(entity.EntityName);
             }
         }
         public int Round { get; set; }

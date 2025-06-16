@@ -1,3 +1,5 @@
+using StackExchange.Redis;
+
 namespace DB.SportHive.Domain
 {
     public class TeamInfo
@@ -5,6 +7,8 @@ namespace DB.SportHive.Domain
         public long idMatch { get; set; }
         public long idEvent { get; set; }
         public string loginJudge { get; set; } = null!;
+        public string Team1 { get; set; } = null!;
+        public string Team2 { get; set; } = null!;
         public string NameDesipline { get; set; } = null!;
         public int Tour { get; set; } 
         public int? Group{ get; set; }

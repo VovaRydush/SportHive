@@ -70,7 +70,8 @@ namespace SportHive.Implementations
                 Builders<MatchEvents>.Filter.Eq(x => x.idMatch, winner.idMatch)
             );
             var update = Builders<MatchEvents>.Update.Combine(
-                Builders<MatchEvents>.Update.Set("winner", winner.FullNamePlayer)
+                Builders<MatchEvents>.Update.Set("winner", winner.FullNamePlayer),
+                Builders<MatchEvents>.Update.Set("NameWinner", winner.FullNamePlayer)
             );
             await _matchEvents.UpdateOneAsync(filter, update);
         }
@@ -87,7 +88,8 @@ namespace SportHive.Implementations
                     loginPlayer = winner.loginWinner,
                     typeWin = winner.win,
                     countPoints = winner.countPoints ?? -1,
-                })
+                }),
+                Builders<MatchEvents>.Update.Set("NameWinner", winner.FullNamePlayer)
             );
             await _matchEvents.UpdateOneAsync(filter, update);
         }
@@ -105,7 +107,8 @@ namespace SportHive.Implementations
                     loginPlayer = winner.loginWinner,
                     win = (Result)typeMoves,
                     countPoints = Convert.ToInt16(winner.countPoints),
-                })
+                }),
+                Builders<MatchEvents>.Update.Set("NameWinner", winner.FullNamePlayer)
             );
             await _matchEvents.UpdateOneAsync(filter, update);
         }

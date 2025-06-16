@@ -13,6 +13,8 @@ namespace DB.SportHive.MongoDb
             tour = info.tour;
             FullNamePlayer1 = info.FullNamePlayer1;
             FullNamePlayer2 = info.FullNamePlayer2;
+            composition.Add(info.FullNamePlayer1);
+            composition.Add(info.FullNamePlayer2);
         }
         public int tour { get; set; }
         public string typeResult { get; set; } = null!;

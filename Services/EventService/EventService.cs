@@ -55,6 +55,17 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 });
 builder.Services.AddSingleton<IWebHostEnvironment>(builder.Environment);
 builder.Services.AddScoped<IPhotoProcessing, PhotoProcessing>();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("FrontendPolicy", policy =>
+    {
+        policy.WithOrigins("http://localhost:3000") // адреса твого фронтенду
+              .AllowAnyMethod()
+              .AllowAnyHeader()
+              .AllowCredentials(); // лише якщо ти використовуєш куки, не обов’язково
+    });
+});
+
 
 builder.Services.AddKafkaServices("localhost:9093");
 builder.Services.AddScoped<IRedisService, RedisService>();
@@ -65,6 +76,8 @@ builder.Services.AddScoped<ISystemSelectionService, SystemSelectionService>();
 builder.Services.AddScoped<IEventService, EventService>();
 builder.Services.AddScoped<INuclearRap, NuclearRap>();
 builder.Services.AddScoped<DoubleEliminationSystem>();
+builder.Services.AddScoped<SingleElimination>();
+builder.Services.AddScoped<IGetMatchesPlayer, GetMatchesPlayer>();
 builder.Services.AddScoped<GroupSystem>();
 builder.Services.AddScoped<QualificationByStandard>();
 builder.Services.AddScoped<RoundRobinSystem>();
@@ -102,7 +115,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
 app.UseMiddleware<ExceptionHandlingMiddleware>();
+app.UseCors("FrontendPolicy");
 app.UseAuthentication();       
 app.UseAuthorization();
 

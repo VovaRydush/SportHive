@@ -1,0 +1,189 @@
+import { MatchAssignment } from "./MatchMenage";
+import { NotificationKarina } from "./Notification";
+import './judgeOperate.css';
+export class JudgeModal {
+  private modalContainer: HTMLElement;
+
+  constructor() {
+    this.modalContainer = document.createElement('div');
+    this.modalContainer.className = 'judge-modal-container';
+    document.body.appendChild(this.modalContainer);
+  }
+
+  async show(organizationId: string, matchId?: string) {
+    // Мок дані для прикладу
+    const existingJudges = [
+      { login: "judge1", FirsName: "Іван", LastName: "Петренко", Category: "Міжнародна" },
+      { login: "judge2", FirsName: "Олена", LastName: "Сидорова", Category: "Національна" }
+    ];
+
+    this.modalContainer.innerHTML = `
+      <div class="judge-modal">
+        <div class="modal-header">
+          <h2>${matchId ? 'Призначити суддю' : 'Створити нового суддю'}</h2>
+          <button class="close-btn">&times;</button>
+        </div>
+        
+        <div class="modal-tabs">
+          <button class="tab-btn active" data-tab="create">Новий суддя</button>
+          <button class="tab-btn" data-tab="existing">Існуючі судді</button>
+        </div>
+        
+        <div class="tab-content active" data-tab="create">
+          <form id="createJudgeForm" class="judge-form">
+            <div class="form-group">
+              <label for="firstName">Ім'я</label>
+              <input type="text" id="firstName" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="lastName">Прізвище</label>
+              <input type="text" id="lastName" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="birthDate">Дата народження</label>
+              <input type="date" id="birthDate" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="category">Категорія</label>
+              <select id="category" required>
+                <option value="Міжнародна">Міжнародна</option>
+                <option value="Національна">Національна</option>
+                <option value="Регіональна">Регіональна</option>
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label for="photo">Фото</label>
+              <input type="file" id="photo" accept="image/*">
+            </div>
+            
+            <button type="submit" class="btn btn-primary">
+              ${matchId ? 'Створити та призначити' : 'Створити суддю'}
+            </button>
+          </form>
+        </div>
+        
+        <div class="tab-content" data-tab="existing">
+          <div class="judges-list">
+            ${existingJudges.map(judge => `
+              <div class="judge-card" data-login="${judge.login}">
+                <div class="judge-info">
+                  <h3>${judge.FirsName} ${judge.LastName}</h3>
+                  <p>Категорія: ${judge.Category}</p>
+                </div>
+                ${matchId ? `
+                  <button class="btn btn-outline assign-btn" id="boo" data-login="${judge.login}">
+                    Призначити
+                  </button>
+                ` : ''}
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      </div>
+    `;
+                    document.getElementById('boo')?.addEventListener('click', () => {
+            const loginModal = new MatchAssignment('app');
+            loginModal.show();
+        });
+    // Додаємо обробники подій
+    this.addEventListeners(organizationId, matchId);
+    this.modalContainer.style.display = 'flex';
+  }
+
+  private addEventListeners(organizationId: string, matchId?: string) {
+    // Закриття модального вікна
+    this.modalContainer.querySelector('.close-btn')?.addEventListener('click', () => {
+      this.close();
+    });
+
+    // Переключення вкладок
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const tab = (e.target as HTMLElement).dataset.tab;
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        
+        (e.target as HTMLElement).classList.add('active');
+        document.querySelector(`.tab-content[data-tab="${tab}"]`)?.classList.add('active');
+      });
+    });
+
+    // Відправка форми створення судді
+    document.getElementById('createJudgeForm')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const formData = new FormData();
+      formData.append('firstName', (document.getElementById('firstName') as HTMLInputElement).value);
+      formData.append('lastName', (document.getElementById('lastName') as HTMLInputElement).value);
+      formData.append('birthDate', (document.getElementById('birthDate') as HTMLInputElement).value);
+      formData.append('category', (document.getElementById('category') as HTMLSelectElement).value);
+      formData.append('organizationId', organizationId);
+      
+      const photoInput = document.getElementById('photo') as HTMLInputElement;
+      if (photoInput.files?.[0]) {
+        formData.append('photo', photoInput.files[0]);
+      }
+
+      try {
+        // Тут буде запит до API
+        const response = await fetch('/api/judges/create', {
+          method: 'POST',
+          body: formData
+        });
+
+        if (response.ok) {
+          if (matchId) {
+            await this.assignJudgeToMatch((await response.json()).login, matchId);
+          }
+          this.close();
+          const notification = new NotificationKarina();
+          notification.show('Суддю успішно створено' + (matchId ? ' та призначено' : ''),'success');
+        } else {
+          throw new Error('Помилка при створенні судді');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        const notification = new NotificationKarina();
+        notification.show('Сталася помилка','error');
+      }
+    });
+
+    // Призначення існуючого судді
+    document.querySelectorAll('.assign-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const judgeLogin = (btn as HTMLElement).dataset.login;
+        if (judgeLogin && matchId) {
+          await this.assignJudgeToMatch(judgeLogin, matchId);
+          this.close();
+        }
+      });
+    });
+  }
+
+  private async assignJudgeToMatch(judgeLogin: string, matchId: string) {
+    try {
+      const response = await fetch(`/api/matches/${matchId}/assign-judge`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ judgeLogin })
+      });
+
+      if (!response.ok) {
+        throw new Error('Помилка при призначенні судді');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      throw error;
+    }
+  }
+
+  close() {
+    this.modalContainer.style.display = 'none';
+  }
+}

@@ -49,7 +49,8 @@ builder.Services.AddScoped<ISaveDataDb,SaveDataDb>();
 builder.Services.AddScoped<ITeamOperateService,TeamOperateService>();
 builder.Services.AddScoped<ITrainerAthletService,TrainerAthletService>();
 builder.Services.AddScoped<IRedisService,RedisService>();
-builder.Services.AddScoped<IGetInfoTeam,GetInfoTeam>();
+builder.Services.AddScoped<IGetInfoTeam, GetInfoTeam>();
+builder.Services.AddScoped<IMongoDbService, MongoDbService>();
 builder.Services.AddKafkaServices("localhost:9093");
 
 var app = builder.Build();

@@ -1,0 +1,255 @@
+.match-page {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 2rem;
+    font-family: 'Montserrat', sans-serif;
+    color: #111;
+    background: #fff;
+    border-radius: 0;
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 3rem;
+  }
+
+  .match-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding-bottom: 2rem;
+    border-bottom: 2px solid #111;
+  }
+
+  .event-info h1 {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: 1rem;
+    letter-spacing: -0.05em;
+    line-height: 1;
+  }
+
+  .event-meta {
+    display: flex;
+    gap: 1.5rem;
+    font-size: 1.1rem;
+    color: #444;
+  }
+
+  .match-status {
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+  }
+
+  .match-status.live {
+    background: #2e7d32;
+    color: white;
+  }
+
+  .match-status.finished {
+    background: #c62828;
+    color: white;
+  }
+
+  .match-status.upcoming {
+    background: #f9a825;
+    color: black;
+  }
+
+  .match-main {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  .teams-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 2rem;
+  }
+
+  .team {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    flex: 1;
+  }
+
+  .team img {
+    width: 150px;
+    height: 150px;
+    object-fit: contain;
+    border-radius: 8px;
+    border: 2px solid #111;
+  }
+
+  .team h2 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin: 0;
+    text-align: center;
+  }
+
+  .match-vs {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 200px;
+  }
+
+  .vs {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #111;
+  }
+
+  .match-time {
+    font-size: 1.2rem;
+    font-weight: 600;
+  }
+
+  .match-location {
+    font-size: 1rem;
+    color: #555;
+  }
+
+  .match-additional-info {
+    background: #f8f8f8;
+    padding: 1.5rem;
+    border-radius: 4px;
+    border-left: 4px solid #111;
+  }
+
+  .match-additional-info h3 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 0.5rem;
+  }
+
+  .match-additional-info p {
+    margin: 0.7rem 0;
+    font-size: 1.05rem;
+    line-height: 1.5;
+  }
+
+  .team-squads {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+  }
+
+  .squad {
+    background: #f8f8f8;
+    padding: 1.5rem;
+    border-radius: 4px;
+    border-top: 4px solid #111;
+  }
+
+  .squad h3 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 0.5rem;
+  }
+
+  .players-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+  }
+
+  .player-card {
+    background: #fff;
+    padding: 0.8rem;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .player-name {
+    font-weight: 600;
+  }
+
+  .player-status {
+    font-size: 0.9rem;
+    color: #555;
+  }
+
+  .tournament-info {
+    background: #f8f8f8;
+    padding: 1.5rem;
+    border-radius: 4px;
+    border-left: 4px solid #111;
+  }
+
+  .tournament-info h3 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 0.5rem;
+  }
+
+  .info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1rem;
+  }
+
+  .info-card {
+    background: #fff;
+    padding: 1rem;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .info-label {
+    font-size: 0.9rem;
+    color: #555;
+  }
+
+  .info-value {
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin-top: 0.3rem;
+  }
+
+  @media (max-width: 900px) {
+    .teams-container {
+      flex-direction: column;
+    }
+
+    .team-squads {
+      grid-template-columns: 1fr;
+    }
+
+    .event-info h1 {
+      font-size: 2rem;
+    }
+
+    .event-meta {
+      flex-wrap: wrap;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .match-page {
+      padding: 1.5rem;
+    }
+
+    .match-header {
+      flex-direction: column;
+      gap: 1rem;
+    }
+  }

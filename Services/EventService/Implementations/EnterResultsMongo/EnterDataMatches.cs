@@ -23,7 +23,6 @@ namespace SportHive.Implementations
             _matchEvents.InsertOne(sport);
             await Task.CompletedTask;
         }
-
         public async Task SaveMatches(TeamInfo info)
         {
             var sport = _disciplineFactory.CreateTeamRecord(info);

@@ -1,9 +1,10 @@
+import { TeamIndivMatchRes } from '../logic/TeamIndivMatch';
 import './athleteProf.css'
+import { UserTeamMatchRender } from './matchinfo/UserTeamMatchRender';
 import { AmericanFootballRender } from './sportsInfo/AmericanFootball';
 import { BasketballStatsRenderer } from './sportsInfo/BasketballRender';
 import { BoxingStatsRenderer } from './sportsInfo/BoxingRender';
 import { CheckersChessStatsRenderer } from './sportsInfo/CheckersChessRender';
-import { CyclingStatsRenderer } from './sportsInfo/CyclingRender';
 import { FootballStatsRenderer } from './sportsInfo/FootballRender';
 import { IceHockeyStatsRenderer } from './sportsInfo/IceHockeyRender';
 import { ISportStatsRenderer } from './sportsInfo/ISportStatsRenderer';
@@ -28,11 +29,15 @@ export class UserProfile {
 
   async render() {
     const login = localStorage.getItem('login') ?? "";
+    let matches = new UserTeamMatchRender();
     const photoUrl = await this.getUserPhoto(login);
     const athleteInfo = await this.getUserInfo(login);
+    const userMatch = await this.getUserTeamMatchs(login);
+    //const matchesUser = JSON.parse(userMatch);
     const obj = JSON.parse(athleteInfo);
-    let statsRenderer : ISportStatsRenderer;
-    switch(obj.SportType) {
+    console.log(userMatch);
+    let statsRenderer: ISportStatsRenderer;
+    switch (obj.SportType) {
       case 'Football':
         statsRenderer = new FootballStatsRenderer();
         break;
@@ -51,13 +56,10 @@ export class UserProfile {
       case 'Checkers':
         statsRenderer = new CheckersChessStatsRenderer();
         break;
-      case 'Cycling':
-        statsRenderer = new CyclingStatsRenderer();
-        break;
       case 'Hockey':
         statsRenderer = new IceHockeyStatsRenderer();
         break;
-      case 'Powerlifting': 
+      case 'Powerlifting':
         statsRenderer = new PowerliftingStatsRenderer();
         break;
       case 'Cort':
@@ -84,10 +86,10 @@ export class UserProfile {
       case 'Weightlifting':
         statsRenderer = new WeightliftingStatsRenderer();
         break;
-      default : 
+      default:
         statsRenderer = new FootballStatsRenderer();
     }
-    
+
     this.container.innerHTML = `
       <section class="user-profile">
       <div class="profile-header">
@@ -115,58 +117,7 @@ export class UserProfile {
         <div class="stats-section">
         ${statsRenderer.renderStats(obj.SportStats)}
         </div>
-        <div class="matches-section">
-          <h2>Останні матчі</h2>
-          <div class="matches-list">
-            <div class="match-card win">
-              <div class="match-result">В</div>
-              <div class="match-teams">
-                <div class="team">
-                  <img src="https://upload.wikimedia.org/wikipedia/ru/thumb/2/24/FC_Barcelona.svg/200px-FC_Barcelona.svg.png" alt="Барселона">
-                  <span>Барселона</span>
-                </div>
-                <div class="match-score">3 : 1</div>
-                <div class="team">
-                  <img src="https://upload.wikimedia.org/wikipedia/en/thumb/5/56/Real_Madrid_CF.svg/50px-Real_Madrid_CF.svg.png" alt="Реал Мадрид">
-                  <span>Реал Мадрид</span>
-                </div>
-              </div>
-              <div class="match-date">12.05.2025</div>
-            </div>
-
-            <div class="match-card loss">
-              <div class="match-result">П</div>
-              <div class="match-teams">
-                <div class="team">
-                  <img src="https://upload.wikimedia.org/wikipedia/ru/thumb/2/24/FC_Barcelona.svg/200px-FC_Barcelona.svg.png" alt="Барселона">
-                  <span>Барселона</span>
-                </div>
-                <div class="match-score">0 : 2</div>
-                <div class="team">
-                  <img src="https://www.footballtop.ru/sites/default/files/styles/club_full_200_265/public/photos/clubs/atlytico-madrid.png?itok=6q7wJByq" alt="Атлетіко">
-                  <span>Атлетіко</span>
-                </div>
-              </div>
-              <div class="match-date">05.05.2025</div>
-            </div>
-
-            <div class="match-card draw">
-              <div class="match-result">Н</div>
-              <div class="match-teams">
-                <div class="team">
-                  <img src="https://upload.wikimedia.org/wikipedia/ru/thumb/2/24/FC_Barcelona.svg/200px-FC_Barcelona.svg.png" alt="Барселона">
-                  <span>Барселона</span>
-                </div>
-                <div class="match-score">1 : 1</div>
-                <div class="team">
-                  <img src="https://static.ua-football.com/img/teams/500.png" alt="Севілья">
-                  <span>Севілья</span>
-                </div>
-              </div>
-              <div class="match-date">30.04.2025</div>
-            </div>
-          </div>
-        </div>
+      ${matches.render(userMatch.matches)}
       </section>
     `;
   }
@@ -193,4 +144,28 @@ export class UserProfile {
       return null;
     }
   }
+  private async getUserTeamMatchs(login: string): Promise<any> {
+    try {
+      let token = localStorage.getItem('accessToken');
+      if (token) {
+        token = token.replace(/^"(.+)"$/, '$1'); // прибирає лапки, якщо є
+      }
+      const response = await fetch(`http://localhost:5042/get-team-matchs/${login}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch');
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching user matches:', error);
+      return [];
+    }
+  }
+
 }

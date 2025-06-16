@@ -24,7 +24,10 @@ namespace SportHive.Implementations
         {
             var fullPath = Path.Combine(_webRootPath, relativePath);
             if (!File.Exists(fullPath))
+            {
+                Console.WriteLine("NotFoundAAAAAAALE");
                 return string.Empty;
+            }
 
             var bytes = await File.ReadAllBytesAsync(fullPath);
             var extension = Path.GetExtension(fullPath).ToLower().Trim('.');

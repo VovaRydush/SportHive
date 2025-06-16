@@ -13,7 +13,7 @@ namespace SportHive.Implementations
         public MongoDbService(IConfiguration configuration)
         {
             _configuration = configuration;
-            _client = new MongoClient("mongodb://admin:adminpass@127.0.0.1:27017");
+            _client = new MongoClient("mongodb://admin:secret@localhost:27017");
             DbContext = _client.GetDatabase("SportHive");
         }
 

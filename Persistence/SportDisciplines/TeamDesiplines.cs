@@ -1,4 +1,5 @@
 using DB.SportHive.Domain;
+using StackExchange.Redis;
 
 namespace DB.SportHive.MongoDb
 {
@@ -12,12 +13,12 @@ namespace DB.SportHive.MongoDb
             NameDesipline = info.NameDesipline;
             idMatch = info.idMatch;
             Group = info.Group ?? -1;
+            composition.Add(info.Team1);
+            composition.Add(info.Team2);
         }
         public int Tour { get; set; }
         public int Group { get; set; }
         public string NameDesipline { get; set; } = null!;
-        public TeamScore firstTeamScore { get; set; } = null!;
-        public TeamScore secondTeamScore { get; set; } = null!;
         public string winner { get; set; } = null!;
         public List<PlayerFouls> fouls { get; set; } = new();
         public List<MoveTwoPlayer> twoPlayersMoves { get; set; }  = new();

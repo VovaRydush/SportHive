@@ -18,6 +18,7 @@ namespace DB.SportHive.MongoDb
                     AthleteOrTeam = entity.EntityName,
                 };
                 rowingAtheletes.Add(athlete);
+                composition.Add(entity.EntityName);
             }
         }
         public int Tour { get; set; }

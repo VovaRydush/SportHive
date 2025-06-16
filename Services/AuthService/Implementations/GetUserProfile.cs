@@ -92,9 +92,9 @@ namespace SportHive.Implementations
 
             return json;
         }
-        public async Task<string> GetUserPhoto(string loginUser)
+        public async Task<string> GetUserPhoto(string entity)
         {
-            var path = _appDbContext.UserPhotos.AsNoTracking().Where(x => x.login == loginUser).Select(p => p.ProfilePhoto).FirstOrDefault();
+            var path = _appDbContext.UserPhotos.AsNoTracking().Where(x => x.login == entity).Select(p => p.ProfilePhoto).FirstOrDefault();
             return await _photoProcessing.GetPhotoBase64Async(path ?? "");
         }
     }

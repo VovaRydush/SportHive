@@ -1,3 +1,4 @@
+import { NotificationKarina } from './Notification';
 import './reg.css';
 export class LoginModal {
     private modal: HTMLElement;
@@ -65,7 +66,8 @@ export class LoginModal {
 			throw new Error('Невірна відповідь: токен не отримано');
 		}
 	} catch (error) {
-		alert('Невдалий вхід. Перевір логін і пароль.');
+		const notification = new NotificationKarina();
+        notification.show('Невдалий вхід. Перевір логін і пароль.','error');
 		console.error('Помилка входу:', error);
 	}
 }

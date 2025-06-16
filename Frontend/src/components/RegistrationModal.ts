@@ -1,3 +1,4 @@
+import { NotificationKarina } from './Notification';
 import './reg.css';
 
 export class RegistrationModal {
@@ -5,6 +6,7 @@ export class RegistrationModal {
     private currentStep = 1;
     private userEmail: string = '';
     private userRole: string = '';
+    private Role: string = '';
 
     constructor() {
         this.container = document.createElement('div');
@@ -34,28 +36,32 @@ export class RegistrationModal {
         <button id="next-step">Далі</button>
       </div>
     `;
-
+        document.getElementById('reg-role')!.addEventListener('change', () => {
+            this.Role = (document.getElementById('reg-role') as HTMLSelectElement).value;
+            console.log('Selected role:', this.Role);
+            localStorage.setItem('userRole', this.Role);
+        });
         this.container.querySelector('#next-step')?.addEventListener('click', async () => {
             const email = (document.getElementById('reg-email') as HTMLInputElement).value.trim();
             const login = (document.getElementById('reg-login') as HTMLInputElement).value.trim();
             localStorage.setItem('login', login);
             localStorage.setItem('email', email);
             const password = (document.getElementById('reg-password') as HTMLInputElement).value.trim();
-            const role = (document.getElementById('reg-role') as HTMLSelectElement).value;
-            localStorage.setItem('userRole', role);
 
-            if (!email || !login || !password || !role) {
-                alert('Будь ласка, заповніть всі поля!');
+            if (!email || !login || !password || !this.Role) {
+                const notification = new NotificationKarina();
+                notification.show('Будь ласка, заповніть всі поля!','info');
                 return;
             }
 
             try {
-                await this.register({ email, login, password, role });
+                await this.register({ email, login, password, role : this.Role });
                 this.userEmail = email;
-                this.userRole = role;
+                this.userRole = this.Role;
                 this.renderStep2();
             } catch (error: any) {
-                alert(`Помилка: ${error.message}`);
+                const notification = new NotificationKarina();
+                notification.show(`Помилка: ${error.message}`,'error');
             }
         });
     }
@@ -77,7 +83,8 @@ export class RegistrationModal {
 
             const code = confirmInput.value.trim();
             if (!code) {
-                alert('Введіть код підтвердження');
+                const notification = new NotificationKarina();
+                notification.show('Введіть код підтвердження','info');
                 return;
             }
 
@@ -112,20 +119,8 @@ export class RegistrationModal {
             <option value="Football">Футбол</option>
             <option value="Basketball">Баскетбол</option>
             <option value="Volleyball">Волейбол</option>
-            <option value="BeachVolleyball">Пляжний волейбол</option>
-            <option value="AmericanFootball">Американський футбол</option>
             <option value="Hockey">Хокей</option>
-            <option value="Rugby">Регбі</option>
             <option value="Baseball">Бейсбол</option>
-          </optgroup>
-          <optgroup label="Екстримальні">
-            <option value="AthleticsMatch">Атлетика</option>
-            <option value="Cycling">Велоспорт</option>
-            <option value="DistanceRunning">Біг на дистанції</option>
-            <option value="Rowing">Веслування</option>
-            <option value="Swimming">Плавання</option>
-            <option value="WeightliftingMatch">Важка атлетика</option>
-            <option value="Archery">Стрільба з лука</option>
           </optgroup>
         </select>
       `
@@ -187,10 +182,12 @@ export class RegistrationModal {
 
             } else {
                 const errorData = await response.json();
-                alert(errorData.detail || 'Помилка підтвердження коду');
+                const notification = new NotificationKarina();
+                notification.show(errorData.detail || 'Помилка підтвердження коду','error');
             }
         } catch (error) {
-            alert('Помилка мережі при підтвердженні коду');
+            const notification = new NotificationKarina();
+            notification.show('Помилка мережі при підтвердженні коду','error');
         }
     }
     private async submitAthleteOrTrainerProfile(): Promise<void> {
@@ -226,11 +223,12 @@ export class RegistrationModal {
                     throw new Error(`Сервер повернув не JSON: ${text.slice(0, 100)}...`);
                 }
             }
-
-            alert('Профіль успішно заповнено!');
+            const notification = new NotificationKarina();
+            notification.show('Профіль успішно заповнено!','success');
         } catch (err: any) {
             console.error('Помилка при відправці профілю:', err);
-            alert(err.message || 'Невідома помилка');
+            const notification = new NotificationKarina();
+            notification.show(err.message || 'Невідома помилка','error');
         }
     }
 
@@ -261,11 +259,12 @@ export class RegistrationModal {
                 const error = await response.json();
                 throw new Error(error.detail || 'Помилка при збереженні організації');
             }
-
-            alert('Профіль організації успішно заповнено!');
+            const notification = new NotificationKarina();
+            notification.show('Профіль організації успішно заповнено!','success');
         } catch (err: any) {
             console.error('Помилка при відправці організації:', err);
-            alert(err.message || 'Невідома помилка');
+            const notification = new NotificationKarina();
+            notification.show(err.message || 'Невідома помилка','error');
         }
     }
 

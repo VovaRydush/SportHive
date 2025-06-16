@@ -17,6 +17,7 @@ namespace DB.SportHive.MongoDb
                     loginPlayer = entity.loginPlayer ?? ""
                 };
                 liftingsAthlete.Add(athlete);
+                composition.Add(entity.EntityName);
             }
         }
         public List<PlayerFouls> fouls { get; set; } = new();
