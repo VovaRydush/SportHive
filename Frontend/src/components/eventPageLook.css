@@ -1,0 +1,341 @@
+.event-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  font-family: 'Montserrat', sans-serif;
+  color: #111;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
+}
+
+/* Event Header */
+.event-header {
+  border: 2px solid #111;
+  padding: 2rem;
+  box-shadow: 6px 6px 0 0 #111;
+  text-align: center;
+}
+
+.event-title h1 {
+  margin: 0;
+  font-size: 2.5rem;
+}
+
+.event-sport {
+  font-size: 1.5rem;
+  margin-top: 1rem;
+}
+
+.event-meta {
+  margin-top: 1.5rem;
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+}
+
+.event-dates, .event-location {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Event Description */
+.event-description {
+  border: 2px solid #111;
+  padding: 2rem;
+  box-shadow: 6px 6px 0 0 #111;
+}
+
+/* Participants Section */
+.participants-section {
+  border: 2px solid #111;
+  padding: 2rem;
+  box-shadow: 6px 6px 0 0 #111;
+}
+
+.participants-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.participant-card {
+  border: 2px solid #111;
+  padding: 1.5rem;
+  text-align: center;
+  transition: transform 0.2s;
+}
+
+.participant-card:hover {
+  transform: translateY(-5px);
+}
+
+.participant-logo {
+  width: 100px;
+  height: 100px;
+  object-fit: contain;
+  margin-bottom: 1rem;
+}
+
+.participant-placeholder {
+  width: 100px;
+  height: 100px;
+  margin: 0 auto 1rem;
+  background: #f0f0f0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+  font-weight: bold;
+}
+
+/* Standings Section */
+.standings-section {
+  border: 2px solid #111;
+  padding: 2rem;
+  box-shadow: 6px 6px 0 0 #111;
+  overflow-x: auto;
+}
+
+.standings-table {
+  margin-top: 1.5rem;
+}
+
+.standings-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.standings-table th, .standings-table td {
+  padding: 0.75rem;
+  text-align: center;
+  border: 1px solid #ddd;
+}
+
+.standings-table th {
+  background-color: #f8f8f8;
+  font-weight: 600;
+}
+
+.standings-table tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+.team-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-align: left;
+}
+
+.team-logo {
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+}
+
+.points-cell {
+  font-weight: 700;
+}
+
+/* Rounds Section */
+.rounds-section {
+  border: 2px solid #111;
+  padding: 2rem;
+  box-shadow: 6px 6px 0 0 #111;
+}
+
+.rounds-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin: 1.5rem 0;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+}
+
+.round-tab {
+  padding: 0.5rem 1.5rem;
+  border: 2px solid #111;
+  background: #f8f8f8;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+
+.round-tab:hover {
+  background: #e0e0e0;
+}
+
+.round-tab.active {
+  background: #111;
+  color: white;
+}
+
+.round-matches {
+  display: none;
+}
+
+.round-matches.active {
+  display: block;
+}
+
+.matches-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.match-card {
+  border: 2px solid #111;
+  padding: 1.5rem;
+}
+
+.match-card.live {
+  border-left: 4px solid #2e7d32;
+}
+
+.match-card.finished {
+  border-left: 4px solid #757575;
+}
+
+.match-card.upcoming {
+  border-left: 4px solid #f9a825;
+}
+
+.match-teams {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.team {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+}
+
+.team-name {
+  margin-top: 0.5rem;
+  font-weight: 600;
+}
+
+.match-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.match-score {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.match-date {
+  font-family: 'Roboto Mono', monospace;
+}
+
+.match-events {
+  margin-top: 1.5rem;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+
+.match-events.expanded {
+  max-height: 500px;
+}
+
+.match-events h4 {
+  margin-bottom: 0.5rem;
+}
+
+.match-events ul {
+  list-style-type: none;
+  padding-left: 0;
+}
+
+.match-events li {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #eee;
+}
+
+.event-goal {
+  color: #2e7d32;
+}
+
+.event-card {
+  color: #f9a825;
+}
+
+.event-substitution {
+  color: #1565c0;
+}
+
+.btn {
+  padding: 0.5rem 1.5rem;
+  border: 2px solid #111;
+  background: transparent;
+  cursor: pointer;
+  font-weight: 600;
+  margin-top: 1rem;
+  transition: all 0.2s;
+}
+
+.btn-outline {
+  background: transparent;
+}
+
+.btn:hover {
+  background: #111;
+  color: white;
+}
+
+@media (max-width: 800px) {
+  .event-header h1 {
+    font-size: 2rem;
+  }
+  
+  .participants-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  }
+  
+  .match-teams {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  
+  .team {
+    flex-direction: row;
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 500px) {
+  .event-page {
+    padding: 1rem;
+  }
+  
+  .event-header {
+    padding: 1.5rem;
+  }
+  
+  .participants-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  
+  .standings-table {
+    font-size: 0.9rem;
+  }
+  
+  .rounds-tabs {
+    flex-direction: column;
+  }
+}

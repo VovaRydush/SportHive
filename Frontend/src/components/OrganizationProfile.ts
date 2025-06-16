@@ -19,11 +19,6 @@ export class OrganizationProfile {
       Description: "Провідний організатор спортивних змагань у регіоні. Заснована 2010 року з метою популяризації здорового способу життя та розвитку спортивної інфраструктури. Організація має 12 власних спортивних майданчиків та тісно співпрацює з місцевими школами.",
       Country: "Україна, Київ",
       DateFoundation: "2010-05-15T00:00:00",
-      Contact: {
-        Phone: "+380 44 123 4567",
-        Email: "info@sportlife.ua",
-        Address: "вул. Спортивна, 15, Київ"
-      },
       Teams: [
         { Name: "Динамо", SportType: "Футбол", Founded: 2012, Members: 25 },
         { Name: "Олімпійці", SportType: "Баскетбол", Founded: 2015, Members: 15 },
@@ -62,11 +57,6 @@ export class OrganizationProfile {
           Location: "Спорткомплекс 'Олімпійський'",
           Description: "Мультиспортивні змагання у зимових видах спорту"
         }
-      ],
-      Facilities: [
-        { Name: "Футбольне поле", Location: "вул. Центральна, 10", Capacity: "500 глядачів" },
-        { Name: "Тренажерний зал", Location: "вул. Спортивна, 15", Capacity: "50 осіб" },
-        { Name: "Басейн", Location: "вул. Водна, 5", Capacity: "100 осіб" }
       ]
     };
 
@@ -90,25 +80,6 @@ export class OrganizationProfile {
             <div class="org-description-block">
               <h3>Про організацію</h3>
               <p class="org-description">${orgData.Description}</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Контактна інформація -->
-        <div class="org-contact-section">
-          <h2 class="section-title">Контакти</h2>
-          <div class="contact-grid">
-            <div class="contact-card">
-              <span class="contact-icon">📞</span>
-              <span class="contact-value">${orgData.Contact.Phone}</span>
-            </div>
-            <div class="contact-card">
-              <span class="contact-icon">✉️</span>
-              <span class="contact-value">${orgData.Contact.Email}</span>
-            </div>
-            <div class="contact-card">
-              <span class="contact-icon">🏢</span>
-              <span class="contact-value">${orgData.Contact.Address}</span>
             </div>
           </div>
         </div>
@@ -165,21 +136,6 @@ export class OrganizationProfile {
             </div>
           </div>
         </div>
-
-        <!-- Спортивні майданчики -->
-        <div class="org-section">
-          <h2 class="section-title">Спортивні майданчики</h2>
-          <div class="facilities-grid">
-            ${orgData.Facilities.map(facility => `
-              <div class="facility-card">
-                <h3 class="facility-name">${facility.Name}</h3>
-                <p class="facility-location">📍 ${facility.Location}</p>
-                <p class="facility-capacity">👥 ${facility.Capacity}</p>
-              </div>
-            `).join('')}
-          </div>
-        </div>
-
         <!-- Події -->
         <div class="org-section">
           <h2 class="section-title">Останні події</h2>

@@ -1,4 +1,5 @@
 import './matchPage.css'
+
 export class MatchPage {
   private container: HTMLElement;
 
@@ -132,29 +133,6 @@ export class MatchPage {
                   <span class="player-status">${player.AthleteStatus}</span>
                 </div>
               `).join('')}
-            </div>
-          </div>
-        </div>
-
-        <!-- Турнірна інформація -->
-        <div class="tournament-info">
-          <h3>Турнірна інформація</h3>
-          <div class="info-grid">
-            <div class="info-card">
-              <span class="info-label">Дата початку</span>
-              <span class="info-value">${new Date(matchData.DataStart).toLocaleDateString()}</span>
-            </div>
-            <div class="info-card">
-              <span class="info-label">Дата завершення</span>
-              <span class="info-value">${matchData.DataEnd ? new Date(matchData.DataEnd).toLocaleDateString() : 'Не вказано'}</span>
-            </div>
-            <div class="info-card">
-              <span class="info-label">Система проведення</span>
-              <span class="info-value">${this.getSystemName(matchData.systems)}</span>
-            </div>
-            <div class="info-card">
-              <span class="info-label">Статус</span>
-              <span class="info-value">${this.getStatusText(matchData.StatusMatch)}</span>
             </div>
           </div>
         </div>

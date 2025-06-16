@@ -9,11 +9,14 @@ import { JudgeModal } from './components/JudgeOperate';
 import { CreateTeamModal } from './components/CreateTeam';
 import { MatchEditModal } from './components/MatchEditModal';
 import { PlayerPositionModal } from './components/ChangePosition';
-import { CreateMatchPage } from './components/CreateMatchPage';
+import { CreateEventPage } from './components/EventPage';
+import { TeamPageLook } from './components/TeamPage';
+import { DeleteConfirmationModal } from './components/ModalConfig';
+import { EventPageLook } from './components/EventPageLook';
 
 document.addEventListener('DOMContentLoaded', () => {
 
-    
+
     const nav = document.getElementById('nav-buttons');
     if (!nav) return;
 
@@ -23,9 +26,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!token) {
 
         nav.innerHTML = `
-        <button class="nav-btn" id="judge-btn">Управління суддями</button>
+        <button class="nav-btn" id="judge-btn">Управління складом</button>
+        <button class="nav-btn" id="teamLook-btn">Команда</button>
+        <button class="nav-btn" id="event-btn">Створення заходу</button>
          <button class="nav-btn" id="chenge-btn">Зміна позиції</button>
-          <button class="nav-btn" id="createm-btn">Створення матчів</button>
+         <button class="nav-btn" id="rmAthlete-btn">Видалити спортіка</button>
         <button class="nav-btn" id="editmatch-btn">Редагування матчу</button>
         <button class="nav-btn" id="team-btn">Створення команди</button>
         <button class="nav-btn" id="match-btn">Матч</button>
@@ -33,12 +38,21 @@ document.addEventListener('DOMContentLoaded', () => {
   <button class="nav-btn" id="register-btn">Зареєструватись</button>
 `;
 
+        document.getElementById('teamLook-btn')?.addEventListener('click', () => {
+            const team: any = {}
+            const loginModal = new TeamPageLook('app',team);
+            loginModal.render();
+        });
+        document.getElementById('rmAthlete-btn')?.addEventListener('click', () => {
+            const loginModal = new DeleteConfirmationModal();
+            loginModal.render();
+        });
         document.getElementById('team-btn')?.addEventListener('click', () => {
             const loginModal = new CreateTeamModal();
             loginModal.show();
         });
-        document.getElementById('createm-btn')?.addEventListener('click', () => {
-            const loginModal = new CreateMatchPage('app');
+        document.getElementById('event-btn')?.addEventListener('click', () => {
+            const loginModal = new CreateEventPage('app');
             loginModal.render();
         });
         document.getElementById('chenge-btn')?.addEventListener('click', () => {
@@ -88,7 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     else {
         let content = '';
-        localStorage.setItem('userRole', "Trainer");
+        localStorage.setItem('userRole', "Organization");
         switch (role) {
             case 'Organization': content = '<button class="nav-btn" id="profil-btn" href="#admin">Профіль Організації</button>';
                 break;
@@ -142,6 +156,6 @@ document.addEventListener('DOMContentLoaded', () => {
             location.reload();
         });
     }
-     let homePage = new HomePage('app');
+    let homePage = new HomePage('app');
     homePage.render();
 });

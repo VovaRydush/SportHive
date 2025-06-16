@@ -1,0 +1,243 @@
+.team-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  font-family: 'Montserrat', sans-serif;
+  color: #111;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
+}
+
+/* Team Header */
+.team-header {
+  display: flex;
+  gap: 3rem;
+  align-items: center;
+  padding: 2rem;
+  border: 2px solid #111;
+  box-shadow: 6px 6px 0 0 #111;
+}
+
+.team-photo img {
+  width: 200px;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 3px solid #111;
+}
+
+.team-info {
+  flex: 1;
+}
+
+.team-info h1 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.sport-type {
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.organizations h3 {
+  margin-bottom: 0.5rem;
+}
+
+.organization-logos {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.organization-logos img {
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
+  border: 1px solid #ddd;
+  padding: 0.5rem;
+}
+
+/* Trainer Section */
+.trainer-section {
+  border: 2px solid #111;
+  padding: 2rem;
+  box-shadow: 6px 6px 0 0 #111;
+}
+
+.trainer-card {
+  display: flex;
+  gap: 2rem;
+  align-items: center;
+  margin-top: 1.5rem;
+}
+
+.trainer-photo {
+  width: 150px;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 2px solid #111;
+}
+
+.trainer-info h3 {
+  font-size: 1.8rem;
+  margin-bottom: 0.5rem;
+}
+
+.trainer-info p {
+  margin: 0.5rem 0;
+}
+
+/* Athletes Section */
+.athletes-section {
+  border: 2px solid #111;
+  padding: 2rem;
+  box-shadow: 6px 6px 0 0 #111;
+}
+
+.athletes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.athlete-card {
+  border: 2px solid #111;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  transition: transform 0.2s;
+}
+
+.athlete-card:hover {
+  transform: translateY(-5px);
+}
+
+.athlete-photo {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 2px solid #111;
+}
+
+.athlete-info {
+  text-align: center;
+}
+
+.athlete-info h3 {
+  margin-bottom: 0.5rem;
+}
+
+/* Matches Section */
+.matches-section {
+  border: 2px solid #111;
+  padding: 2rem;
+  box-shadow: 6px 6px 0 0 #111;
+}
+
+.matches-tabs {
+  display: flex;
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+
+.tab-button {
+  padding: 0.5rem 1.5rem;
+  border: 2px solid #111;
+  background: #f8f8f8;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tab-button:hover {
+  background: #e0e0e0;
+}
+
+.tab-button.active {
+  background: #111;
+  color: white;
+}
+
+.matches-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.matches-list.hidden {
+  display: none;
+}
+
+.match-card {
+  padding: 1rem;
+  border: 2px solid #111;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.match-card.upcoming {
+  border-left: 4px solid #f9a825; /* Жовтий для майбутніх */
+}
+
+.match-card.finished {
+  border-left: 4px solid #2e7d32; /* Зелений для завершених */
+}
+
+.match-teams {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+}
+
+.match-score {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0 2rem;
+  font-family: 'Roboto Mono', monospace;
+}
+
+.match-date {
+  font-family: 'Roboto Mono', monospace;
+}
+
+@media (max-width: 800px) {
+  .team-header {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .athletes-grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  }
+  
+  .match-card {
+    flex-direction: column;
+    gap: 0.5rem;
+    text-align: center;
+  }
+  
+  .match-score {
+    margin: 0.5rem 0;
+  }
+}
+
+@media (max-width: 500px) {
+  .athletes-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .trainer-card {
+    flex-direction: column;
+    text-align: center;
+  }
+}

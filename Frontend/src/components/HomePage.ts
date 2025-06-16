@@ -1,4 +1,6 @@
+import { EventPageLook } from './EventPageLook';
 import './homePage.css';
+import { TeamPageLook } from './TeamPage';
 
 export class HomePage {
   private container: HTMLElement;
@@ -77,7 +79,7 @@ this.allLiveMatches = [
         <!-- Search and Filter Section -->
         <section class="search-filter-section">
           <div class="search-box">
-            <input type="text" id="searchInput" placeholder="Пошук матчів, команд, гравців...">
+            <input type="text" id="searchInput" placeholder="Пошук заходів, команд, гравців...">
             <button class="btn btn-primary" id="searchButton">Пошук</button>
           </div>
           <div class="filter-controls">
@@ -105,7 +107,7 @@ this.allLiveMatches = [
             `).join('')}
           </div>
           <div class="hero-actions">
-            <button class="btn btn-primary">Перегялнути</button>
+            <button class="btn btn-primary" id="look-event">Переглянути</button>
           </div>
         </section>
  <!-- Live Matches Section -->
@@ -143,17 +145,6 @@ this.allLiveMatches = [
           <div class="card top-athletes">
             <h2 class="section-title">Кращі атлети</h2>
             <div class="athletes-grid" id="athletesGrid"></div>
-          </div>
-        </section>
-
-        <!-- Calendar Section -->
-        <section class="calendar-section">
-          <h2 class="section-title">Календар подій</h2>
-          <div class="mini-calendar">
-            <p>Листопад 2023</p>
-            <div class="calendar-days">
-              <!-- Дні місяця з позначками подій -->
-            </div>
           </div>
         </section>
       </main>
@@ -225,7 +216,6 @@ this.allLiveMatches = [
         `;
       }
     }
-
     // Render sport tabs for results
     const resultsTabs = document.getElementById('resultsTabs');
     if (resultsTabs) {
@@ -309,7 +299,11 @@ this.allLiveMatches = [
         </div>
       `).join('');
     }
-
+document.getElementById('look-event')?.addEventListener('click', () => {
+           console.log('dvdmvd');
+      const loginModal = new EventPageLook('app');
+            loginModal.render();
+        });
     // Render top athletes
     const athletesGrid = document.getElementById('athletesGrid');
     if (athletesGrid) {
@@ -327,7 +321,10 @@ this.allLiveMatches = [
         </div>
       `).join('');
     }
+    
   }
+
+  
 
   private filterData(data: any[], sportFilter: string, searchQuery: string): any[] {
     return data.filter(item => {
