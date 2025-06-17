@@ -5,7 +5,6 @@ using Microsoft.EntityFrameworkCore;
 using MongoDB.Driver;
 using SportHive.Exceptions;
 using SportHive.Services.Interfaces;
-using StackExchange.Redis;
 
 namespace SportHive.Implementations
 {
@@ -23,29 +22,46 @@ namespace SportHive.Implementations
             _matchEvents = mongoDbService.GetCollection<MatchEvents>("MatchEvents");
             _appDbContext = appDbContext;
         }
-        public async Task GetBoxMatches(string loginUser)
-        {
-            await Task.CompletedTask;
-        }
 
-        public Task GetCheckersGame(string loginUser)
+        public async Task<TeamIndivMatch> GetIndividualMatches(string loginUser)
         {
-            throw new NotImplementedException();
-        }
+            var filter = Builders<AthleteProfile>.Filter.Eq(x => x.login, loginUser);
+            var athlete = await _playerProfile.Find(filter).FirstOrDefaultAsync();
+            if (athlete == null)
+                throw new NotFoundException("Спортсмена не знайдено");
+            var filterMatches = Builders<MatchEvents>.Filter.AnyEq(m => m.composition, athlete.FullName);
+            var matches = await _matchEvents.Find(filterMatches).ToListAsync();
+            var result = new TeamIndivMatch
+            {
+                TypeSport = "Індивідуальний",
+                Matches = new List<TeamIndivMatchRes>()
+            };
+            foreach (var match in matches)
+            {
+                string opponent = match.composition.FirstOrDefault(name => name != athlete.FullName) ?? "Unknown";
+                string status = "Draw";
 
-        public Task GetChessMatch(string loginUser)
-        {
-            throw new NotImplementedException();
-        }
+                if (match.NameWinner == athlete.FullName)
+                    status = "Win";
+                else if (match.NameLosser == athlete.FullName)
+                    status = "Loss";
+                else if (match.Draws?.Contains(athlete.FullName) == true)
+                    status = "Draw";
+                var photoTeam = await GetTeamPhoto(athlete.login);
+                var photoOpponent = await GetTeamPhoto(opponent);
 
-        public Task GetCortMatchesMatch(string loginUser)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task GetStruggleMatch(string loginUser)
-        {
-            throw new NotImplementedException();
+                result.Matches.Add(new TeamIndivMatchRes
+                {
+                    firstTeamScore = match.firstTeamScore,
+                    secondTeamScore = match.secondTeamScore,
+                    NameEntity1 = athlete.FullName,
+                    photoFirstEntity = photoTeam,
+                    NameEntity2 = opponent,
+                    photoSecondEntity = photoOpponent,
+                    statusMatch = status
+                });
+            }
+            return result;  
         }
 
         public async Task<TeamIndivMatch> GetTeamMatches(string loginUser)

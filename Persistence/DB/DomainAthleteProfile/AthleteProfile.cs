@@ -9,8 +9,9 @@ namespace DB.SportHive.Domain
         {
 
         }
-        public AthleteProfile(string fullName, string Login, string sportType)
+        public AthleteProfile(string fullName, string Login, string sportType,DateTime _dateBirhsday)
         {
+            dateBirhsday = _dateBirhsday;
             FullName = fullName;
             login = Login;
             SportType = sportType;
@@ -21,6 +22,7 @@ namespace DB.SportHive.Domain
         public string FullName { get; set; } = null!;
         public string login { get; set; } = null!;
         public string SportType { get; set; } = null!; // Наприклад, "Футбол", "Баскетбол"
+        public DateTime dateBirhsday { get; set; }
         public string Team { get; set; } = null!;
         public string Position { get; set; } // Якщо є
         public DateTime dateLastUpdate { get; set; }

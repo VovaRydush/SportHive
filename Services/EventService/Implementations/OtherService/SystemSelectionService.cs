@@ -28,9 +28,7 @@ namespace SportHive.Implementations
             
             ICompetitionSystem system = _systemFactory.Create(teamComposition.system);
             if(teamComposition.tour == 1) await system.GenerateFirstRoundAsync(teamComposition,IdEvent);
-            // потім якось зберигти в редіс
-            // потім взагалі читати можна
-            // system.GenerateNextRoundAsync();
+            
         }
     }
 }

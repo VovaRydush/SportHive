@@ -199,10 +199,12 @@ export class RegistrationModal {
             const login = localStorage.getItem('login') || '';
             const profilePhoto = (document.getElementById('user-photo') as HTMLInputElement).files?.[0];
             const sportType = (document.getElementById('sport-type') as HTMLSelectElement).value;
+            const dateBirhsday = (document.getElementById('birth-date') as HTMLInputElement).value;
 
             formData.append('FistName', firstName);
             formData.append('LastName', lastName);
             formData.append('Login', login);
+            formData.append('dateBirhsday',dateBirhsday);
             if (profilePhoto) formData.append('ProfilePhoto', profilePhoto);
             formData.append('TypeSport', sportType);
             console.log(login);

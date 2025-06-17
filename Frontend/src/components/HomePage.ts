@@ -345,7 +345,7 @@ export class HomePage {
     });
     document.querySelectorAll('.trigger-athelete').forEach(btn => {
       btn.addEventListener('click', async () => {
-        const profile = new UserProfile("app","Vova"); 
+        const profile = new UserProfile("app"); 
         await profile.render();
       });
     });

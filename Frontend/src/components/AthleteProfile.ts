@@ -19,8 +19,8 @@ import { WeightliftingStatsRenderer } from './sportsInfo/WeightliftingRender';
 export class UserProfile {
   private container: HTMLElement;
   private login:string;
-  constructor(containerId: string,Login:string) {
-    this.login = Login;
+  constructor(containerId: string) {
+    this.login = localStorage.getItem('login') || "";
     const element = document.getElementById(containerId);
     if (!element) {
       throw new Error(`Element with id '${containerId}' not found`);
@@ -31,11 +31,12 @@ export class UserProfile {
   async render() {
     let matches = new UserTeamMatchRender();
     const photoUrl = await this.getUserPhoto(this.login);
-    const athleteInfo = await this.getUserInfo(this.login);
-    const userMatch = await this.getUserTeamMatchs(this.login);
+    const info = await this.getUserInfo(this.login);
+    var obj = JSON.parse(info);
+    // getUserIndividualMatchs 
+    //const userMatch = await this.getUserTeamMatchs(this.login);
     //const matchesUser = JSON.parse(userMatch);
-    const obj = JSON.parse(athleteInfo);
-    console.log(userMatch);
+    console.log(obj);
     let statsRenderer: ISportStatsRenderer;
     switch (obj.SportType) {
       case 'Football':
@@ -89,7 +90,7 @@ export class UserProfile {
       default:
         statsRenderer = new FootballStatsRenderer();
     }
-
+    const cleanDate = obj.dateBirhsday.slice(0, 10);
     this.container.innerHTML = `
       <section class="user-profile">
       <div class="profile-header">
@@ -104,7 +105,7 @@ export class UserProfile {
               <div class="detail-block">
                 <h3>Особисті дані</h3>
                 <p><strong>Логін:</strong>${obj.login}</p>
-                <p><strong>Дата народження:</strong> 12.06.1995</p>
+                <p><strong>Дата народження:</strong> ${cleanDate}</p>
               </div>
               <div class="detail-block">
                 <h3>Статус</h3>
@@ -117,9 +118,10 @@ export class UserProfile {
         <div class="stats-section">
         ${statsRenderer.renderStats(obj.SportStats)}
         </div>
-      ${matches.render(userMatch.matches)}
+      
       </section>
     `;
+    // ${matches.render(userMatch.matches)} потім поставити між div and section
   }
   private async getUserPhoto(login: string): Promise<string> {
     try {
@@ -151,6 +153,30 @@ export class UserProfile {
         token = token.replace(/^"(.+)"$/, '$1'); // прибирає лапки, якщо є
       }
       const response = await fetch(`http://localhost:5042/get-team-matchs/${login}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch');
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching user matches:', error);
+      return [];
+    }
+  }
+
+  private async getUserIndividualMatchs(login: string): Promise<any> {
+    try {
+      let token = localStorage.getItem('accessToken');
+      if (token) {
+        token = token.replace(/^"(.+)"$/, '$1'); // прибирає лапки, якщо є
+      }
+      const response = await fetch(`http://localhost:5042/get-individual-matchs/${login}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Accept': 'application/json'

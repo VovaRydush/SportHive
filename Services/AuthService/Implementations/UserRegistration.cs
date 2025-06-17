@@ -28,6 +28,8 @@ namespace SportHive.Implementations
         }
         public async Task ComplitePrifile(RoleInfoDto entity)
         {
+            entity.dateBirhsday = DateTime.SpecifyKind(entity.dateBirhsday, DateTimeKind.Utc);
+
             var user = await _context.Users
                                     .AsNoTracking()
                                     .Where(u => u.login == entity.Login)
@@ -57,6 +59,7 @@ namespace SportHive.Implementations
                         login = user.login,
                         FirsName = entity.FistName,
                         LastName = entity.LastName,
+                        DataBirth = entity.dateBirhsday,
                         TypeSport = entity.TypeSport
                     });
                     _ = _saveDataDb.SaveDataToDb(jsonAthlet, "user-athlete");
@@ -85,7 +88,7 @@ namespace SportHive.Implementations
                 default:
                     throw new NotFoundException("Unknown role");
             }
-            await _userProfile.CreateProfileInMongoAsync(entity.FistName+" "+entity.LastName,entity.Login,entity.TypeSport);
+            await _userProfile.CreateProfileInMongoAsync(entity.FistName+" "+entity.LastName,entity.Login,entity.TypeSport,entity.dateBirhsday);
         }
 
         public async Task ComplitePrifileOrganization(OrganizationInfoDto entity)

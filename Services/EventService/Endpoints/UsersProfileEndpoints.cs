@@ -1,6 +1,7 @@
 using DB.SportHive.Domain;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SportHive.Implementations;
 using SportHive.Services.Interfaces;
 
 namespace Events.Endpoints
@@ -25,6 +26,11 @@ namespace Events.Endpoints
             route.MapGet("/get-team-matchs/{login}", async (string login, [FromServices] IGetMatchesPlayer _userMatch) =>
             {
                 return Results.Ok(await _userMatch.GetTeamMatches(login));
+            }).RequireAuthorization(new AuthorizeAttribute { Roles = "Trainer,Organization,Athlete" });
+
+            route.MapGet("/get-individual-matchs/{login}", async (string login, [FromServices] IGetMatchesPlayer _userMatch) =>
+            {
+                return Results.Ok(await _userMatch.GetIndividualMatches(login));
             }).RequireAuthorization(new AuthorizeAttribute { Roles = "Trainer,Organization,Athlete" });
            
         }

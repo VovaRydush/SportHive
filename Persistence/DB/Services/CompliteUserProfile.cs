@@ -13,10 +13,10 @@ namespace SportHive.Implementations
              _playerProfile = mongoDbService.GetCollection<AthleteProfile>("PlayerProfile");
             _userProfileFactory = userProfileFactory;
         }
-        public async Task CreateProfileInMongoAsync(string fullName, string Login, string sportType)
+        public async Task CreateProfileInMongoAsync(string fullName, string Login, string sportType,DateTime dataBirhstay)
         {
             var profile = _userProfileFactory.CreateUserProfile(sportType);
-            _playerProfile.InsertOne(new AthleteProfile(fullName, Login, sportType)
+            _playerProfile.InsertOne(new AthleteProfile(fullName, Login, sportType,dataBirhstay)
             {
                 SportStats = profile
             });

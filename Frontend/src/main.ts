@@ -69,8 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const btn = document.getElementById('profile-btn');
             if (btn) {
                 btn.addEventListener('click', async () => {
-                    var login = localStorage.getItem('userRole');
-                    const profile = new UserProfile("app",login || "");
+                    const profile = new UserProfile("app");
                     await profile.render();
                 });
             }

@@ -21,9 +21,11 @@ namespace SportHive.Implementations
         }
         public async Task<string> GetAllInfoUser(string loginUser)
         {
+            Console.WriteLine("GetAllInfoUser");
+            Console.WriteLine(loginUser);
             var filter = Builders<AthleteProfile>.Filter.Eq(x => x.login, loginUser);
             var result = await _playerProfile.Find(filter).FirstOrDefaultAsync();
-
+            Console.WriteLine(result.SportType);
             if (result == null)
                 return null;
 
@@ -89,8 +91,8 @@ namespace SportHive.Implementations
                 TypeNameHandling = TypeNameHandling.None,
                 NullValueHandling = NullValueHandling.Ignore
             });
-
-            return json;
+            Console.WriteLine(json.ToString());
+            return json.ToString();
         }
         public async Task<string> GetUserPhoto(string entity)
         {
