@@ -33,10 +33,10 @@ export class UserProfile {
     const photoUrl = await this.getUserPhoto(this.login);
     const info = await this.getUserInfo(this.login);
     var obj = JSON.parse(info);
-    // getUserIndividualMatchs 
+    const userMatch = await this.getUserIndividualMatchs(this.login);
     //const userMatch = await this.getUserTeamMatchs(this.login);
     //const matchesUser = JSON.parse(userMatch);
-    console.log(obj);
+    console.log(userMatch);
     let statsRenderer: ISportStatsRenderer;
     switch (obj.SportType) {
       case 'Football':
@@ -118,10 +118,10 @@ export class UserProfile {
         <div class="stats-section">
         ${statsRenderer.renderStats(obj.SportStats)}
         </div>
-      
+      ${matches.render(userMatch.matches)} 
       </section>
     `;
-    // ${matches.render(userMatch.matches)} потім поставити між div and section
+    // потім поставити між div and section
   }
   private async getUserPhoto(login: string): Promise<string> {
     try {

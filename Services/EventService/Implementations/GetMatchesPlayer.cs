@@ -29,7 +29,7 @@ namespace SportHive.Implementations
             var athlete = await _playerProfile.Find(filter).FirstOrDefaultAsync();
             if (athlete == null)
                 throw new NotFoundException("Спортсмена не знайдено");
-            var filterMatches = Builders<MatchEvents>.Filter.AnyEq(m => m.composition, athlete.FullName);
+            var filterMatches = Builders<MatchEvents>.Filter.AnyEq(m => m.composition, athlete.login);
             var matches = await _matchEvents.Find(filterMatches).ToListAsync();
             var result = new TeamIndivMatch
             {
@@ -39,6 +39,9 @@ namespace SportHive.Implementations
             foreach (var match in matches)
             {
                 string opponent = match.composition.FirstOrDefault(name => name != athlete.FullName) ?? "Unknown";
+                Console.WriteLine(opponent);
+                var filterok = Builders<AthleteProfile>.Filter.Eq(x => x.login, opponent);
+                var player = await _playerProfile.Find(filterok).FirstOrDefaultAsync();
                 string status = "Draw";
 
                 if (match.NameWinner == athlete.FullName)
@@ -47,8 +50,8 @@ namespace SportHive.Implementations
                     status = "Loss";
                 else if (match.Draws?.Contains(athlete.FullName) == true)
                     status = "Draw";
-                var photoTeam = await GetTeamPhoto(athlete.login);
-                var photoOpponent = await GetTeamPhoto(opponent);
+                var photoTeam = await GetIndividualPhoto(athlete.login);
+                var photoOpponent = await GetIndividualPhoto(opponent);
 
                 result.Matches.Add(new TeamIndivMatchRes
                 {
@@ -56,12 +59,12 @@ namespace SportHive.Implementations
                     secondTeamScore = match.secondTeamScore,
                     NameEntity1 = athlete.FullName,
                     photoFirstEntity = photoTeam,
-                    NameEntity2 = opponent,
+                    NameEntity2 = player.FullName,
                     photoSecondEntity = photoOpponent,
                     statusMatch = status
                 });
             }
-            return result;  
+            return result;
         }
 
         public async Task<TeamIndivMatch> GetTeamMatches(string loginUser)
@@ -112,6 +115,12 @@ namespace SportHive.Implementations
         public async Task<string> GetTeamPhoto(string entity)
         {
             var path = _appDbContext.Teams.AsNoTracking().Where(x => x.TeamName == entity).Select(p => p.TeamPhoto).FirstOrDefault();
+            return await _photoProcessing.GetPhotoBase64Async(path ?? "");
+        }
+        public async Task<string> GetIndividualPhoto(string entity)
+        {
+            var path = _appDbContext.UserPhotos.AsNoTracking().Where(x => x.ProfilePhoto == entity).Select(p => p.ProfilePhoto).FirstOrDefault();
+            Console.WriteLine(path);
             return await _photoProcessing.GetPhotoBase64Async(path ?? "");
         }
     }
