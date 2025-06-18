@@ -15,6 +15,11 @@ namespace AuthService.Endpoints
             {
                 return Results.Ok(await _userProfile.GetAllInfoUser(login));
             });
+            route.MapGet("/get-search-athlete/{FullName}", async ([FromQuery] string FullName, [FromServices] IAthleteService _userProfile) =>
+            {
+                Console.WriteLine("NNENNENENNENE");
+                return Results.Ok(await _userProfile.SearchAthletesAsync(FullName));
+            });
         }
     }
 }

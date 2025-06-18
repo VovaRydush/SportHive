@@ -93,6 +93,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
         }, 0);
+        setTimeout(() => {
+            const btn = document.getElementById('event-btn');
+            if (btn) {
+                btn.addEventListener('click', async () => {
+                    const profile = new CreateEventPage("app");
+                    await profile.render();
+                });
+            }
+        }, 0);
         nav.innerHTML = `
   ${content}
   <button class="nav-btn" id="logout-btn">Вийти</button>

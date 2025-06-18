@@ -1,3 +1,10 @@
+import './eventPage.css'
+type AthleteSearchResultDto = {
+  login: string;
+  fullName: string;
+  profilePhotoPath: string;
+}
+
 export class CreateEventPage {
   private container: HTMLElement;
 
@@ -10,9 +17,9 @@ export class CreateEventPage {
   }
 
   async render() {
-    // Мок дані для прикладу
+
     const mockData = {
-      sports: ["Футбол", "Баскетбол", "Волейбол", "Теніс", "Хокей"],
+      sports: ["Футбол", "Баскетбол", "Волейбол", "Теніс", "Настільний теніс", "Хокей", "Волейбол", "Бокс", "Бородьба"],
       selectionSystems: [
         { value: "RoundRobin", name: "Круговий турнір" },
         { value: "PlayOff", name: "Плейоф" },
@@ -20,12 +27,6 @@ export class CreateEventPage {
         { value: "SwissSystem", name: "Швейцарська система" },
         { value: "OlympicSystem", name: "Олімпійська система" }
       ],
-      participants: [
-        { id: "team1", name: "Динамо", type: "team", sport: "Футбол" },
-        { id: "team2", name: "Скіфи", type: "team", sport: "Футбол" },
-        { id: "athlete1", name: "Олександр Іваненко", type: "athlete", sport: "Футбол" },
-        { id: "athlete2", name: "Марія Петренко", type: "athlete", sport: "Баскетбол" }
-      ]
     };
 
     this.container.innerHTML = `
@@ -104,16 +105,7 @@ export class CreateEventPage {
             <div class="participants-container">
               <div class="available-participants">
                 <h3>Доступні учасники</h3>
-                <div class="participants-list" id="availableParticipants">
-                  ${mockData.participants.map(p => `
-                    <div class="participant-card" data-id="${p.id}" data-type="${p.type}">
-                      <label>
-                        <input type="checkbox" name="participants" value="${p.id}">
-                        <span>${p.name} (${p.sport})</span>
-                      </label>
-                    </div>
-                  `).join('')}
-                </div>
+                
               </div>
               
               <div class="selected-participants">
@@ -129,208 +121,62 @@ export class CreateEventPage {
         </form>
       </section>
     `;
-
-    
+    this.initSearch();
   }
+  private initSearch() {
+    const searchBtn = document.getElementById('searchBtn') as HTMLButtonElement;
+    const searchInput = document.getElementById('participantSearch') as HTMLInputElement;
+    const availableParticipants = document.getElementById('availableParticipants') as HTMLDivElement;
+
+    searchBtn.addEventListener('click', async () => {
+      const query = searchInput.value.trim();
+      if (!query) return;
+
+      try {
+        const response = await fetch(`http://localhost:5154/get-search-athlete?fullName=${encodeURIComponent(query)}`);
+        const athletes: AthleteSearchResultDto[] = await response.json();
+
+        availableParticipants.innerHTML = '';
+
+        for (const athlete of athletes) {
+          const card = document.createElement('div');
+          card.className = 'participant-card';
+          card.dataset.id = athlete.login;
+          card.dataset.type = 'athlete';
+
+          card.innerHTML = `
+          <label>
+            <input type="checkbox" name="participants" value="${athlete.login}">
+            <img src="data:image/jpeg;base64,${athlete.profilePhotoPath}" alt="Photo" class="participant-photo" />
+            <span>${athlete.fullName}</span>
+          </label>
+        `;
+
+          card.querySelector('input')?.addEventListener('change', (e: Event) => {
+            const checkbox = e.target as HTMLInputElement;
+            this.toggleParticipantSelection(card, checkbox.checked);
+          });
+
+          availableParticipants.appendChild(card);
+        }
+
+      } catch (error) {
+        console.error('Search failed:', error);
+      }
+    });
+  }
+  private toggleParticipantSelection(card: HTMLElement, selected: boolean) {
+    const selectedContainer = document.getElementById('selectedParticipants')!;
+    const clone = card.cloneNode(true) as HTMLElement;
+
+    if (selected) {
+      selectedContainer.appendChild(clone);
+    } else {
+      const id = card.dataset.id;
+      const toRemove = selectedContainer.querySelector(`[data-id="${id}"]`);
+      if (toRemove) toRemove.remove();
+    }
+  }
+
 
 }
-
-
-// Стилі для сторінки
-const createEventStyles = document.createElement('style');
-createEventStyles.textContent = `
-  .create-event-page {
-    max-width: 1200px;
-    margin: 2rem auto;
-    padding: 2rem;
-    font-family: 'Montserrat', sans-serif;
-    color: #111;
-    background: #fff;
-    border-radius: 0;
-    box-shadow: 0 0 0 1px rgba(0,0,0,0.1);
-  }
-
-  .create-event-page h1 {
-    font-size: 2.5rem;
-    font-weight: 800;
-    margin-bottom: 2rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    border-bottom: 2px solid #111;
-    padding-bottom: 0.5rem;
-  }
-
-  .event-form {
-    display: flex;
-    flex-direction: column;
-    gap: 2rem;
-  }
-
-  .form-section {
-    border: 2px solid #111;
-    padding: 1.5rem;
-  }
-
-  .form-section h2 {
-    font-size: 1.5rem;
-    font-weight: 700;
-    margin: 0 0 1rem 0;
-    border-bottom: 1px solid #ddd;
-    padding-bottom: 0.5rem;
-  }
-
-  .form-group {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    margin-bottom: 1rem;
-  }
-
-  .form-group label {
-    font-weight: 600;
-    font-size: 1rem;
-  }
-
-  .form-group input,
-  .form-group select,
-  .form-group textarea {
-    padding: 0.8rem;
-    border: 2px solid #111;
-    font-size: 1rem;
-  }
-
-  .form-group textarea {
-    resize: vertical;
-    min-height: 100px;
-  }
-
-  .date-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-  }
-
-  .photo-preview {
-    margin-top: 1rem;
-  }
-
-  .photo-preview img {
-    max-width: 200px;
-    max-height: 200px;
-    border: 2px solid #111;
-  }
-
-  .search-box {
-    display: flex;
-    gap: 0.5rem;
-    margin-bottom: 1rem;
-  }
-
-  .search-box input {
-    flex: 1;
-    padding: 0.8rem;
-    border: 2px solid #111;
-  }
-
-  .search-box button {
-    padding: 0 1.5rem;
-    background: #111;
-    color: white;
-    border: none;
-    font-weight: 600;
-    cursor: pointer;
-  }
-
-  .participants-container {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1.5rem;
-  }
-
-  .participants-list {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    max-height: 300px;
-    overflow-y: auto;
-    padding: 1rem;
-    background: #f8f8f8;
-    border: 1px solid #ddd;
-  }
-
-  .participant-card {
-    padding: 0.8rem;
-    border: 1px solid #ddd;
-    background: white;
-  }
-
-  .participant-card label {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    cursor: pointer;
-  }
-
-  .selected-participant {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.8rem;
-    border: 1px solid #111;
-    background: white;
-  }
-
-  .remove-btn {
-    background: none;
-    border: none;
-    font-size: 1.2rem;
-    cursor: pointer;
-    padding: 0 0.5rem;
-  }
-
-  .form-actions {
-    display: flex;
-    justify-content: flex-end;
-  }
-
-  .btn {
-    padding: 1rem 2rem;
-    font-weight: 700;
-    border: 2px solid #111;
-    cursor: pointer;
-    text-transform: uppercase;
-    transition: all 0.2s;
-    font-size: 1rem;
-  }
-
-  .btn-primary {
-    background: #111;
-    color: white;
-  }
-
-  .btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 4px 4px 0 0 #111;
-  }
-
-  @media (max-width: 900px) {
-    .participants-container {
-      grid-template-columns: 1fr;
-    }
-    
-    .date-grid {
-      grid-template-columns: 1fr;
-    }
-  }
-
-  @media (max-width: 600px) {
-    .create-event-page {
-      padding: 1rem;
-    }
-    
-    .search-box {
-      flex-direction: column;
-    }
-  }
-`;
-document.head.appendChild(createEventStyles);

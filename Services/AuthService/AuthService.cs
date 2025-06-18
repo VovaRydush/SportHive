@@ -50,6 +50,7 @@ builder.Services.AddScoped<IGetUserProfile, GetUserProfile>();
 builder.Services.AddScoped<UserProfileFactory>();
 builder.Services.AddScoped<ICompliteUserProfile, CompliteUserProfile>();
 builder.Services.AddSingleton<IMongoMappingService, MongoMappingService>();
+builder.Services.AddScoped<IAthleteService, AthleteService>();
 
 builder.Services.AddScoped<FootballStats>();
 builder.Services.AddScoped<AmericanFootballStats>();

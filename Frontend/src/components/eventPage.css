@@ -1,0 +1,200 @@
+.create-event-page {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 2rem;
+    font-family: 'Montserrat', sans-serif;
+    color: #111;
+    background: #fff;
+    border-radius: 0;
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.1);
+  }
+
+  .create-event-page h1 {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: 2rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 2px solid #111;
+    padding-bottom: 0.5rem;
+  }
+
+  .event-form {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  .form-section {
+    border: 2px solid #111;
+    padding: 1.5rem;
+  }
+
+  .form-section h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0 0 1rem 0;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 0.5rem;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .form-group label {
+    font-weight: 600;
+    font-size: 1rem;
+  }
+
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    padding: 0.8rem;
+    border: 2px solid #111;
+    font-size: 1rem;
+  }
+
+  .form-group textarea {
+    resize: vertical;
+    min-height: 100px;
+  }
+
+  .date-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  .photo-preview {
+    margin-top: 1rem;
+  }
+
+  .photo-preview img {
+    max-width: 200px;
+    max-height: 200px;
+    border: 2px solid #111;
+  }
+
+  .search-box {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .search-box input {
+    flex: 1;
+    padding: 0.8rem;
+    border: 2px solid #111;
+  }
+
+  .search-box button {
+    padding: 0 1.5rem;
+    background: #111;
+    color: white;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .participants-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+  }
+
+  .participants-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    max-height: 300px;
+    overflow-y: auto;
+    padding: 1rem;
+    background: #f8f8f8;
+    border: 1px solid #ddd;
+  }
+
+  .participant-card {
+    padding: 0.8rem;
+    border: 1px solid #ddd;
+    background: white;
+  }
+
+  .participant-card label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+  }
+
+  .selected-participant {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.8rem;
+    border: 1px solid #111;
+    background: white;
+  }
+
+  .remove-btn {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0 0.5rem;
+  }
+
+  .form-actions {
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .btn {
+    padding: 1rem 2rem;
+    font-weight: 700;
+    border: 2px solid #111;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.2s;
+    font-size: 1rem;
+  }
+
+  .btn-primary {
+    background: #111;
+    color: white;
+  }
+
+  .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 4px 4px 0 0 #111;
+  }
+
+  @media (max-width: 900px) {
+    .participants-container {
+      grid-template-columns: 1fr;
+    }
+    
+    .date-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .create-event-page {
+      padding: 1rem;
+    }
+    
+    .search-box {
+      flex-direction: column;
+    }
+  }
+  .participant-photo {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: 50%;
+  margin-right: 10px;
+}
