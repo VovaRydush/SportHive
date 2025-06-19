@@ -1,3 +1,5 @@
+import { organizations, trainers, users } from './db';
+import { HomePage } from './HomePage';
 import { NotificationKarina } from './Notification';
 import './reg.css';
 
@@ -38,7 +40,6 @@ export class RegistrationModal {
     `;
         document.getElementById('reg-role')!.addEventListener('change', () => {
             this.Role = (document.getElementById('reg-role') as HTMLSelectElement).value;
-            console.log('Selected role:', this.Role);
             localStorage.setItem('userRole', this.Role);
         });
         this.container.querySelector('#next-step')?.addEventListener('click', async () => {
@@ -50,18 +51,18 @@ export class RegistrationModal {
 
             if (!email || !login || !password || !this.Role) {
                 const notification = new NotificationKarina();
-                notification.show('Будь ласка, заповніть всі поля!','info');
+                notification.show('Будь ласка, заповніть всі поля!', 'info');
                 return;
             }
 
             try {
-                await this.register({ email, login, password, role : this.Role });
+                await this.register({ email, login, password, role: this.Role });
                 this.userEmail = email;
                 this.userRole = this.Role;
                 this.renderStep2();
             } catch (error: any) {
                 const notification = new NotificationKarina();
-                notification.show(`Помилка: ${error.message}`,'error');
+                notification.show(`Помилка: ${error.message}`, 'error');
             }
         });
     }
@@ -84,7 +85,7 @@ export class RegistrationModal {
             const code = confirmInput.value.trim();
             if (!code) {
                 const notification = new NotificationKarina();
-                notification.show('Введіть код підтвердження','info');
+                notification.show('Введіть код підтвердження', 'info');
                 return;
             }
 
@@ -130,7 +131,7 @@ export class RegistrationModal {
         <textarea placeholder="Опис організації" id="org-desc"></textarea>
         <input type="date" placeholder="Дата заснування" id="org-founded" />
         <input type="text" placeholder="Країна" id="org-country" />
-        <input type="file" id="org-photo" />
+        <input type="file" id="org-photo" accept="image/*"  />
       `;
 
         this.container.innerHTML = `
@@ -142,7 +143,7 @@ export class RegistrationModal {
     `;
 
         this.container.querySelector('#submit-profile')?.addEventListener('click', () => {
-            if (this.userRole === 'Athlete' || this.userRole === 'Trainer') {
+            if (this.userRole === 'Athlete' || this.userRole === 'Trainer' || this.userRole === 'Judge') {
                 this.submitAthleteOrTrainerProfile();
             } else if (this.userRole === 'Organization') {
                 this.submitOrganizationProfile();
@@ -183,11 +184,11 @@ export class RegistrationModal {
             } else {
                 const errorData = await response.json();
                 const notification = new NotificationKarina();
-                notification.show(errorData.detail || 'Помилка підтвердження коду','error');
+                notification.show(errorData.detail || 'Помилка підтвердження коду', 'error');
             }
         } catch (error) {
             const notification = new NotificationKarina();
-            notification.show('Помилка мережі при підтвердженні коду','error');
+            notification.show('Помилка мережі при підтвердженні коду', 'error');
         }
     }
     private async submitAthleteOrTrainerProfile(): Promise<void> {
@@ -199,14 +200,16 @@ export class RegistrationModal {
             const login = localStorage.getItem('login') || '';
             const profilePhoto = (document.getElementById('user-photo') as HTMLInputElement).files?.[0];
             const sportType = (document.getElementById('sport-type') as HTMLSelectElement).value;
+            localStorage.setItem('sport', sportType);
             const dateBirhsday = (document.getElementById('birth-date') as HTMLInputElement).value;
 
             formData.append('FistName', firstName);
             formData.append('LastName', lastName);
             formData.append('Login', login);
-            formData.append('dateBirhsday',dateBirhsday);
+            formData.append('dateBirhsday', dateBirhsday);
             if (profilePhoto) formData.append('ProfilePhoto', profilePhoto);
             formData.append('TypeSport', sportType);
+
             console.log(login);
 
             const response = await fetch('http://localhost:5154/complite-profile', {
@@ -225,13 +228,54 @@ export class RegistrationModal {
                     throw new Error(`Сервер повернув не JSON: ${text.slice(0, 100)}...`);
                 }
             }
+            var userRole = localStorage.getItem('userRole');
+            var sportik = localStorage.getItem('sport');
+            var base64String;
+            if (profilePhoto) {
+                const reader = new FileReader();
+                reader.onload = function () {
+                    base64String = reader.result as string;
+                    localStorage.setItem('userPhoto', base64String);
+                };
+            }
+            if (userRole === "Athlete") {
+                users.push({
+                    name: firstName + " " + lastName,
+                    sport: sportik || "",
+                    photo: base64String || "",
+                    stats: "",
+                    Team: "",
+                    DataBirth: dateBirhsday,
+                    login: login,
+                    Position: "",
+                    Matches: [],
+                    dataMathes: sportik || ""
+                });
+            }
+            if (userRole = "Trainer") {
+                trainers.push({
+                    FirsName: firstName,
+                    LastName: lastName,
+                    SportType: sportik || "",
+                    Photo: base64String || "",
+                    Teams: [],
+                    Organizations: [],
+                    DataBirth: dateBirhsday,
+                    login: login,
+                    Position: "",
+                    Matches: [],
+                    stats: undefined
+                });
+            }
             const notification = new NotificationKarina();
-            notification.show('Профіль успішно заповнено!','success');
+            notification.show('Профіль успішно заповнено!', 'success');
         } catch (err: any) {
             console.error('Помилка при відправці профілю:', err);
             const notification = new NotificationKarina();
-            notification.show(err.message || 'Невідома помилка','error');
+            notification.show(err.message || 'Невідома помилка', 'error');
         }
+
+
     }
 
     private async submitOrganizationProfile(): Promise<void> {
@@ -261,12 +305,25 @@ export class RegistrationModal {
                 const error = await response.json();
                 throw new Error(error.detail || 'Помилка при збереженні організації');
             }
+            var login1 = localStorage.getItem('login');
+            organizations.push({
+                login: login1 || "",
+                NameOrganization: name,
+                TypeOrganozation: type,
+                Description: description,
+                Country: country,
+                Teams: [],
+                OrganizationJudge: [],
+                OrganizationTrainer: [],
+                Events: [],
+                photo: ''
+            });
             const notification = new NotificationKarina();
-            notification.show('Профіль організації успішно заповнено!','success');
+            notification.show('Профіль організації успішно заповнено!', 'success');
         } catch (err: any) {
             console.error('Помилка при відправці організації:', err);
             const notification = new NotificationKarina();
-            notification.show(err.message || 'Невідома помилка','error');
+            notification.show(err.message || 'Невідома помилка', 'error');
         }
     }
 

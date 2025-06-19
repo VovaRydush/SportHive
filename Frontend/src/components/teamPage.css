@@ -104,7 +104,69 @@
   gap: 1.5rem;
   margin-top: 1.5rem;
 }
+/* Стилі для карток гравців */
+.athlete-card {
+  position: relative;
+  border: 2px solid #111;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  transition: all 0.2s;
+}
 
+.athlete-actions {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.btn-icon:hover {
+  transform: scale(1.1);
+}
+
+.btn-edit {
+  color: #111;
+}
+
+.btn-edit:hover {
+  background: #2196F3;
+  color: white;
+}
+
+.btn-delete {
+  color: #111;
+}
+
+.btn-delete:hover {
+  background: #f44336;
+  color: white;
+}
+.athlete-info {
+  text-align: center;
+}
+
+.athlete-info p {
+  margin: 0.3rem 0;
+  font-size: 0.9rem;
+  color: #555;
+}
 .athlete-card {
   border: 2px solid #111;
   padding: 1.5rem;

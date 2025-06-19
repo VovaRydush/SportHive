@@ -1,5 +1,5 @@
-import { TeamIndivMatchRes } from '../logic/TeamIndivMatch';
 import './athleteProf.css'
+import { users } from './db';
 import { UserTeamMatchRender } from './matchinfo/UserTeamMatchRender';
 import { AmericanFootballRender } from './sportsInfo/AmericanFootball';
 import { BasketballStatsRenderer } from './sportsInfo/BasketballRender';
@@ -19,8 +19,8 @@ import { WeightliftingStatsRenderer } from './sportsInfo/WeightliftingRender';
 export class UserProfile {
   private container: HTMLElement;
   private login:string;
-  constructor(containerId: string) {
-    this.login = localStorage.getItem('login') || "";
+  constructor(containerId: string,login:string) {
+    this.login = login;
     const element = document.getElementById(containerId);
     if (!element) {
       throw new Error(`Element with id '${containerId}' not found`);
@@ -32,9 +32,19 @@ export class UserProfile {
     let matches = new UserTeamMatchRender();
     const photoUrl = await this.getUserPhoto(this.login);
     const info = await this.getUserInfo(this.login);
+    
     var obj = JSON.parse(info);
-    const userMatch = await this.getUserIndividualMatchs(this.login);
-    //const userMatch = await this.getUserTeamMatchs(this.login);
+    users.forEach(element => {
+      if(element.login === this.login){
+        element.sport = obj.SportType;
+        element.photo = obj.Photo;
+        element.Team = obj.team;
+        element.DataBirth = obj.dateBirhsday;
+        element.Position = obj.sportType;
+      }
+    });
+    //const userMatch = await this.getUserIndividualMatchs(this.login);
+    const userMatch = await this.getUserTeamMatchs(this.login);
     //const matchesUser = JSON.parse(userMatch);
     console.log(userMatch);
     let statsRenderer: ISportStatsRenderer;
@@ -169,7 +179,6 @@ export class UserProfile {
       return [];
     }
   }
-
   private async getUserIndividualMatchs(login: string): Promise<any> {
     try {
       let token = localStorage.getItem('accessToken');

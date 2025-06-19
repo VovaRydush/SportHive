@@ -1,3 +1,5 @@
+import { HomePage } from './HomePage';
+import { NavigationManager } from './NavigationManager';
 import { NotificationKarina } from './Notification';
 import './reg.css';
 export class LoginModal {
@@ -33,6 +35,7 @@ export class LoginModal {
         this.submitButton = this.modal.querySelector('button')!;
 
         this.modal.querySelector('#login-form')!.addEventListener('submit', (e) => this.handleSubmit(e));
+		
     }
 
     private async handleSubmit(event: Event) {
@@ -67,6 +70,8 @@ export class LoginModal {
 		} else {
 			throw new Error('Невірна відповідь: токен не отримано');
 		}
+		const nav = new NavigationManager();
+		  nav.init();
 	} catch (error) {
 		const notification = new NotificationKarina();
         notification.show('Невдалий вхід. Перевір логін і пароль.','error');

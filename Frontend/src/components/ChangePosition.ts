@@ -113,7 +113,6 @@ export class PlayerPositionModal {
       }
     });
   }
-
   close() {
     this.modalContainer.style.display = 'none';
   }

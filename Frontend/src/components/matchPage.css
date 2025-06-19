@@ -19,6 +19,7 @@
     padding-bottom: 2rem;
     border-bottom: 2px solid #111;
   }
+  
 
   .event-info h1 {
     font-size: 2.5rem;
@@ -224,7 +225,238 @@
     font-size: 1.1rem;
     margin-top: 0.3rem;
   }
+.match-stats {
+  margin: 2rem 0;
+  padding: 1.5rem;
+  border: 2px solid #111;
+  box-shadow: 6px 6px 0 0 #111;
+}
 
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.stat-card {
+  border: 2px solid #111;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.stat-name {
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  font-size: 1.1rem;
+}
+
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+
+.stat-bar {
+  display: flex;
+  height: 30px;
+  margin-top: 1rem;
+  border: 2px solid #111;
+}
+
+.bar-fill {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 700;
+  height: 100%;
+}
+
+.bar-fill.team1 {
+  background: #0055a4; /* Колір першої команди */
+}
+
+.bar-fill.team2 {
+  background: #ff0000; /* Колір другої команди */
+}
+
+/* Статистика матчу */
+.match-stats {
+  margin: 2rem 0;
+  padding: 1.5rem;
+  border: 2px solid #111;
+  box-shadow: 6px 6px 0 0 #111;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.stat-card {
+  border: 2px solid #111;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.stat-name {
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  font-size: 1.1rem;
+}
+
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+
+.stat-bar {
+  display: flex;
+  height: 30px;
+  margin-top: 1rem;
+  border: 2px solid #111;
+}
+
+.bar-fill {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 700;
+  height: 100%;
+}
+
+.bar-fill.team1 {
+  background: #0055a4; /* Колір першої команди */
+}
+
+.bar-fill.team2 {
+  background: #ff0000; /* Колір другої команди */
+}
+
+/* Події матчу */
+.match-events {
+  margin: 2rem 0;
+  padding: 1.5rem;
+  border: 2px solid #111;
+  box-shadow: 6px 6px 0 0 #111;
+  background: white; /* Додайте фон */
+  position: relative; /* Для коректного позиціонування */
+  min-height: 300px; /* Мінімальна висота */
+  overflow: visible; /* Щоб контент не обрізався */
+}
+
+.events-timeline {
+  position: relative;
+  margin-top: 2rem;
+}
+
+.events-timeline::before {
+  content: '';
+  position: absolute;
+  left: 50px;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: #111;
+  z-index: 1;
+}
+
+.event {
+  display: flex;
+  margin-bottom: 1.5rem;
+  position: relative;
+  z-index: 2;
+}
+
+.event-time {
+  width: 60px;
+  text-align: center;
+  font-weight: 700;
+  padding: 0.5rem;
+  background: #fff;
+  border: 2px solid #111;
+}
+
+.event-icon {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  border: 2px solid #111;
+  border-radius: 50%;
+  margin: 0 1rem;
+  font-size: 1.2rem;
+}
+
+.event-details {
+  flex: 1;
+  padding: 0.75rem;
+  background: #f8f8f8;
+  border: 2px solid #111;
+}
+
+.event-player {
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.team-badge {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  margin-right: 0.5rem;
+  border-radius: 4px;
+  color: white;
+  font-size: 0.8rem;
+}
+
+.team-badge.team1 {
+  background: #0055a4; /* Колір першої команди */
+}
+
+.team-badge.team2 {
+  background: #ff0000; /* Колір другої команди */
+}
+
+/* Стилі для різних типів подій */
+.event.goal .event-icon {
+  background: #2e7d32;
+  color: white;
+}
+
+.event.yellow_card .event-icon {
+  background: #f9a825;
+  color: #111;
+}
+
+.event.red_card .event-icon {
+  background: #d32f2f;
+  color: white;
+}
+
+.event.substitution .event-icon {
+  background: #1565c0;
+  color: white;
+}
+
+.event.penalty .event-icon {
+  background: #7b1fa2;
+  color: white;
+}
+
+.event.foul .event-icon {
+  background: #ff9800;
+  color: #111;
+}
+
+.event.injury .event-icon {
+  background: #e91e63;
+  color: white;
+}
   @media (max-width: 900px) {
     .teams-container {
       flex-direction: column;
@@ -253,3 +485,28 @@
       gap: 1rem;
     }
   }
+
+@media (max-width: 768px) {
+  .stats-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  
+  .event {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .event-time, .event-icon {
+    margin-bottom: 0.5rem;
+  }
+  
+  .events-timeline::before {
+    left: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+}

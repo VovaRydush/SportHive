@@ -1,4 +1,17 @@
+import { allEvents, Event, Judge, judges, organizations, TeamIndivid, Teams, Trainer, trainers } from './db';
 import './organizationProfile.css'
+interface Organization {
+    login: string;
+    photo:string;
+    NameOrganization: string;
+    TypeOrganozation: string;
+    Description: string;
+    Country: string;
+    Teams: TeamIndivid[];
+    OrganizationJudge: Judge[];
+    OrganizationTrainer: Trainer[];
+    Events: Event[];
+}
 export class OrganizationProfile {
   private container: HTMLElement;
 
@@ -11,54 +24,8 @@ export class OrganizationProfile {
   }
 
   async render() {
-    // Розширені мок дані
-    const orgData = {
-      login: "org_sportlife",
-      NameOrganization: "Спортивне Життя",
-      TypeOrganozation: "Спортивна федерація",
-      Description: "Провідний організатор спортивних змагань у регіоні. Заснована 2010 року з метою популяризації здорового способу життя та розвитку спортивної інфраструктури. Організація має 12 власних спортивних майданчиків та тісно співпрацює з місцевими школами.",
-      Country: "Україна, Київ",
-      DateFoundation: "2010-05-15T00:00:00",
-      Teams: [
-        { Name: "Динамо", SportType: "Футбол", Founded: 2012, Members: 25 },
-        { Name: "Олімпійці", SportType: "Баскетбол", Founded: 2015, Members: 15 },
-        { Name: "Стрімкі", SportType: "Легка атлетика", Founded: 2018, Members: 32 },
-        { Name: "Титани", SportType: "Важка атлетика", Founded: 2013, Members: 18 }
-      ],
-      OrganizationJudge: [
-        { Name: "Іван Петренко", Category: "Міжнародна", Experience: "12 років" },
-        { Name: "Олена Сидорова", Category: "Національна", Experience: "8 років" },
-        { Name: "Михайло Ковальчук", Category: "Міжнародна", Experience: "15 років" }
-      ],
-      OrganizationTrainer: [
-        { Name: "Михайло Коваль", SportType: "Футбол", Qualification: "Тренер UEFA Pro" },
-        { Name: "Анна Мельник", SportType: "Гімнастика", Qualification: "Майстер спорту" },
-        { Name: "Олексій Шевченко", SportType: "Бокс", Qualification: "Заслужений тренер" }
-      ],
-      Events: [
-        { 
-          Name: "Чемпіонат міста з футболу", 
-          Date: "2023-10-15", 
-          Participants: 120,
-          Location: "Стадіон 'Динамо'",
-          Description: "Щорічний турнір серед аматорських команд міста"
-        },
-        { 
-          Name: "Кубок весни з баскетболу", 
-          Date: "2023-04-05", 
-          Participants: 80,
-          Location: "Палац спорту",
-          Description: "Весняний турнір для молодіжних команд"
-        },
-        { 
-          Name: "Зимові ігри", 
-          Date: "2022-12-20", 
-          Participants: 200,
-          Location: "Спорткомплекс 'Олімпійський'",
-          Description: "Мультиспортивні змагання у зимових видах спорту"
-        }
-      ]
-    };
+    const orgData = this.setDataOrganiz();
+    
 
     this.container.innerHTML = `
       <section class="organization-profile">
@@ -74,7 +41,6 @@ export class OrganizationProfile {
             <h1 class="org-title">${orgData.NameOrganization}</h1>
             <div class="org-meta">
               <span class="org-country">${this.getCountryFlag(orgData.Country)} ${orgData.Country}</span>
-              <span class="org-founded">Заснована: ${new Date(orgData.DateFoundation).toLocaleDateString()}</span>
             </div>
             
             <div class="org-description-block">
@@ -91,13 +57,11 @@ export class OrganizationProfile {
             ${orgData.Teams.map(team => `
               <div class="team-card">
                 <div class="team-header">
-                  <span class="team-sport-icon">${this.getSportIcon(team.SportType)}</span>
-                  <h3 class="team-name">${team.Name}</h3>
+                  <span class="team-sport-icon">${this.getSportIcon(team.sport)}</span>
+                  <h3 class="team-name">${team.name}</h3>
                 </div>
                 <div class="team-details">
-                  <p><strong>Вид спорту:</strong> ${team.SportType}</p>
-                  <p><strong>Заснована:</strong> ${team.Founded}</p>
-                  <p><strong>Учасники:</strong> ${team.Members} осіб</p>
+                  <p><strong>Вид спорту:</strong> ${team.sport}</p>
                 </div>
               </div>
             `).join('')}
@@ -112,9 +76,8 @@ export class OrganizationProfile {
               ${orgData.OrganizationJudge.map(judge => `
                 <div class="staff-card">
                   <div class="staff-info">
-                    <h3 class="staff-name">${judge.Name}</h3>
+                    <h3 class="staff-name">${judge.FirsName+" "+judge.LastName}</h3>
                     <p class="staff-category">${judge.Category} категорія</p>
-                    <p class="staff-experience">Досвід: ${judge.Experience}</p>
                   </div>
                 </div>
               `).join('')}
@@ -127,9 +90,8 @@ export class OrganizationProfile {
               ${orgData.OrganizationTrainer.map(trainer => `
                 <div class="staff-card">
                   <div class="staff-info">
-                    <h3 class="staff-name">${trainer.Name}</h3>
+                    <h3 class="staff-name">${trainer.FirsName+" "+trainer.LastName}</h3>
                     <p class="staff-sport">${this.getSportIcon(trainer.SportType)} ${trainer.SportType}</p>
-                    <p class="staff-qualification">${trainer.Qualification}</p>
                   </div>
                 </div>
               `).join('')}
@@ -142,13 +104,12 @@ export class OrganizationProfile {
           <div class="events-timeline">
             ${orgData.Events.map(event => `
               <div class="event-item">
-                <div class="event-date">${new Date(event.Date).toLocaleDateString('uk-UA', { day: 'numeric', month: 'long' })}</div>
+                <div class="event-date">${new Date(event.date).toLocaleDateString('uk-UA', { day: 'numeric', month: 'long' })}</div>
                 <div class="event-content">
-                  <h3 class="event-title">${event.Name}</h3>
-                  <p class="event-description">${event.Description}</p>
+                  <h3 class="event-title">${event.NameEvent}</h3>
+                  <p class="event-description">${event.description}</p>
                   <div class="event-meta">
-                    <span class="event-location">🏟️ ${event.Location}</span>
-                    <span class="event-participants">👥 ${event.Participants} учасників</span>
+                    <span class="event-location">🏟️ ${event.location}</span>
                   </div>
                 </div>
               </div>
@@ -180,5 +141,24 @@ export class OrganizationProfile {
       'Німеччина': '🇩🇪'
     };
     return flags[country] || '🌍';
+  }
+  private setDataOrganiz() : Organization
+  {
+    var organization = organizations.find(o=>o.login === localStorage.getItem('login'));
+    var organizationJudge = judges.filter(j => organization?.OrganizationJudge.includes(j.login));
+    var organizationTrainer = trainers.filter(t => organization?.OrganizationTrainer.includes(t.login));
+    var events = allEvents.filter(e => organization?.Events.includes(e.NameEvent));
+      return {
+        login: localStorage.getItem('login') ?? "",
+        photo: organization?.photo ?? "",
+        NameOrganization: organization?.NameOrganization ?? "",
+        TypeOrganozation: organization?.TypeOrganozation ?? "",
+        Description: organization?.Description ?? "",
+        Country: organization?.Description ?? "",
+        Teams: organization?.Teams ?? [],
+        OrganizationJudge: organizationJudge,
+        OrganizationTrainer: organizationTrainer,
+        Events: events ?? []
+    };
   }
 }

@@ -1,7 +1,10 @@
+import { organizations, Teams, Trainer, trainers } from "./db";
+
 export class TrainerProfile {
   private container: HTMLElement;
-
-  constructor(containerId: string) {
+  private loginTrainer: string;
+  constructor(containerId: string, loginTrainers: string) {
+    this.loginTrainer = loginTrainers;
     const element = document.getElementById(containerId);
     if (!element) {
       throw new Error(`Element with id '${containerId}' not found`);
@@ -10,20 +13,19 @@ export class TrainerProfile {
   }
 
   async render() {
-    // Мок дані для тренера
     const trainerData = {
       login: "trainer_koval",
       FirsName: "Михайло",
       LastName: "Коваль",
       DataBirth: "1980-05-15T00:00:00",
       Teams: [
-        { Name: "Динамо", SportType: "Футбол", Since: "2018" },
-        { Name: "Юніорська збірна", SportType: "Футбол", Since: "2020" }
+        { Name: "Динамо", SportType: "Футбол" },
+        { Name: "Юніорська збірна", SportType: "Футбол" }
       ],
       Organizations: [
         { Name: "Спортивне Життя", Position: "Головний тренер" }
       ],
-      Photo: "data:image/png;base64,...", // Тут буде реальне фото з API
+      Photo: "data:image/png;base64,...",
       LatestMatches: [
         {
           Date: "2023-06-10",
@@ -54,8 +56,7 @@ export class TrainerProfile {
         TotalMatches: 42,
         Wins: 30,
         Draws: 7,
-        Losses: 5,
-        Trophies: 3
+        Losses: 5
       }
     };
 
@@ -82,7 +83,7 @@ export class TrainerProfile {
               <div class="detail-block">
                 <h3>Команди</h3>
                 ${trainerData.Teams.map(team => `
-                  <p><strong>${team.Name}:</strong> ${team.SportType} (з ${team.Since})</p>
+                  <p><strong>${team.Name}:</strong> ${team.SportType}</p>
                 `).join('')}
               </div>
               
@@ -116,37 +117,6 @@ export class TrainerProfile {
               <span class="stat-value">${trainerData.Stats.Losses}</span>
               <span class="stat-label">Поразки</span>
             </div>
-            <div class="stat-card trophies">
-              <span class="stat-value">${trainerData.Stats.Trophies}</span>
-              <span class="stat-label">Трофеї</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Останні матчі -->
-        <div class="matches-section">
-          <h2>Останні матчі</h2>
-          <div class="matches-list">
-            ${trainerData.LatestMatches.map(match => `
-              <div class="match-card ${match.Result}">
-                <div class="match-result-indicator">
-                  ${this.getResultIcon(match.Result)}
-                </div>
-                <div class="match-teams">
-                  <div class="team">
-                    <span class="team-name">${match.Team1}</span>
-                  </div>
-                  <div class="match-score">${match.Score}</div>
-                  <div class="team">
-                    <span class="team-name">${match.Team2}</span>
-                  </div>
-                </div>
-                <div class="match-details">
-                  <span class="match-date">${new Date(match.Date).toLocaleDateString()}</span>
-                  <span class="match-competition">${match.Competition}</span>
-                </div>
-              </div>
-            `).join('')}
           </div>
         </div>
       </section>
@@ -163,7 +133,23 @@ export class TrainerProfile {
     }
     return age;
   }
-
+  private getInfoTrainer(login: string): any {
+    
+    const trainer = trainers.find(t => t.login === login);
+    const teams = trainer ? Teams.filter(team => trainer.Teams.includes(team.name)) : [];
+    const organiz = trainer ? organizations.filter(o => trainer.Organizations.includes(o.NameOrganization)) : [];
+    var TrainerProfile =
+    {
+      login: login,
+      FirsName: trainer?.FirsName,
+      LastName: trainer?.LastName,
+      DataBirth: trainer?.DataBirth,
+      Teams: teams ?? [],
+      Organizations:organiz ?? [],
+      Photo: trainer?.Photo ?? "",
+      Stats: trainer?.stats ?? undefined
+    }
+  }
   private getResultIcon(result: string): string {
     const icons: Record<string, string> = {
       'win': '✔',
