@@ -24,7 +24,7 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 });
 builder.Services.AddSingleton<IWebHostEnvironment>(builder.Environment);
 
-builder.Services.AddKafkaServices("localhost:9093");
+builder.Services.AddKafkaServices("localhost:9092");
 builder.Services.AddScoped<IRedisService, RedisService>();
 builder.Services.AddScoped<ISaveDataDb,SaveDataDb>();
 builder.Services.AddScoped<IUserRegistration, UserRegistration>();

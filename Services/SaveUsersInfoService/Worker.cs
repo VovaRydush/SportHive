@@ -16,7 +16,7 @@ public class KafkaWorker : BackgroundService
 
         var config = new ConsumerConfig
         {
-            BootstrapServers = "localhost:9093",
+            BootstrapServers = "localhost:9092",
             GroupId = "user-save-service",
             AutoOffsetReset = AutoOffsetReset.Earliest,
             EnableAutoCommit = false

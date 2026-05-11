@@ -16,21 +16,28 @@ namespace SportHive.Implementations
             _producer = new ProducerBuilder<Null, string>(_producerConfig).Build();
         }
         public async Task SaveDataToDb(string jsonObj, string topic)
-        {
-            List<string> topics = new List<string> { "user_regist", "user-athlete", "user-trainer", "user-judge", "user-organization", "user-photo" };
-            if (topics.Contains(topic))
-            {
+{
+    List<string> topics = new()
+    {
+        "user_regist",
+        "user-athlete",
+        "user-trainer",
+        "user-judge",
+        "user-organization",
+        "user-photo"
+    };
 
-                await _producer.ProduceAsync(topic, new Message<Null, string>
-                {
-                    Value = jsonObj,
-                    Headers = new Headers
-                    {
-                        {"save-only-data", Encoding.UTF8.GetBytes("save-only-data")}
-                    }
-                });
-            }
-            throw new Exception("Not found topic");
+    if (!topics.Contains(topic))
+        throw new Exception("Topic not found");
+
+    await _producer.ProduceAsync(topic, new Message<Null, string>
+    {
+        Value = jsonObj,
+        Headers = new Headers
+        {
+            { "save-only-data", Encoding.UTF8.GetBytes("save-only-data") }
         }
+    });
+}
     }
 }

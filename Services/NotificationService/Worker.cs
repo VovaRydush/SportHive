@@ -19,7 +19,7 @@ public class ConsumerEmail : BackgroundService
         _logger = logger;
         config = new ConsumerConfig
         {
-            BootstrapServers = "localhost:9093",
+            BootstrapServers = "localhost:9092",
             GroupId = "email-consumer",
             AutoOffsetReset = AutoOffsetReset.Earliest,
             EnableAutoCommit = false

@@ -50,7 +50,7 @@ builder.Services.AddScoped<ITeamOperateService,TeamOperateService>();
 builder.Services.AddScoped<ITrainerAthletService,TrainerAthletService>();
 builder.Services.AddScoped<IRedisService,RedisService>();
 builder.Services.AddScoped<IGetInfoTeam,GetInfoTeam>();
-builder.Services.AddKafkaServices("localhost:9093");
+builder.Services.AddKafkaServices("localhost:9092");
 
 var app = builder.Build();
 if (app.Environment.IsDevelopment())

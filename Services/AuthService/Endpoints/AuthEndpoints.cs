@@ -26,11 +26,11 @@ namespace AuthService.Endpoints
                 return Results.Ok();
             }).AllowAnonymous().DisableAntiforgery();
 
-            route.MapGet("/verify", async ([FromBody] UserVerificationDto info, IUserRegistration userService) =>
-            {
-                await userService.VeryfyEmail(info);
-                return Results.Ok();
-            });
+            route.MapPost("/verify", async (UserVerificationDto info, IUserRegistration userService) =>
+{
+    await userService.VeryfyEmail(info);
+    return Results.Ok();
+});
             route.MapPost("/link-employee", async ([FromBody] OrganizationJudgeDto info, IUserRegistration userService) =>
             {
                 await userService.LinkOrganizationJudge(info);
