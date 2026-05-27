@@ -1,90 +1,98 @@
-import { HomePage } from './HomePage';
-import { NavigationManager } from './NavigationManager';
-import { NotificationKarina } from './Notification';
-import './reg.css';
+import { NavigationManager } from "./NavigationManager";
+import { NotificationKarina } from "./Notification";
+import { authApi } from "../api/authApi";
+import { saveAuth } from "../api/authStorage";
+import "./reg.css";
+
 export class LoginModal {
-    private modal: HTMLElement;
-    private loginInput: HTMLInputElement;
-    private passwordInput: HTMLInputElement;
-    private submitButton: HTMLButtonElement;
+  private modal: HTMLElement;
+  private loginInput: HTMLInputElement;
+  private passwordInput: HTMLInputElement;
+  private submitButton: HTMLButtonElement;
 
-    constructor() {
-        this.modal = document.createElement('div');
-        this.modal.className = 'modal';
+  constructor() {
+    this.modal = document.createElement("div");
+    this.modal.className = "modal";
 
-        this.modal.innerHTML = `
-			<div class="modal-content">
-				<h2>Вхід</h2>
-				<form id="login-form" class="modal-form">
+    this.modal.innerHTML = `
+      <div class="modal-content">
+        <h2>Вхід</h2>
 
-					<label for="login">Логін:</label>
-					<input type="text" id="login" name="login" required />
+        <form id="login-form" class="modal-form">
+          <label for="login">Логін:</label>
+          <input type="text" id="login" name="login" autocomplete="username" required />
 
-					<label for="password">Пароль:</label>
-					<input type="password" id="password" name="password" required />
+          <label for="password">Пароль:</label>
+          <input type="password" id="password" name="password" autocomplete="current-password" required />
 
-					<button type="submit">Увійти</button>
-				</form>
-			</div>
-		`;
+          <button type="submit">Увійти</button>
+        </form>
+      </div>
+    `;
 
-        document.body.appendChild(this.modal);
+    document.body.appendChild(this.modal);
 
-        this.loginInput = this.modal.querySelector('#login')!;
-        this.passwordInput = this.modal.querySelector('#password')!;
-        this.submitButton = this.modal.querySelector('button')!;
+    this.loginInput = this.modal.querySelector("#login")!;
+    this.passwordInput = this.modal.querySelector("#password")!;
+    this.submitButton = this.modal.querySelector("button")!;
 
-        this.modal.querySelector('#login-form')!.addEventListener('submit', (e) => this.handleSubmit(e));
-		
+    this.modal
+      .querySelector("#login-form")!
+      .addEventListener("submit", (event) => this.handleSubmit(event));
+  }
+
+  private async handleSubmit(event: Event) {
+    event.preventDefault();
+
+    const login = this.loginInput.value.trim();
+    const password = this.passwordInput.value.trim();
+    const notification = new NotificationKarina();
+
+    if (!login || !password) {
+      notification.show("Введіть логін і пароль.", "info");
+      return;
     }
 
-    private async handleSubmit(event: Event) {
-	event.preventDefault();
+    try {
+      this.submitButton.disabled = true;
+      this.submitButton.textContent = "Вхід...";
 
-	const login = this.loginInput.value.trim();
-	const password = this.passwordInput.value.trim();
+      const response = await authApi.login({
+        email: "",
+        login,
+        password,
+        role: "",
+      });
 
-	try {
-		const response = await fetch('http://localhost:5154/login', {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({
-				email: '', 
-				login,
-				password,
-				role: ''   
-			}),
-		});
+      saveAuth({
+        ...response,
+        login: response.login || login,
+      });
 
-		if (!response.ok) {
-			const text = await response.text();
-			throw new Error(`Помилка входу: ${text}`);
-		}
+      this.close();
 
-		const token = await response.json(); 
+      notification.show("Вхід виконано успішно.", "success");
 
-		if (token.token && typeof token.token === 'string') {
-			localStorage.setItem('userRole', token.role);
-			localStorage.setItem('accessToken', token.token);
-			this.close();
-		} else {
-			throw new Error('Невірна відповідь: токен не отримано');
-		}
-		const nav = new NavigationManager();
-		  nav.init();
-	} catch (error) {
-		const notification = new NotificationKarina();
-        notification.show('Невдалий вхід. Перевір логін і пароль.','error');
-		console.error('Помилка входу:', error);
-	}
-}
+      const nav = new NavigationManager();
+      nav.init();
+    } catch (error) {
+      notification.show(
+        error instanceof Error ? error.message : "Невдалий вхід. Перевір логін і пароль.",
+        "error"
+      );
 
-
-    public show() {
-        this.modal.style.display = 'flex';
+      console.error("Помилка входу:", error);
+    } finally {
+      this.submitButton.disabled = false;
+      this.submitButton.textContent = "Увійти";
     }
+  }
 
-    public close() {
-        this.modal.style.display = 'none';
-    }
+  public show() {
+    this.modal.style.display = "flex";
+  }
+
+  public close() {
+    this.modal.style.display = "none";
+  }
 }
