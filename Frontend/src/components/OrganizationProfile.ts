@@ -1,164 +1,616 @@
-import { allEvents, Event, Judge, judges, organizations, TeamIndivid, Teams, Trainer, trainers } from './db';
-import './organizationProfile.css'
-interface Organization {
-    login: string;
-    photo:string;
-    NameOrganization: string;
-    TypeOrganozation: string;
-    Description: string;
-    Country: string;
-    Teams: TeamIndivid[];
-    OrganizationJudge: Judge[];
-    OrganizationTrainer: Trainer[];
-    Events: Event[];
+import {
+  allEvents,
+  Event,
+  judges,
+  organizations,
+  trainers,
+  users,
+} from "./db";
+import { authApi } from "../api/authApi";
+import { NotificationKarina } from "./Notification";
+import "./organizationProfile.css";
+
+type EmployeeRole = "Athlete" | "Judge" | "Trainer";
+
+type SearchPerson = {
+  login: string;
+  fullName: string;
+  role?: string;
+  sport?: string;
+  photo?: string;
+  raw: any;
+};
+
+interface OrganizationView {
+  login: string;
+  photo: string;
+  NameOrganization: string;
+  TypeOrganozation: string;
+  Description: string;
+  Country: string;
+  Teams: any[];
+  OrganizationJudge: any[];
+  OrganizationTrainer: any[];
+  OrganizationAthlete: any[];
+  Events: Event[];
 }
+
 export class OrganizationProfile {
   private container: HTMLElement;
+  private orgData!: OrganizationView;
+  private searchResults: SearchPerson[] = [];
+  private selectedRole: EmployeeRole = "Athlete";
+  private searchTimer?: number;
 
   constructor(containerId: string) {
     const element = document.getElementById(containerId);
+
     if (!element) {
       throw new Error(`Element with id '${containerId}' not found`);
     }
+
     this.container = element;
   }
 
   async render() {
-    const orgData = this.setDataOrganiz();
-    
+    this.orgData = this.setDataOrganiz();
 
     this.container.innerHTML = `
-      <section class="organization-profile">
-        <!-- Шапка профілю -->
-        <div class="org-header">
+      <div class="organization-profile">
+        <section class="org-header">
           <div class="org-logo-container">
-            <img src="https://images.unsplash.com/photo-1543357480-c60d400e7ef6?auto=format&fit=crop&w=300&q=80" 
-                 alt="Лого організації" class="org-logo">
-            <div class="org-type-badge">${orgData.TypeOrganozation}</div>
+            <img
+              class="org-logo"
+              src="${this.escapeHtml(this.orgData.photo || "https://placehold.co/250x250?text=SportHive")}"
+              alt="Лого організації"
+            />
+            <div class="org-type-badge">${this.escapeHtml(this.orgData.TypeOrganozation || "Організація")}</div>
           </div>
-          
+
           <div class="org-main-info">
-            <h1 class="org-title">${orgData.NameOrganization}</h1>
+            <h1 class="org-title">${this.escapeHtml(this.orgData.NameOrganization || "Моя організація")}</h1>
+
             <div class="org-meta">
-              <span class="org-country">${this.getCountryFlag(orgData.Country)} ${orgData.Country}</span>
+              <span>${this.getCountryFlag(this.orgData.Country)} ${this.escapeHtml(this.orgData.Country || "Україна")}</span>
+              <span>Логін: ${this.escapeHtml(this.orgData.login)}</span>
             </div>
-            
+
             <div class="org-description-block">
               <h3>Про організацію</h3>
-              <p class="org-description">${orgData.Description}</p>
+              <p class="org-description">
+                ${this.escapeHtml(this.orgData.Description || "Опис організації поки не заповнений.")}
+              </p>
             </div>
           </div>
-        </div>
+        </section>
 
-        <!-- Команди -->
-        <div class="org-section">
+        ${this.renderEmployeeManager()}
+
+        <section>
           <h2 class="section-title">Наші команди</h2>
           <div class="teams-grid">
-            ${orgData.Teams.map(team => `
-              <div class="team-card">
-                <div class="team-header">
-                  <span class="team-sport-icon">${this.getSportIcon(team.sport)}</span>
-                  <h3 class="team-name">${team.name}</h3>
-                </div>
-                <div class="team-details">
-                  <p><strong>Вид спорту:</strong> ${team.sport}</p>
-                </div>
-              </div>
-            `).join('')}
+            ${
+              this.orgData.Teams.length
+                ? this.orgData.Teams.map((team) => `
+                  <div class="team-card">
+                    <div class="team-header">
+                      <span class="team-sport-icon">${this.getSportIcon(team.sport || team.SportType || "")}</span>
+                      <h3 class="team-name">${this.escapeHtml(team.name || team.Name || "Команда")}</h3>
+                    </div>
+                    <div class="team-details">
+                      <p>Вид спорту: ${this.escapeHtml(team.sport || team.SportType || "-")}</p>
+                    </div>
+                  </div>
+                `).join("")
+                : `<div class="empty-state">Команд поки немає</div>`
+            }
+          </div>
+        </section>
+
+        <section class="org-staff-section">
+          <div>
+            <h2 class="section-title">Судді</h2>
+            <div class="staff-list" id="judges-list">
+              ${this.renderJudgesList()}
+            </div>
+          </div>
+
+          <div>
+            <h2 class="section-title">Тренери</h2>
+            <div class="staff-list" id="trainers-list">
+              ${this.renderTrainersList()}
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <h2 class="section-title">Атлети організації</h2>
+          <div class="staff-list" id="athletes-list">
+            ${this.renderAthletesList()}
+          </div>
+        </section>
+
+        <section>
+          <h2 class="section-title">Останні події</h2>
+          <div class="events-timeline">
+            ${
+              this.orgData.Events.length
+                ? this.orgData.Events.map((event) => `
+                  <div class="event-item">
+                    <div class="event-date">
+                      ${new Date(event.date).toLocaleDateString("uk-UA", {
+                        day: "numeric",
+                        month: "long",
+                      })}
+                    </div>
+                    <div class="event-content">
+                      <h3 class="event-title">${this.escapeHtml(event.NameEvent)}</h3>
+                      <p class="event-description">${this.escapeHtml(event.description)}</p>
+                      <div class="event-meta">📍 ${this.escapeHtml(event.location)}</div>
+                    </div>
+                  </div>
+                `).join("")
+                : `<div class="empty-state">Подій поки немає</div>`
+            }
+          </div>
+        </section>
+      </div>
+    `;
+
+    this.bindEmployeeManagerEvents();
+  }
+
+  private renderEmployeeManager() {
+    return `
+      <section class="employee-manager">
+        <div class="employee-manager-header">
+          <div>
+            <h2 class="section-title employee-title">Додати учасника в організацію</h2>
+          
           </div>
         </div>
 
-        <!-- Персонал -->
-        <div class="org-staff-section">
-          <div class="staff-column">
-            <h2 class="section-title">Судді</h2>
-            <div class="staff-list">
-              ${orgData.OrganizationJudge.map(judge => `
-                <div class="staff-card">
-                  <div class="staff-info">
-                    <h3 class="staff-name">${judge.FirsName+" "+judge.LastName}</h3>
-                    <p class="staff-category">${judge.Category} категорія</p>
-                  </div>
-                </div>
-              `).join('')}
-            </div>
+        <div class="employee-form">
+          <div class="employee-field">
+            <label for="employee-role">Кого додати</label>
+            <select id="employee-role">
+              <option value="Athlete">Атлета</option>
+              <option value="Judge">Суддю</option>
+              <option value="Trainer">Тренера</option>
+            </select>
           </div>
-          
-          <div class="staff-column">
-            <h2 class="section-title">Тренери</h2>
-            <div class="staff-list">
-              ${orgData.OrganizationTrainer.map(trainer => `
-                <div class="staff-card">
-                  <div class="staff-info">
-                    <h3 class="staff-name">${trainer.FirsName+" "+trainer.LastName}</h3>
-                    <p class="staff-sport">${this.getSportIcon(trainer.SportType)} ${trainer.SportType}</p>
-                  </div>
-                </div>
-              `).join('')}
-            </div>
+
+          <div class="employee-field employee-search-field">
+            <label for="employee-search">Пошук по ПІБ</label>
+            <input
+              id="employee-search"
+              type="text"
+              placeholder="Наприклад: Іван Петренко"
+              autocomplete="off"
+            />
           </div>
+
+          <button id="employee-search-btn" class="employee-btn" type="button">
+            Знайти
+          </button>
         </div>
-        <!-- Події -->
-        <div class="org-section">
-          <h2 class="section-title">Останні події</h2>
-          <div class="events-timeline">
-            ${orgData.Events.map(event => `
-              <div class="event-item">
-                <div class="event-date">${new Date(event.date).toLocaleDateString('uk-UA', { day: 'numeric', month: 'long' })}</div>
-                <div class="event-content">
-                  <h3 class="event-title">${event.NameEvent}</h3>
-                  <p class="event-description">${event.description}</p>
-                  <div class="event-meta">
-                    <span class="event-location">🏟️ ${event.location}</span>
-                  </div>
-                </div>
-              </div>
-            `).join('')}
-          </div>
-        </div>
+
+        <div id="employee-message" class="employee-message"></div>
+        <div id="employee-results" class="employee-results"></div>
       </section>
     `;
   }
 
+  private bindEmployeeManagerEvents() {
+    const roleSelect = document.getElementById("employee-role") as HTMLSelectElement | null;
+    const searchInput = document.getElementById("employee-search") as HTMLInputElement | null;
+    const searchButton = document.getElementById("employee-search-btn") as HTMLButtonElement | null;
+
+    roleSelect?.addEventListener("change", () => {
+      this.selectedRole = roleSelect.value as EmployeeRole;
+      this.renderSearchResults();
+    });
+
+    searchButton?.addEventListener("click", () => {
+      this.searchPeople();
+    });
+
+    searchInput?.addEventListener("input", () => {
+      window.clearTimeout(this.searchTimer);
+      this.searchTimer = window.setTimeout(() => {
+        if (searchInput.value.trim().length >= 2) {
+          this.searchPeople();
+        } else {
+          this.searchResults = [];
+          this.renderSearchResults();
+        }
+      }, 450);
+    });
+
+    searchInput?.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        this.searchPeople();
+      }
+    });
+  }
+
+  private async searchPeople() {
+    const input = document.getElementById("employee-search") as HTMLInputElement | null;
+    const button = document.getElementById("employee-search-btn") as HTMLButtonElement | null;
+    const message = document.getElementById("employee-message");
+
+    const query = input?.value.trim() || "";
+
+    if (!query) {
+      this.showEmployeeMessage("Введіть ім'я або прізвище для пошуку.", "info");
+      return;
+    }
+
+    try {
+      if (button) {
+        button.disabled = true;
+        button.textContent = "Пошук...";
+      }
+
+      this.showEmployeeMessage("", "info");
+
+      const response = await authApi.searchAthlete(query);
+      const list = Array.isArray(response) ? response : [response];
+
+      this.searchResults = list
+        .map((item) => this.normalizeSearchResult(item))
+        .filter((item) => Boolean(item.login));
+
+      if (!this.searchResults.length) {
+        this.showEmployeeMessage("Нічого не знайдено.", "info");
+      }
+
+      this.renderSearchResults();
+    } catch (error) {
+      console.error("Помилка пошуку:", error);
+      this.searchResults = [];
+      this.renderSearchResults();
+      this.showEmployeeMessage(
+        error instanceof Error ? error.message : "Помилка пошуку користувача.",
+        "error"
+      );
+    } finally {
+      if (button) {
+        button.disabled = false;
+        button.textContent = "Знайти";
+      }
+
+      if (message && !message.textContent) {
+        message.className = "employee-message";
+      }
+    }
+  }
+
+  private normalizeSearchResult(item: any): SearchPerson {
+    const firstName =
+      item?.fistName ||
+      item?.FistName ||
+      item?.firstName ||
+      item?.FirstName ||
+      item?.FirsName ||
+      item?.firsName ||
+      "";
+
+    const lastName =
+      item?.lastName ||
+      item?.LastName ||
+      "";
+
+    const fullName =
+      item?.fullName ||
+      item?.FullName ||
+      item?.name ||
+      item?.Name ||
+      `${firstName} ${lastName}`.trim() ||
+      "Користувач";
+
+    const login =
+      item?.login ||
+      item?.Login ||
+      item?.loginEntyty ||
+      item?.LoginEntyty ||
+      item?.userName ||
+      item?.UserName ||
+      item?.email ||
+      item?.Email ||
+      "";
+
+    return {
+      login,
+      fullName,
+      role: item?.role || item?.Role,
+      sport: item?.sport || item?.Sport || item?.typeSport || item?.TypeSport || item?.SportType,
+      photo: item?.photo || item?.Photo || item?.profilePhoto || item?.ProfilePhoto,
+      raw: item,
+    };
+  }
+
+  private renderSearchResults() {
+    const resultsContainer = document.getElementById("employee-results");
+
+    if (!resultsContainer) return;
+
+    if (!this.searchResults.length) {
+      resultsContainer.innerHTML = "";
+      return;
+    }
+
+    resultsContainer.innerHTML = this.searchResults
+      .map((person, index) => `
+        <div class="employee-result-card">
+          <div class="employee-result-avatar">
+            ${
+              person.photo
+                ? `<img src="${this.escapeHtml(person.photo)}" alt="${this.escapeHtml(person.fullName)}" />`
+                : `<span>${this.escapeHtml(person.fullName.slice(0, 1).toUpperCase())}</span>`
+            }
+          </div>
+
+          <div class="employee-result-info">
+            <h3>${this.escapeHtml(person.fullName)}</h3>
+            <p>Логін: ${this.escapeHtml(person.login)}</p>
+            ${person.sport ? `<p>Спорт: ${this.escapeHtml(person.sport)}</p>` : ""}
+            ${person.role ? `<p>Роль: ${this.escapeHtml(person.role)}</p>` : ""}
+          </div>
+
+          <button
+            class="employee-add-btn"
+            data-index="${index}"
+            type="button"
+          >
+            Додати як ${this.getRoleLabel(this.selectedRole)}
+          </button>
+        </div>
+      `)
+      .join("");
+
+    resultsContainer.querySelectorAll<HTMLButtonElement>(".employee-add-btn")
+      .forEach((button) => {
+        button.addEventListener("click", async () => {
+          const index = Number(button.dataset.index);
+          const person = this.searchResults[index];
+
+          if (person) {
+            await this.linkEmployee(person, button);
+          }
+        });
+      });
+  }
+
+  private async linkEmployee(person: SearchPerson, button: HTMLButtonElement) {
+    const orgLogin = this.orgData.login || localStorage.getItem("login") || "";
+
+    if (!orgLogin) {
+      this.showEmployeeMessage("Не знайдено логін організації.", "error");
+      return;
+    }
+
+    try {
+      button.disabled = true;
+      button.textContent = "Додавання...";
+
+      await authApi.linkEmployee({
+        loginOrganization: orgLogin,
+        role: this.selectedRole,
+        loginEntyty: person.login,
+      });
+
+      this.updateLocalOrganization(person);
+
+      new NotificationKarina().show(
+        `${person.fullName} додано як ${this.getRoleLabel(this.selectedRole)}.`,
+        "success"
+      );
+
+      this.showEmployeeMessage(
+        `${person.fullName} успішно додано в організацію.`,
+        "success"
+      );
+
+      await this.render();
+    } catch (error) {
+      console.error("Помилка додавання учасника:", error);
+
+      this.showEmployeeMessage(
+        error instanceof Error ? error.message : "Не вдалося додати учасника.",
+        "error"
+      );
+
+      button.disabled = false;
+      button.textContent = `Додати як ${this.getRoleLabel(this.selectedRole)}`;
+    }
+  }
+
+  private updateLocalOrganization(person: SearchPerson) {
+    const orgLogin = this.orgData.login || localStorage.getItem("login") || "";
+    const organization: any = organizations.find((o: any) => o.login === orgLogin);
+
+    if (!organization) return;
+
+    if (this.selectedRole === "Judge") {
+      if (!organization.OrganizationJudge) organization.OrganizationJudge = [];
+      if (!organization.OrganizationJudge.includes(person.login)) {
+        organization.OrganizationJudge.push(person.login);
+      }
+    }
+
+    if (this.selectedRole === "Trainer") {
+      if (!organization.OrganizationTrainer) organization.OrganizationTrainer = [];
+      if (!organization.OrganizationTrainer.includes(person.login)) {
+        organization.OrganizationTrainer.push(person.login);
+      }
+    }
+
+    if (this.selectedRole === "Athlete") {
+      if (!organization.OrganizationAthlete) organization.OrganizationAthlete = [];
+      if (!organization.OrganizationAthlete.includes(person.login)) {
+        organization.OrganizationAthlete.push(person.login);
+      }
+    }
+  }
+
+  private renderJudgesList() {
+    if (!this.orgData.OrganizationJudge.length) {
+      return `<div class="empty-state">Суддів поки немає</div>`;
+    }
+
+    return this.orgData.OrganizationJudge.map((judge: any) => `
+      <div class="staff-card">
+        <h3 class="staff-name">${this.escapeHtml(this.getFullName(judge))}</h3>
+        <p class="staff-category">${this.escapeHtml(judge.Category || judge.category || "Суддя")}</p>
+        <p class="staff-category">Логін: ${this.escapeHtml(judge.login || judge.Login || "")}</p>
+      </div>
+    `).join("");
+  }
+
+  private renderTrainersList() {
+    if (!this.orgData.OrganizationTrainer.length) {
+      return `<div class="empty-state">Тренерів поки немає</div>`;
+    }
+
+    return this.orgData.OrganizationTrainer.map((trainer: any) => `
+      <div class="staff-card">
+        <h3 class="staff-name">${this.escapeHtml(this.getFullName(trainer))}</h3>
+        <p class="staff-sport">${this.getSportIcon(trainer.SportType || trainer.typeSport || "")} ${this.escapeHtml(trainer.SportType || trainer.typeSport || "-")}</p>
+        <p class="staff-category">Логін: ${this.escapeHtml(trainer.login || trainer.Login || "")}</p>
+      </div>
+    `).join("");
+  }
+
+  private renderAthletesList() {
+    if (!this.orgData.OrganizationAthlete.length) {
+      return `<div class="empty-state">Атлетів поки немає</div>`;
+    }
+
+    return this.orgData.OrganizationAthlete.map((athlete: any) => `
+      <div class="staff-card">
+        <h3 class="staff-name">${this.escapeHtml(this.getFullName(athlete))}</h3>
+        <p class="staff-sport">${this.getSportIcon(athlete.sport || athlete.typeSport || "")} ${this.escapeHtml(athlete.sport || athlete.typeSport || "-")}</p>
+        <p class="staff-category">Логін: ${this.escapeHtml(athlete.login || athlete.Login || "")}</p>
+      </div>
+    `).join("");
+  }
+
+  private getFullName(entity: any) {
+    return (
+      entity?.name ||
+      entity?.Name ||
+      entity?.fullName ||
+      entity?.FullName ||
+      `${entity?.FirsName || entity?.firsName || entity?.fistName || entity?.FistName || ""} ${entity?.LastName || entity?.lastName || ""}`.trim() ||
+      entity?.login ||
+      entity?.Login ||
+      "Користувач"
+    );
+  }
+
+  private setDataOrganiz(): OrganizationView {
+    const login = localStorage.getItem("login") ?? "";
+    const organization: any = organizations.find((o: any) => o.login === login);
+
+    const judgeLogins: string[] = organization?.OrganizationJudge ?? [];
+    const trainerLogins: string[] = organization?.OrganizationTrainer ?? [];
+    const athleteLogins: string[] = organization?.OrganizationAthlete ?? [];
+
+    const organizationJudge = judges.filter((j: any) =>
+      judgeLogins.includes(j.login)
+    );
+
+    const organizationTrainer = trainers.filter((t: any) =>
+      trainerLogins.includes(t.login)
+    );
+
+    const organizationAthlete = users.filter((u: any) =>
+      athleteLogins.includes(u.login)
+    );
+
+    const events = allEvents.filter((e: any) =>
+      (organization?.Events ?? []).includes(e.NameEvent)
+    );
+
+    return {
+      login,
+      photo: organization?.photo ?? "",
+      NameOrganization: organization?.NameOrganization ?? "",
+      TypeOrganozation: organization?.TypeOrganozation ?? "",
+      Description: organization?.Description ?? "",
+      Country: organization?.Country ?? "",
+      Teams: organization?.Teams ?? [],
+      OrganizationJudge: organizationJudge,
+      OrganizationTrainer: organizationTrainer,
+      OrganizationAthlete: organizationAthlete,
+      Events: events ?? [],
+    };
+  }
+
+  private showEmployeeMessage(message: string, type: "success" | "error" | "info") {
+    const element = document.getElementById("employee-message");
+
+    if (!element) return;
+
+    element.textContent = message;
+    element.className = `employee-message ${message ? type : ""}`;
+  }
+
+  private getRoleLabel(role: EmployeeRole) {
+    const labels: Record<EmployeeRole, string> = {
+      Athlete: "атлета",
+      Judge: "суддю",
+      Trainer: "тренера",
+    };
+
+    return labels[role];
+  }
+
   private getSportIcon(sportType: string): string {
     const icons: Record<string, string> = {
-      'Футбол': '⚽',
-      'Баскетбол': '🏀',
-      'Гімнастика': '🤸',
-      'Теніс': '🎾',
-      'Волейбол': '🏐',
-      'Бокс': '🥊',
-      'Легка атлетика': '🏃',
-      'Важка атлетика': '🏋️'
+      "Футбол": "⚽",
+      Football: "⚽",
+      "Баскетбол": "🏀",
+      Basketball: "🏀",
+      "Гімнастика": "🤸",
+      Gymnastics: "🤸",
+      "Теніс": "🎾",
+      Tennis: "🎾",
+      "Волейбол": "🏐",
+      Volleyball: "🏐",
+      "Бокс": "🥊",
+      Boxing: "🥊",
+      "Боротьба": "🤼",
+      Wrestling: "🤼",
+      "Хокей": "🏒",
+      Hockey: "🏒",
+      "Бейсбол": "⚾",
+      Baseball: "⚾",
+      Chess: "♟️",
+      "Шахи": "♟️",
     };
-    return icons[sportType] || '🏅';
+
+    return icons[sportType] || "🏅";
   }
 
   private getCountryFlag(country: string): string {
     const flags: Record<string, string> = {
-      'Україна': '🇺🇦',
-      'США': '🇺🇸',
-      'Німеччина': '🇩🇪'
+      "Україна": "🇺🇦",
+      "США": "🇺🇸",
+      "Німеччина": "🇩🇪",
     };
-    return flags[country] || '🌍';
+
+    return flags[country] || "🌍";
   }
-  private setDataOrganiz() : Organization
-  {
-    var organization = organizations.find(o=>o.login === localStorage.getItem('login'));
-    var organizationJudge = judges.filter(j => organization?.OrganizationJudge.includes(j.login));
-    var organizationTrainer = trainers.filter(t => organization?.OrganizationTrainer.includes(t.login));
-    var events = allEvents.filter(e => organization?.Events.includes(e.NameEvent));
-      return {
-        login: localStorage.getItem('login') ?? "",
-        photo: organization?.photo ?? "",
-        NameOrganization: organization?.NameOrganization ?? "",
-        TypeOrganozation: organization?.TypeOrganozation ?? "",
-        Description: organization?.Description ?? "",
-        Country: organization?.Description ?? "",
-        Teams: organization?.Teams ?? [],
-        OrganizationJudge: organizationJudge,
-        OrganizationTrainer: organizationTrainer,
-        Events: events ?? []
-    };
-  }
+
+ private escapeHtml(value: unknown) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
 }

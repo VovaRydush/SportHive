@@ -8,15 +8,39 @@ import type {
   UserVerificationDto,
 } from "./authTypes";
 
-function toFormData(data: Record<string, any>) {
+function appendIfExists(formData: FormData, key: string, value: unknown) {
+  if (value !== undefined && value !== null && value !== "") {
+    formData.append(key, value as string | Blob);
+  }
+}
+
+function roleInfoToFormData(data: RoleInfoDto) {
   const formData = new FormData();
 
-  for (const key in data) {
-    const value = data[key];
+  appendIfExists(formData, "fistName", data.fistName);
+  appendIfExists(formData, "lastName", data.lastName);
+  appendIfExists(formData, "login", data.login);
+  appendIfExists(formData, "dateBirhsday", data.dateBirhsday);
+  appendIfExists(formData, "typeSport", data.typeSport);
 
-    if (value !== undefined && value !== null) {
-      formData.append(key, value);
-    }
+  if (data.profilePhoto) {
+    formData.append("profilePhoto", data.profilePhoto);
+  }
+
+  return formData;
+}
+
+function organizationInfoToFormData(data: OrganizationInfoDto) {
+  const formData = new FormData();
+
+  appendIfExists(formData, "nameOrganization", data.nameOrganization);
+  appendIfExists(formData, "typeOrganozation", data.typeOrganozation);
+  appendIfExists(formData, "email", data.email);
+  appendIfExists(formData, "country", data.country);
+  appendIfExists(formData, "description", data.description);
+
+  if (data.profilePhoto) {
+    formData.append("profilePhoto", data.profilePhoto);
   }
 
   return formData;
@@ -24,7 +48,7 @@ function toFormData(data: Record<string, any>) {
 
 export const authApi = {
   register(data: UserInfoDto) {
-    return apiRequest<AuthResponse>("/registr", {
+    return apiRequest<AuthResponse | string>("/registr", {
       method: "POST",
       body: JSON.stringify(data),
       auth: false,
@@ -50,14 +74,14 @@ export const authApi = {
   completeProfile(data: RoleInfoDto) {
     return apiRequest<string>("/complite-profile", {
       method: "POST",
-      body: toFormData(data),
+      body: roleInfoToFormData(data),
     });
   },
 
   completeOrganizationProfile(data: OrganizationInfoDto) {
     return apiRequest<string>("/complite-profile-organization", {
       method: "POST",
-      body: toFormData(data),
+      body: organizationInfoToFormData(data),
     });
   },
 
@@ -105,8 +129,8 @@ export const authApi = {
     });
   },
 
-  getUserPhoto(login: string) {
-    return `${ "http://localhost:5154"}/get-user-photo/${login}`;
+  getUserPhotoUrl(login: string) {
+    return `"http://localhost:5154"/get-user-photo/${encodeURIComponent(login)}`;
   },
 
   getStatisticInfo(login: string) {
@@ -115,12 +139,17 @@ export const authApi = {
     });
   },
 
-  searchAthlete(fullName: string) {
-    return apiRequest<any[]>(
-      `/get-search-athlete/${encodeURIComponent(fullName)}?FullName=${encodeURIComponent(fullName)}`,
-      {
+  async searchAthlete(fullName: string) {
+    const query = encodeURIComponent(fullName);
+
+    try {
+      return await apiRequest<any[]>(`/get-search-athlete/${query}?FullName=${query}`, {
         method: "GET",
-      }
-    );
+      });
+    } catch {
+      return apiRequest<any[]>(`/get-search-athlete?FullName=${query}`, {
+        method: "GET",
+      });
+    }
   },
 };
