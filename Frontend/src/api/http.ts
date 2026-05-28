@@ -1,36 +1,70 @@
-const API_BASE_URL = "http://localhost:5154";
+export const AUTH_API_URL =
+   "http://localhost:5154";
 
-type RequestOptions = RequestInit & {
+export const COMMAND_API_URL =
+   "http://localhost:5123";
+
+export const MATCH_API_URL =
+   "http://localhost:5042";
+
+type ApiOptions = RequestInit & {
   auth?: boolean;
+  baseUrl?: string;
 };
 
-export async function apiRequest<T>(
-  url: string,
-  options: RequestOptions = {}
-): Promise<T> {
+function getToken() {
   const token = localStorage.getItem("accessToken");
+  return token ? token.replace(/^"(.+)"$/, "$1") : "";
+}
 
-  const headers: HeadersInit = {
-    ...(options.body instanceof FormData ? {} : { "Content-Type": "application/json" }),
-    ...(options.auth !== false && token ? { Authorization: `Bearer ${token}` } : {}),
-    ...options.headers,
-  };
+async function parseResponse<T>(response: Response): Promise<T> {
+  const contentType = response.headers.get("content-type") || "";
 
-  const response = await fetch(`${API_BASE_URL}${url}`, {
+  if (response.status === 204) {
+    return undefined as T;
+  }
+
+  if (contentType.includes("application/json")) {
+    return response.json();
+  }
+
+  const text = await response.text();
+
+  try {
+    return JSON.parse(text) as T;
+  } catch {
+    return text as T;
+  }
+}
+
+export async function apiRequest<T>(endpoint: string, options: ApiOptions = {}): Promise<T> {
+  const baseUrl = options.baseUrl || AUTH_API_URL;
+  const token = getToken();
+  const isFormData = options.body instanceof FormData;
+
+  const response = await fetch(`${baseUrl}${endpoint}`, {
     ...options,
-    headers,
+    headers: {
+      ...(isFormData ? {} : { "Content-Type": "application/json" }),
+      ...(options.auth !== false && token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(options.headers || {}),
+    },
   });
 
   if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(errorText || `Помилка API: ${response.status}`);
+    const errorBody = await parseResponse<any>(response);
+
+    if (typeof errorBody === "string") {
+      throw new Error(errorBody || `HTTP error ${response.status}`);
+    }
+
+    throw new Error(
+      errorBody?.detail ||
+      errorBody?.message ||
+      errorBody?.title ||
+      `HTTP error ${response.status}`
+    );
   }
 
-  const contentType = response.headers.get("content-type");
-
-  if (!contentType?.includes("application/json")) {
-    return (await response.text()) as T;
-  }
-
-  return response.json();
+  return parseResponse<T>(response);
 }

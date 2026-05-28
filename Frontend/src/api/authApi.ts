@@ -138,7 +138,13 @@ export const authApi = {
   },
 
   getUserPhotoUrl(login: string) {
-    return `"http://localhost:5154/get-user-photo/${encodeURIComponent(login)}"`;
+    return `"http://localhost:5154/get-user-photo/${encodeURIComponent(login)}`;
+  },
+
+  getUserPhoto(login: string) {
+    return apiRequest<any>(`/get-user-photo/${encodeURIComponent(login)}`, {
+      method: "GET",
+    });
   },
 
   getStatisticInfo(login: string) {

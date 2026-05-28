@@ -8,6 +8,7 @@ import {
 } from "./db";
 import { authApi } from "../api/authApi";
 import { NotificationKarina } from "./Notification";
+import { CreateTeamModal } from "./CreateTeam";
 import "./organizationProfile.css";
 
 type EmployeeRole = "Athlete" | "Judge" | "Trainer";
@@ -68,7 +69,13 @@ export class OrganizationProfile {
           </div>
 
           <div class="org-main-info">
-            <h1 class="org-title">${this.escapeHtml(this.orgData.NameOrganization || "Моя організація")}</h1>
+            <div class="org-title-row">
+              <h1 class="org-title">${this.escapeHtml(this.orgData.NameOrganization || "Моя організація")}</h1>
+
+              <button id="create-team-btn" class="create-team-profile-btn" type="button">
+                + Створити команду
+              </button>
+            </div>
 
             <div class="org-meta">
               <span>${this.getCountryFlag(this.orgData.Country)} ${this.escapeHtml(this.orgData.Country || "Україна")}</span>
@@ -94,15 +101,15 @@ export class OrganizationProfile {
                 ? this.orgData.Teams.map((team) => `
                   <div class="team-card">
                     <div class="team-header">
-                      <span class="team-sport-icon">${this.getSportIcon(team.sport || team.SportType || "")}</span>
-                      <h3 class="team-name">${this.escapeHtml(team.name || team.Name || "Команда")}</h3>
+                      <span class="team-sport-icon">${this.getSportIcon(team.sport || team.SportType || team.typeSport || "")}</span>
+                      <h3 class="team-name">${this.escapeHtml(team.name || team.Name || team.nameTeam || "Команда")}</h3>
                     </div>
                     <div class="team-details">
-                      <p>Вид спорту: ${this.escapeHtml(team.sport || team.SportType || "-")}</p>
+                      <p>Вид спорту: ${this.escapeHtml(team.sport || team.SportType || team.typeSport || "-")}</p>
                     </div>
                   </div>
                 `).join("")
-                : `<div class="empty-state">Команд поки немає</div>`
+                : `<div class="empty-state">Команд поки немає. Натисни “Створити команду”, щоб додати першу.</div>`
             }
           </div>
         </section>
@@ -157,7 +164,16 @@ export class OrganizationProfile {
       </div>
     `;
 
+    this.bindCreateTeamButton();
     this.bindEmployeeManagerEvents();
+  }
+
+  private bindCreateTeamButton() {
+    const button = document.getElementById("create-team-btn");
+
+    button?.addEventListener("click", () => {
+      new CreateTeamModal().show();
+    });
   }
 
   private renderEmployeeManager() {
@@ -166,7 +182,9 @@ export class OrganizationProfile {
         <div class="employee-manager-header">
           <div>
             <h2 class="section-title employee-title">Додати учасника в організацію</h2>
-          
+            <p class="employee-subtitle">
+              Знайди атлета, суддю або тренера і додай його до організації.
+            </p>
           </div>
         </div>
 
@@ -238,7 +256,6 @@ export class OrganizationProfile {
   private async searchPeople() {
     const input = document.getElementById("employee-search") as HTMLInputElement | null;
     const button = document.getElementById("employee-search-btn") as HTMLButtonElement | null;
-    const message = document.getElementById("employee-message");
 
     const query = input?.value.trim() || "";
 
@@ -280,10 +297,6 @@ export class OrganizationProfile {
         button.disabled = false;
         button.textContent = "Знайти";
       }
-
-      if (message && !message.textContent) {
-        message.className = "employee-message";
-      }
     }
   }
 
@@ -297,10 +310,7 @@ export class OrganizationProfile {
       item?.firsName ||
       "";
 
-    const lastName =
-      item?.lastName ||
-      item?.LastName ||
-      "";
+    const lastName = item?.lastName || item?.LastName || "";
 
     const fullName =
       item?.fullName ||
@@ -359,11 +369,7 @@ export class OrganizationProfile {
             ${person.role ? `<p>Роль: ${this.escapeHtml(person.role)}</p>` : ""}
           </div>
 
-          <button
-            class="employee-add-btn"
-            data-index="${index}"
-            type="button"
-          >
+          <button class="employee-add-btn" data-index="${index}" type="button">
             Додати як ${this.getRoleLabel(this.selectedRole)}
           </button>
         </div>
@@ -408,10 +414,7 @@ export class OrganizationProfile {
         "success"
       );
 
-      this.showEmployeeMessage(
-        `${person.fullName} успішно додано в організацію.`,
-        "success"
-      );
+      this.showEmployeeMessage(`${person.fullName} успішно додано в організацію.`, "success");
 
       await this.render();
     } catch (error) {
@@ -518,21 +521,11 @@ export class OrganizationProfile {
     const trainerLogins: string[] = organization?.OrganizationTrainer ?? [];
     const athleteLogins: string[] = organization?.OrganizationAthlete ?? [];
 
-    const organizationJudge = judges.filter((j: any) =>
-      judgeLogins.includes(j.login)
-    );
+    const organizationJudge = judges.filter((j: any) => judgeLogins.includes(j.login));
+    const organizationTrainer = trainers.filter((t: any) => trainerLogins.includes(t.login));
+    const organizationAthlete = users.filter((u: any) => athleteLogins.includes(u.login));
 
-    const organizationTrainer = trainers.filter((t: any) =>
-      trainerLogins.includes(t.login)
-    );
-
-    const organizationAthlete = users.filter((u: any) =>
-      athleteLogins.includes(u.login)
-    );
-
-    const events = allEvents.filter((e: any) =>
-      (organization?.Events ?? []).includes(e.NameEvent)
-    );
+    const events = allEvents.filter((e: any) => (organization?.Events ?? []).includes(e.NameEvent));
 
     return {
       login,
@@ -605,12 +598,12 @@ export class OrganizationProfile {
     return flags[country] || "🌍";
   }
 
- private escapeHtml(value: unknown) {
-  return String(value ?? "")
+  private escapeHtml(value: unknown) {
+    return String(value ?? "")
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
-}
+  }
 }

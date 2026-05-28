@@ -14,7 +14,7 @@ export type RoleInfoDto = {
   fistName?: string;
   lastName?: string;
   login?: string;
-  dateBirhsday: string;
+  dateBirhsday?: string;
   profilePhoto?: File | null;
   typeSport?: string;
 };
@@ -35,10 +35,10 @@ export type OrganizationJudgeDto = {
 };
 
 export type AuthResponse = {
-  accessToken?: string;
   token?: string;
+  accessToken?: string;
   refreshToken?: string;
+  role?: string;
   login?: string;
   email?: string;
-  role?: string;
 };
