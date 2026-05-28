@@ -14,11 +14,13 @@ namespace AuthService.Endpoints
                 await profile.SendVereficationCode(Email);
             });
             
-            route.MapGet("/check-code-recavery", async ([FromBody] UserVerificationDto user, [FromServices] IUserRegistration _checkemail) =>
-            {
-                await _checkemail.VeryfyEmail(user);
-                return Results.Ok();
-            });
+           route.MapPost("/check-code-recavery", async (
+    [FromBody] UserVerificationDto user,
+    [FromServices] IUserRegistration checkemail) =>
+{
+    await checkemail.VeryfyEmail(user);
+    return Results.Ok();
+});
 
             route.MapPost("/change-password", async ([FromBody] UserInfoDto user, IProfileManipulete profile) =>
             {

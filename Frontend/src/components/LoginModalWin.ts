@@ -2,6 +2,7 @@ import { NavigationManager } from "./NavigationManager";
 import { NotificationKarina } from "./Notification";
 import { authApi } from "../api/authApi";
 import { saveAuth } from "../api/authStorage";
+import { PasswordRecoveryModal } from "./PasswordRecoveryModal";
 import "./reg.css";
 
 export class LoginModal {
@@ -9,8 +10,11 @@ export class LoginModal {
   private loginInput: HTMLInputElement;
   private passwordInput: HTMLInputElement;
   private submitButton: HTMLButtonElement;
+  private recoveryModal: PasswordRecoveryModal;
 
   constructor() {
+    this.recoveryModal = new PasswordRecoveryModal();
+
     this.modal = document.createElement("div");
     this.modal.className = "modal";
 
@@ -26,6 +30,14 @@ export class LoginModal {
           <input type="password" id="password" name="password" autocomplete="current-password" required />
 
           <button type="submit">Увійти</button>
+
+          <button
+            type="button"
+            id="forgot-password-btn"
+            style="background: transparent; color: #111; border: none; text-decoration: underline; cursor: pointer; padding: 8px 0;"
+          >
+            Забули пароль?
+          </button>
         </form>
       </div>
     `;
@@ -34,11 +46,18 @@ export class LoginModal {
 
     this.loginInput = this.modal.querySelector("#login")!;
     this.passwordInput = this.modal.querySelector("#password")!;
-    this.submitButton = this.modal.querySelector("button")!;
+    this.submitButton = this.modal.querySelector("button[type='submit']")!;
 
     this.modal
       .querySelector("#login-form")!
       .addEventListener("submit", (event) => this.handleSubmit(event));
+
+    this.modal
+      .querySelector("#forgot-password-btn")
+      ?.addEventListener("click", () => {
+        this.close();
+        this.recoveryModal.show();
+      });
   }
 
   private async handleSubmit(event: Event) {

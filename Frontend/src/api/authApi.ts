@@ -115,8 +115,11 @@ export const authApi = {
 
   checkRecoveryCode(data: UserVerificationDto) {
     return apiRequest<string>("/check-code-recavery", {
-      method: "GET",
-      body: JSON.stringify(data),
+      method: "POST",
+      body: JSON.stringify({
+        email: data.email ?? "",
+        code: data.code ?? "",
+      }),
       auth: false,
     });
   },
@@ -124,13 +127,18 @@ export const authApi = {
   changePassword(data: UserInfoDto) {
     return apiRequest<string>("/change-password", {
       method: "POST",
-      body: JSON.stringify(data),
+      body: JSON.stringify({
+        email: data.email ?? "",
+        login: data.login ?? "",
+        password: data.password ?? "",
+        role: data.role ?? "",
+      }),
       auth: false,
     });
   },
 
   getUserPhotoUrl(login: string) {
-    return `"http://localhost:5154"/get-user-photo/${encodeURIComponent(login)}`;
+    return `"http://localhost:5154/get-user-photo/${encodeURIComponent(login)}"`;
   },
 
   getStatisticInfo(login: string) {
