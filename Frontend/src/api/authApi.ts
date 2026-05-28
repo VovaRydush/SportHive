@@ -1,4 +1,4 @@
-import { apiRequest } from "./http";
+import { apiRequest, AUTH_API_URL } from "./http";
 import type {
   AuthResponse,
   OrganizationInfoDto,
@@ -138,7 +138,7 @@ export const authApi = {
   },
 
   getUserPhotoUrl(login: string) {
-    return `"http://localhost:5154/get-user-photo/${encodeURIComponent(login)}`;
+    return `${AUTH_API_URL}/get-user-photo/${encodeURIComponent(login)}`;
   },
 
   getUserPhoto(login: string) {

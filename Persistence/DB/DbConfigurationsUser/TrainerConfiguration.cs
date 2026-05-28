@@ -15,6 +15,8 @@ namespace SportHive.DbConfiguration
              .WithOne()
              .HasForeignKey<Trainer>(a => a.login)
              .OnDelete(DeleteBehavior.NoAction);
+
+             
         }
     }
 }

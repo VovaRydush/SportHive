@@ -321,6 +321,7 @@ export class CreateTeamModal {
 
       notification.show("Команду успішно створено!", "success");
       this.close();
+      window.location.reload();
     } catch (error) {
       console.error("Помилка створення команди:", error);
       notification.show(

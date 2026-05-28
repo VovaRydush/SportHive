@@ -2,7 +2,7 @@ export const AUTH_API_URL =
    "http://localhost:5154";
 
 export const COMMAND_API_URL =
-   "http://localhost:5123";
+ "http://localhost:5123";
 
 export const MATCH_API_URL =
    "http://localhost:5042";
@@ -42,11 +42,13 @@ export async function apiRequest<T>(endpoint: string, options: ApiOptions = {}):
   const token = getToken();
   const isFormData = options.body instanceof FormData;
 
+  const { baseUrl: _, auth, ...fetchOptions } = options;
+
   const response = await fetch(`${baseUrl}${endpoint}`, {
-    ...options,
+    ...fetchOptions,
     headers: {
       ...(isFormData ? {} : { "Content-Type": "application/json" }),
-      ...(options.auth !== false && token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(auth !== false && token ? { Authorization: `Bearer ${token}` } : {}),
       ...(options.headers || {}),
     },
   });

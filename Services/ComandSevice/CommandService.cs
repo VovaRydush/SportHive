@@ -52,7 +52,16 @@ builder.Services.AddScoped<IRedisService,RedisService>();
 builder.Services.AddScoped<IGetInfoTeam, GetInfoTeam>();
 builder.Services.AddScoped<IMongoDbService, MongoDbService>();
 builder.Services.AddKafkaServices("localhost:9093");
-
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy
+            .WithOrigins("http://localhost:3000", "http://localhost:5173")
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
 var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
@@ -62,7 +71,7 @@ if (app.Environment.IsDevelopment())
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseAuthentication();       
 app.UseAuthorization();
-
+app.UseCors("AllowFrontend");
 
 app.MapCommandEndpoints();
 
