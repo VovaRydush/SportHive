@@ -168,3 +168,22 @@
       grid-template-columns: 1fr;
     }
   }
+.team-help {
+  display: block;
+  margin-top: 6px;
+  color: #666;
+  font-size: 0.85rem;
+  line-height: 1.35;
+}
+
+.remove-selected-athlete {
+  margin-left: 8px;
+  border: none;
+  background: #111;
+  color: #fff;
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  cursor: pointer;
+  font-weight: 700;
+}

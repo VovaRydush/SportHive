@@ -1,7 +1,5 @@
-using DB.SportHive.Domain;
 using Microsoft.AspNetCore.Mvc;
 using SportHive.Services.Interfaces;
-using Microsoft.AspNetCore.Authorization;
 
 namespace Command.Endpoints
 {
@@ -13,14 +11,26 @@ namespace Command.Endpoints
             {
                 return Results.Ok(await teamService.GetAthetesAsync(team));
             });
+
             route.MapGet("/photo/{filePath}", async (string filePath, IPhotoProcessing photoProcessing) =>
             {
                 var (fileContent, mimeType) = await photoProcessing.GetPhotoAsync(filePath);
                 return Results.File(fileContent, mimeType);
             });
-            route.MapGet("/team/{NameTeam}",async(string NameTeam,[FromServices] IGetInfoTeam teamService)=>
+
+            route.MapGet("/team/{NameTeam}", async (string NameTeam, [FromServices] IGetInfoTeam teamService) =>
             {
                 return Results.Ok(await teamService.GetTeamInfo(NameTeam));
+            });
+
+            route.MapGet("/team/by-organization/{loginOrganization}", async (string loginOrganization, [FromServices] IGetInfoTeam teamService) =>
+            {
+                return Results.Ok(await teamService.GetTeamsByOrganizationAsync(loginOrganization));
+            });
+
+            route.MapGet("/team/by-trainer/{loginTrainer}", async (string loginTrainer, [FromServices] IGetInfoTeam teamService) =>
+            {
+                return Results.Ok(await teamService.GetTeamsByTrainerAsync(loginTrainer));
             });
         }
     }

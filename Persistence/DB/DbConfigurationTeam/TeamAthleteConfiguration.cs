@@ -1,3 +1,4 @@
+using DB.SportHive.Domain;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -12,11 +13,13 @@ namespace DB.SportHive.Domain
             builder.HasKey(ta => new { ta.NameTeam, ta.loginAthlets });
 
             builder.Property(ta => ta.NameTeam)
-                .HasColumnName("NameTeam");
+                .HasColumnName("NameTeam")
+                .IsRequired();
 
             builder.Property(ta => ta.loginAthlets)
                 .HasColumnName("IdAthlete")
-                .HasMaxLength(40);
+                .HasMaxLength(40)
+                .IsRequired();
 
             builder.Property(ta => ta.AthleteStatus)
                 .HasColumnName("AthleteStatus")

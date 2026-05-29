@@ -31,3 +31,51 @@ export type SearchAthleteResult = {
   photo?: string;
   raw?: any;
 };
+
+export type AthleteTeamInfo = {
+  firsName?: string;
+  FirsName?: string;
+  lastName?: string;
+  LastName?: string;
+  login?: string;
+  typeSport?: string;
+  TypeSport?: string;
+  athleteStatus?: string;
+  AthleteStatus?: string;
+  photo?: string;
+  Photo?: string;
+};
+
+export type OrganizationTeamInfo = {
+  loginOrganization?: string;
+  LoginOrganization?: string;
+  nameOrganization?: string;
+  NameOrganization?: string;
+  country?: string;
+  Country?: string;
+  typeOrganozation?: string;
+  TypeOrganozation?: string;
+};
+
+export type TeamInfoDto = {
+  nameTeam?: string;
+  NameTeam?: string;
+  trainerFirstName?: string;
+  TrainerFirstName?: string;
+  trainerLastName?: string;
+  TrainerLastName?: string;
+  trainerPhotp?: string;
+  TrainerPhotp?: string;
+  trainerLogin?: string;
+  TrainerLogin?: string;
+  photoTeam?: string;
+  PhotoTeam?: string;
+  typeSport?: string;
+  TypeSport?: string;
+  athletes?: AthleteTeamInfo[];
+  Athletes?: AthleteTeamInfo[];
+  organizations?: OrganizationTeamInfo[];
+  Organizations?: OrganizationTeamInfo[];
+  athletesCount?: number;
+  AthletesCount?: number;
+};

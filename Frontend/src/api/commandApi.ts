@@ -3,6 +3,7 @@ import type {
   NewSatatusAthlete,
   OrganizationTeamDto,
   TeamAthleteDto,
+  TeamInfoDto,
   TeamModelDto,
 } from "./commandTypes";
 
@@ -87,13 +88,28 @@ export const commandApi = {
   },
 
   getTeam(nameTeam: string) {
-    return apiRequest<any>(`/team/${encodeURIComponent(nameTeam)}`, {
+    return apiRequest<TeamInfoDto>(`/team/${encodeURIComponent(nameTeam)}`, {
       baseUrl: COMMAND_API_URL,
       method: "GET",
     });
   },
 
-  getPhotoUrl(filePath: string) {
+  getTeamsByOrganization(loginOrganization: string) {
+    return apiRequest<TeamInfoDto[]>(`/team/by-organization/${encodeURIComponent(loginOrganization)}`, {
+      baseUrl: COMMAND_API_URL,
+      method: "GET",
+    });
+  },
+
+  getTeamsByTrainer(loginTrainer: string) {
+    return apiRequest<TeamInfoDto[]>(`/team/by-trainer/${encodeURIComponent(loginTrainer)}`, {
+      baseUrl: COMMAND_API_URL,
+      method: "GET",
+    });
+  },
+
+  getPhotoUrl(filePath?: string | null) {
+    if (!filePath) return "";
     return `${COMMAND_API_URL}/photo/${encodeURIComponent(filePath)}`;
   },
 };

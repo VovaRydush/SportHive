@@ -35,3 +35,12 @@
     width: 100%;
   }
 }
+
+.organization-team-card {
+  cursor: pointer;
+}
+
+.open-team-page-btn {
+  margin-top: 0.75rem;
+  width: 100%;
+}

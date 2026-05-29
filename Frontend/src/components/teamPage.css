@@ -303,3 +303,24 @@
     text-align: center;
   }
 }
+.team-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.team-org-list {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.team-org-chip {
+  display: inline-flex;
+  border: 1px solid #111;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  font-weight: 700;
+  background: #fff;
+}

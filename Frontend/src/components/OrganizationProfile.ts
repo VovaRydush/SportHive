@@ -7,6 +7,8 @@ import {
   users,
 } from "./db";
 import { authApi } from "../api/authApi";
+import { commandApi } from "../api/commandApi";
+import { TeamPageLook } from "./TeamPage";
 import { NotificationKarina } from "./Notification";
 import { CreateTeamModal } from "./CreateTeam";
 import "./organizationProfile.css";
@@ -56,6 +58,13 @@ export class OrganizationProfile {
   async render() {
     this.orgData = this.setDataOrganiz();
 
+    try {
+      const backendTeams = await commandApi.getTeamsByOrganization(this.orgData.login);
+      this.orgData.Teams = backendTeams || [];
+    } catch (error) {
+      console.warn("Не вдалося завантажити команди організації з бекенду:", error);
+    }
+
     this.container.innerHTML = `
       <div class="organization-profile">
         <section class="org-header">
@@ -99,13 +108,15 @@ export class OrganizationProfile {
             ${
               this.orgData.Teams.length
                 ? this.orgData.Teams.map((team) => `
-                  <div class="team-card">
+                  <div class="team-card organization-team-card" data-team-name="${this.escapeHtml(team.name || team.Name || team.nameTeam || team.NameTeam || team.NameComand || "")}">
                     <div class="team-header">
                       <span class="team-sport-icon">${this.getSportIcon(team.sport || team.SportType || team.typeSport || "")}</span>
-                      <h3 class="team-name">${this.escapeHtml(team.name || team.Name || team.nameTeam || "Команда")}</h3>
+                      <h3 class="team-name">${this.escapeHtml(team.name || team.Name || team.nameTeam || team.NameTeam || team.NameComand || "Команда")}</h3>
                     </div>
                     <div class="team-details">
-                      <p>Вид спорту: ${this.escapeHtml(team.sport || team.SportType || team.typeSport || "-")}</p>
+                      <p>Вид спорту: ${this.escapeHtml(team.sport || team.SportType || team.typeSport || team.TypeSport || "-")}</p>
+                      <p>Тренер: ${this.escapeHtml(team.trainerLogin || team.TrainerLogin || "-")}</p>
+                      <button class="employee-btn open-team-page-btn" type="button">Переглянути команду</button>
                     </div>
                   </div>
                 `).join("")
@@ -166,6 +177,23 @@ export class OrganizationProfile {
 
     this.bindCreateTeamButton();
     this.bindEmployeeManagerEvents();
+    this.bindTeamCards();
+  }
+
+  private bindTeamCards() {
+    this.container.querySelectorAll<HTMLElement>(".organization-team-card").forEach((card) => {
+      card.addEventListener("click", (event) => {
+        const target = event.target as HTMLElement;
+        if (!target.closest(".open-team-page-btn") && target.tagName !== "BUTTON") {
+          return;
+        }
+
+        const teamName = card.dataset.teamName || "";
+        if (teamName) {
+          new TeamPageLook("app", teamName).render();
+        }
+      });
+    });
   }
 
   private bindCreateTeamButton() {

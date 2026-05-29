@@ -1,6 +1,6 @@
+using DB.SportHive.Domain;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using DB.SportHive.Domain;
 
 namespace SportHive.DbConfiguration
 {
@@ -13,11 +13,8 @@ namespace SportHive.DbConfiguration
             builder.HasKey(t => t.TeamName);
 
             builder.Property(t => t.TeamName)
-                .HasColumnName("TeamName");
-
-            builder.Property(t => t.TeamPhoto)
-                .HasColumnName("TeamPhoto")
-                .IsRequired(false);
+                .HasColumnName("TeamName")
+                .IsRequired();
 
             builder.Property(t => t.LoginTrainer)
                 .HasColumnName("LoginTrainer")
@@ -29,11 +26,15 @@ namespace SportHive.DbConfiguration
                 .HasMaxLength(100)
                 .IsRequired();
 
+            builder.Property(t => t.TeamPhoto)
+                .HasColumnName("TeamPhoto")
+                .IsRequired(false);
+
             builder
                 .HasOne(t => t.Trainer)
-                .WithOne()
-                .HasForeignKey<Team>(team => team.LoginTrainer)
-                .HasPrincipalKey<Trainer>(trainer => trainer.login)
+                .WithMany(t => t.Teams)
+                .HasForeignKey(t => t.LoginTrainer)
+                .HasPrincipalKey(t => t.login)
                 .OnDelete(DeleteBehavior.Restrict);
         }
     }
