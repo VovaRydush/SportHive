@@ -1,7 +1,5 @@
-using DB.SportHive.Domain;
 using Microsoft.AspNetCore.Mvc;
 using SportHive.Services.Interfaces;
-using Microsoft.AspNetCore.Authorization;
 
 namespace Command.Endpoints
 {
@@ -9,8 +7,21 @@ namespace Command.Endpoints
     {
         public static void TrainerEndpoint(this IEndpointRouteBuilder route)
         {
-          var TrainerRoute = route.MapGroup("trainer");
+            var trainerRoute = route.MapGroup("/trainer");
 
+            trainerRoute.MapGet("/{login}", async (
+                string login,
+                [FromServices] ITrainerAthletService trainerService) =>
+            {
+                return Results.Ok(await trainerService.GetTrainerProfileAsync(login));
+            });
+
+            trainerRoute.MapGet("/{login}/teams", async (
+                string login,
+                [FromServices] ITrainerAthletService trainerService) =>
+            {
+                return Results.Ok(await trainerService.GetTrainerTeamsAsync(login));
+            });
         }
     }
 }
