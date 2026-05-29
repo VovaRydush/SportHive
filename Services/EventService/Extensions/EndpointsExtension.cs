@@ -10,6 +10,7 @@ namespace Extensions
             app.CompliteInfoEndpoint();
             app.EnterIntermidiatleResult();
             app.UsersProfileEndpoint();
+            app.Stage3TournamentEndpoint();
         }
     }
 }

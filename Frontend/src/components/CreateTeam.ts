@@ -8,6 +8,8 @@ type SelectedAthlete = SearchAthleteResult & {
   status: string;
 };
 
+const TEAM_STATUSES = ["Active", "Reserve", "Injured", "Disqualified"];
+
 export class CreateTeamModal {
   private modalContainer: HTMLElement;
   private searchResults: SearchAthleteResult[] = [];
@@ -21,6 +23,10 @@ export class CreateTeamModal {
   }
 
   async show() {
+    const role = localStorage.getItem("userRole") || localStorage.getItem("role") || "";
+    const currentLogin = localStorage.getItem("login") || "";
+    const defaultTrainerLogin = role === "Trainer" ? currentLogin : "";
+
     this.modalContainer.innerHTML = `
       <div class="team-modal">
         <div class="modal-header">
@@ -40,9 +46,13 @@ export class CreateTeamModal {
               id="trainerLogin"
               name="trainerLogin"
               type="text"
-              value="${this.escapeHtml(localStorage.getItem("login") || "")}"
+              value="${this.escapeHtml(defaultTrainerLogin)}"
+              placeholder="Введіть існуючий login тренера"
               required
             />
+            <small class="team-help">
+              Важливо: це має бути існуючий користувач з роллю Trainer. Якщо ви організація — введіть login тренера, а не login організації.
+            </small>
           </div>
 
           <div class="form-group">
@@ -71,12 +81,12 @@ export class CreateTeamModal {
           </div>
 
           <div class="form-group">
-            <label for="athleteSearch">Пошук спортсменів</label>
+            <label for="athleteSearch">Додати спортсменів</label>
             <div class="search-box">
               <input
                 id="athleteSearch"
                 type="text"
-                placeholder="Введіть ім'я або прізвище"
+                placeholder="Введіть ім'я або прізвище спортсмена"
                 autocomplete="off"
               />
               <button class="search-btn" type="button">Пошук</button>
@@ -84,7 +94,7 @@ export class CreateTeamModal {
           </div>
 
           <section class="athletes-list">
-            <h3>Доступні спортсмени</h3>
+            <h3>Знайдені спортсмени</h3>
             <div id="athleteSearchMessage" class="team-form-message"></div>
             <div id="availableAthletes" class="athletes-grid"></div>
           </section>
@@ -257,10 +267,11 @@ export class CreateTeamModal {
           <span class="selected-athlete">
             ${this.escapeHtml(athlete.fullName)}
             <select data-login="${this.escapeHtml(athlete.login)}" class="athlete-status-select">
-              <option value="Active" ${athlete.status === "Active" ? "selected" : ""}>Active</option>
-              <option value="Reserve" ${athlete.status === "Reserve" ? "selected" : ""}>Reserve</option>
-              <option value="Injured" ${athlete.status === "Injured" ? "selected" : ""}>Injured</option>
+              ${TEAM_STATUSES.map((status) => `
+                <option value="${status}" ${athlete.status === status ? "selected" : ""}>${status}</option>
+              `).join("")}
             </select>
+            <button type="button" class="remove-selected-athlete" data-login="${this.escapeHtml(athlete.login)}">×</button>
           </span>
         `
       )
@@ -271,6 +282,15 @@ export class CreateTeamModal {
         const login = select.dataset.login;
         const athlete = this.selectedAthletes.find((a) => a.login === login);
         if (athlete) athlete.status = select.value;
+      });
+    });
+
+    selectedList.querySelectorAll<HTMLButtonElement>(".remove-selected-athlete").forEach((button) => {
+      button.addEventListener("click", () => {
+        const login = button.dataset.login;
+        this.selectedAthletes = this.selectedAthletes.filter((a) => a.login !== login);
+        this.updateSelectedAthletes();
+        this.renderAvailableAthletes();
       });
     });
   }
@@ -287,7 +307,7 @@ export class CreateTeamModal {
     const photo = (this.modalContainer.querySelector("#teamPhoto") as HTMLInputElement).files?.[0] || null;
 
     if (!nameTeam || !loginTrainer || !typeSport) {
-      notification.show("Заповніть назву команди, тренера та вид спорту.", "info");
+      notification.show("Заповніть назву команди, логін тренера та вид спорту.", "info");
       return;
     }
 
@@ -321,7 +341,7 @@ export class CreateTeamModal {
 
       notification.show("Команду успішно створено!", "success");
       this.close();
-      window.location.reload();
+      window.dispatchEvent(new CustomEvent("sporthive:team-created", { detail: { nameTeam } }));
     } catch (error) {
       console.error("Помилка створення команди:", error);
       notification.show(
@@ -375,14 +395,15 @@ export class CreateTeamModal {
   private escapeHtml(value: unknown) {
     return String(value ?? "")
       .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
   }
 
   close() {
     this.modalContainer.style.display = "none";
     this.modalContainer.innerHTML = "";
+    this.modalContainer.remove();
   }
 }
