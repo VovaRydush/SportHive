@@ -28,8 +28,12 @@ namespace DB.SportHive.Domain
 
         [Column("Tour")]
         public int Tour { get; set; }
+
+        [Column("Group")]
+        public int? Group { get; set; }
+
         public string? loginJudge { get; set; } 
-public Judge? Judge { get; set; }
+        public Judge? Judge { get; set; }
 
         [Column("AddInformation")]
         [MaxLength(300)]

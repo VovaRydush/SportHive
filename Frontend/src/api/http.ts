@@ -2,10 +2,10 @@ export const AUTH_API_URL =
   "http://localhost:5154";
 
 export const COMMAND_API_URL =
-  "http://localhost:5123";
+   "http://localhost:5123";
 
 export const EVENT_API_URL =
-  "http://localhost:5042";
+   "http://localhost:5042";
 
 type ApiOptions = RequestInit & {
   auth?: boolean;
@@ -25,7 +25,12 @@ async function parseResponse<T>(response: Response): Promise<T> {
   if (contentType.includes("application/json")) return response.json();
 
   const text = await response.text();
-  try { return JSON.parse(text) as T; } catch { return text as T; }
+
+  try {
+    return JSON.parse(text) as T;
+  } catch {
+    return text as T;
+  }
 }
 
 export async function apiRequest<T>(endpoint: string, options: ApiOptions = {}): Promise<T> {
@@ -45,8 +50,17 @@ export async function apiRequest<T>(endpoint: string, options: ApiOptions = {}):
 
   if (!response.ok) {
     const errorBody = await parseResponse<any>(response);
-    if (typeof errorBody === "string") throw new Error(errorBody || `HTTP error ${response.status}`);
-    throw new Error(errorBody?.detail || errorBody?.message || errorBody?.title || `HTTP error ${response.status}`);
+
+    if (typeof errorBody === "string") {
+      throw new Error(errorBody || `HTTP error ${response.status}`);
+    }
+
+    throw new Error(
+      errorBody?.detail ||
+      errorBody?.message ||
+      errorBody?.title ||
+      `HTTP error ${response.status}`
+    );
   }
 
   return parseResponse<T>(response);

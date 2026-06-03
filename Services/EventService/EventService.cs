@@ -28,11 +28,7 @@ builder.Services.AddSwaggerGen(c =>
         {
             new OpenApiSecurityScheme
             {
-                Reference = new OpenApiReference
-                {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
+                Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
             },
             Array.Empty<string>()
         }
@@ -52,7 +48,7 @@ builder.Services.AddControllers().AddJsonOptions(options =>
     options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
 });
 builder.Services.AddSingleton<IWebHostEnvironment>(builder.Environment);
-builder.Services.AddScoped<IPhotoProcessing, PhotoProcessing>();
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("FrontendPolicy", policy =>
@@ -66,6 +62,7 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddKafkaServices("localhost:9093");
 builder.Services.AddScoped<IRedisService, RedisService>();
+builder.Services.AddScoped<IPhotoProcessing, PhotoProcessing>();
 builder.Services.AddScoped<ISaveDataDb, SaveDataDb>();
 builder.Services.AddScoped<IEventService, EventService>();
 builder.Services.AddScoped<ISystemSelectionService, SystemSelectionService>();
@@ -95,7 +92,7 @@ builder.Services.AddScoped<ISetResultMatch, SetResultMatch>();
 builder.Services.AddScoped<IMatchsGenerator, MatchsGenerator>();
 builder.Services.AddScoped<IInitalSystemGrid, InitalSystemGrid>();
 builder.Services.AddScoped<IGetPointMatch, GetPointMatch>();
-builder.Services.AddScoped<IStage3TournamentService, Stage3TournamentService>();
+builder.Services.AddScoped<IEventCatalogService, EventCatalogService>();
 
 var app = builder.Build();
 if (app.Environment.IsDevelopment())

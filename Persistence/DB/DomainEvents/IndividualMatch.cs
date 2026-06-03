@@ -27,7 +27,6 @@ namespace DB.SportHive.Domain
         public string loginSecondAthlete { get; set; } = null!;
         public Athlete SecondAthlete { get; set; } = null!;
 
-
         [DataType(DataType.Date)]
         public DateTime? DataMatch { get; set; }
 
@@ -40,6 +39,9 @@ namespace DB.SportHive.Domain
 
         [Column("Tour")]
         public int Tour { get; set; }
+
+        [Column("Group")]
+        public int? Group { get; set; }
 
         [Column("AddInformation")]
         [MaxLength(300)]
