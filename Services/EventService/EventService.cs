@@ -9,6 +9,8 @@ using StackExchange.Redis;
 using JwtAuthentication;
 using Extensions;
 using Microsoft.OpenApi.Models;
+using SportHive.Implementations.SportRules;
+using SportHive.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -43,6 +45,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 builder.Services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer.Connect("localhost:6379,abortConnect=false"));
 builder.Services.AddSingleton<IMongoDbService, MongoDbService>();
+builder.Services.AddSignalR();
+builder.Services.AddScoped<ISportRulesService, SportRulesService>();
 builder.Services.AddControllers().AddJsonOptions(options =>
 {
     options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
@@ -100,12 +104,12 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseCors("FrontendPolicy");
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapEventEndpoints();
+app.MapHub<MatchLiveHub>("/hubs/match-live");
 
 app.Run();

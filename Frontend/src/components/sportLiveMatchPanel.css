@@ -1,0 +1,259 @@
+.sport-live-panel {
+    max-width: 1300px;
+    margin: 0 auto;
+    padding: 24px;
+    font-family: Montserrat, Arial, sans-serif;
+    color: #111
+}
+
+.sport-live-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    align-items: flex-start;
+    border: 2px solid #111;
+    background: #fff;
+    padding: 22px;
+    box-shadow: 8px 8px 0 #111;
+    margin-bottom: 22px
+}
+
+.sport-badge {
+    display: inline-block;
+    background: #111;
+    color: #fff;
+    padding: 6px 10px;
+    font-weight: 800;
+    margin-bottom: 10px
+}
+
+.sport-live-header h1 {
+    margin: 0;
+    font-size: 34px;
+    line-height: 1.1
+}
+
+.sport-live-header small {
+    color: #777
+}
+
+.sport-live-header p {
+    color: #555;
+    font-weight: 700
+}
+
+.score-board {
+    min-width: 180px;
+    border: 2px solid #111;
+    padding: 16px;
+    text-align: center;
+    background: #f8f8f8
+}
+
+.score-board b {
+    display: block;
+    font-size: 42px;
+    font-family: "Roboto Mono", monospace
+}
+
+.score-board span {
+    font-weight: 700;
+    color: #555
+}
+
+.validation-box {
+    border: 2px solid #b00020;
+    background: #fff2f2;
+    color: #b00020;
+    padding: 12px;
+    margin-bottom: 18px;
+    font-weight: 800
+}
+
+.validation-box p {
+    margin: 4px 0
+}
+
+.sport-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+    margin-bottom: 18px
+}
+
+.sport-card {
+    border: 2px solid #111;
+    background: #fff;
+    padding: 18px;
+    box-shadow: 5px 5px 0 #ddd;
+    margin-bottom: 18px
+}
+
+.sport-card h2 {
+    margin: 0 0 14px;
+    font-size: 22px;
+    border-bottom: 2px solid #111;
+    padding-bottom: 8px
+}
+
+.sport-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px
+}
+
+.sport-form label {
+    font-weight: 800
+}
+
+.sport-form input,
+.sport-form select,
+.sport-form textarea {
+    border: 2px solid #111;
+    padding: 10px;
+    background: #fff;
+    font: inherit
+}
+
+.sport-form textarea {
+    min-height: 80px;
+    resize: vertical
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px
+}
+
+.dynamic-fields {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 10px
+}
+
+.dynamic-fields div {
+    display: flex;
+    flex-direction: column;
+    gap: 8px
+}
+
+.primary-btn {
+    border: 2px solid #111;
+    background: #111;
+    color: #fff;
+    padding: 11px 14px;
+    font-weight: 900;
+    cursor: pointer
+}
+
+.readonly-box {
+    border: 2px dashed #777;
+    padding: 14px;
+    background: #fafafa;
+    color: #555;
+    font-weight: 700
+}
+
+.timeline-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px
+}
+
+.timeline-item {
+    border: 2px solid #111;
+    padding: 12px;
+    background: #fff;
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    gap: 6px 12px
+}
+
+.timeline-item b {
+    grid-row: span 4
+}
+
+.timeline-item small {
+    color: #555
+}
+
+.timeline-item p {
+    grid-column: 1/-1;
+    margin: 6px 0 0
+}
+
+.stats-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 10px
+}
+
+.stats-list div {
+    border: 2px solid #111;
+    padding: 12px;
+    background: #fafafa
+}
+
+.stats-list span {
+    display: block;
+    color: #555;
+    font-weight: 700
+}
+
+.stats-list b {
+    font-size: 20px
+}
+
+@media(max-width:850px) {
+    .sport-live-header {
+        flex-direction: column
+    }
+
+    .sport-grid {
+        grid-template-columns: 1fr
+    }
+
+    .timeline-item {
+        grid-template-columns: 1fr
+    }
+
+    .timeline-item b {
+        grid-row: auto
+    }
+
+    .form-row {
+        grid-template-columns: 1fr
+    }
+}
+
+.back-btn {
+  margin-bottom: 16px;
+}
+
+.open-live-match-btn {
+  border: 2px solid #111;
+  background: #fff;
+  color: #111;
+  padding: 10px 12px;
+  font-weight: 900;
+  cursor: pointer;
+  width: 100%;
+}
+
+.open-live-match-btn:hover {
+  background: #f2f2f2;
+}
+
+.bracket-live-btn {
+  margin-top: 12px;
+  width: 100%;
+  box-shadow: 3px 3px 0 #ddd;
+}
+
+.sport-form input:focus,
+.sport-form select:focus,
+.sport-form textarea:focus {
+  outline: 3px solid #ffcf33;
+  outline-offset: 2px;
+}

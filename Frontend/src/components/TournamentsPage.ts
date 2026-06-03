@@ -1,6 +1,7 @@
 import { eventCatalogApi } from "../api/eventCatalogApi";
 import type { EventCatalogItemDto, EventMatchCatalogDto } from "../api/eventCatalogTypes";
 import { NotificationKarina } from "./Notification";
+import { SportLiveMatchPanel } from "./SportLiveMatchPanel";
 import "./tournamentsPage.css";
 
 export class TournamentsPage {
@@ -9,6 +10,7 @@ export class TournamentsPage {
   private selectedEvent?: EventCatalogItemDto;
   private searchTimer?: number;
   private bracketScale = 1;
+  private hasUserSelectedEvent = false;
 
   constructor(containerId: string) {
     const element = document.getElementById(containerId);
@@ -61,11 +63,11 @@ export class TournamentsPage {
     `;
 
     this.bindBaseEvents();
-    await this.loadEvents();
+    await this.loadEvents(false);
   }
 
   private bindBaseEvents() {
-    document.getElementById("reload-tournaments")?.addEventListener("click", () => this.loadEvents());
+    document.getElementById("reload-tournaments")?.addEventListener("click", () => this.loadEvents(true));
 
     const search = document.getElementById("tournament-search") as HTMLInputElement | null;
     const status = document.getElementById("tournament-status") as HTMLSelectElement | null;
@@ -73,14 +75,27 @@ export class TournamentsPage {
 
     search?.addEventListener("input", () => {
       window.clearTimeout(this.searchTimer);
-      this.searchTimer = window.setTimeout(() => this.loadEvents(), 350);
+      this.searchTimer = window.setTimeout(() => {
+        this.selectedEvent = undefined;
+        this.hasUserSelectedEvent = false;
+        this.loadEvents(false);
+      }, 350);
     });
 
-    status?.addEventListener("change", () => this.loadEvents());
-    system?.addEventListener("change", () => this.loadEvents());
+    status?.addEventListener("change", () => {
+      this.selectedEvent = undefined;
+      this.hasUserSelectedEvent = false;
+      this.loadEvents(false);
+    });
+
+    system?.addEventListener("change", () => {
+      this.selectedEvent = undefined;
+      this.hasUserSelectedEvent = false;
+      this.loadEvents(false);
+    });
   }
 
-  private async loadEvents() {
+  private async loadEvents(keepSelection: boolean) {
     const list = document.getElementById("tournaments-list");
     if (list) list.innerHTML = `<div class="loading-card">Завантаження турнірів...</div>`;
 
@@ -90,14 +105,22 @@ export class TournamentsPage {
 
     try {
       this.events = await eventCatalogApi.getEvents({ search, status, system });
-
       this.renderList();
 
-      if (this.events.length) {
-        const id = this.selectedEvent?.idEvent;
-        const next = this.events.find(e => e.idEvent === id) || this.events[0];
-        await this.openEvent(next.idEvent);
-      } else {
+      if (keepSelection && this.selectedEvent) {
+        const exists = this.events.some(e => e.idEvent === this.selectedEvent?.idEvent);
+        if (exists) {
+          await this.openEvent(this.selectedEvent.idEvent, false);
+          return;
+        }
+      }
+
+      if (!this.hasUserSelectedEvent) {
+        this.renderDetailsEmpty("Оберіть турнір зі списку зліва. Автоматично відкривати перший турнір більше не буде.");
+        return;
+      }
+
+      if (!this.events.length) {
         this.renderDetailsEmpty("Турнірів не знайдено");
       }
     } catch (error) {
@@ -128,12 +151,17 @@ export class TournamentsPage {
     `).join("");
 
     list.querySelectorAll<HTMLButtonElement>(".tournament-list-card").forEach(btn => {
-      btn.addEventListener("click", () => this.openEvent(Number(btn.dataset.id)));
+      btn.addEventListener("click", () => {
+        this.hasUserSelectedEvent = true;
+        this.openEvent(Number(btn.dataset.id), true);
+      });
     });
   }
 
-  private async openEvent(idEvent: number) {
+  private async openEvent(idEvent: number, userInitiated: boolean) {
     try {
+      if (userInitiated) this.hasUserSelectedEvent = true;
+
       this.bracketScale = 1;
       this.selectedEvent = await eventCatalogApi.getEvent(idEvent);
       this.renderList();
@@ -142,6 +170,10 @@ export class TournamentsPage {
       console.error("Помилка відкриття турніру:", error);
       new NotificationKarina().show(error instanceof Error ? error.message : "Не вдалося відкрити турнір", "error");
     }
+  }
+
+  private openLiveMatch(matchType: string, matchId: number) {
+    new SportLiveMatchPanel("app", matchType, matchId).render();
   }
 
   private renderDetails(ev: EventCatalogItemDto) {
@@ -237,6 +269,17 @@ export class TournamentsPage {
     document.getElementById("bracket-zoom-out")?.addEventListener("click", () => this.changeBracketZoom(-0.1));
     document.getElementById("bracket-zoom-reset")?.addEventListener("click", () => this.resetBracketZoom());
 
+    document.querySelectorAll<HTMLButtonElement>(".open-live-match-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const type = btn.dataset.type || "";
+        const id = Number(btn.dataset.id);
+
+        if (!type || !id) return;
+
+        this.openLiveMatch(type, id);
+      });
+    });
+
     document.querySelectorAll<HTMLButtonElement>(".submit-result-btn").forEach(btn => {
       btn.addEventListener("click", async () => {
         const matchType = btn.dataset.type || "";
@@ -256,7 +299,7 @@ export class TournamentsPage {
             finishMatch: true,
           });
 
-          await this.openEvent(ev.idEvent);
+          await this.openEvent(ev.idEvent, false);
           new NotificationKarina().show("Результат збережено", "success");
         } catch (error) {
           new NotificationKarina().show(error instanceof Error ? error.message : "Не вдалося зберегти результат", "error");
@@ -280,12 +323,8 @@ export class TournamentsPage {
     const label = document.getElementById("bracket-zoom-value");
 
     if (!canvas) return;
-
     canvas.style.transform = `scale(${this.bracketScale})`;
-
-    if (label) {
-      label.textContent = `${Math.round(this.bracketScale * 100)}%`;
-    }
+    if (label) label.textContent = `${Math.round(this.bracketScale * 100)}%`;
   }
 
   private renderMatches(matches: EventMatchCatalogDto[]) {
@@ -304,7 +343,8 @@ export class TournamentsPage {
             </div>
             <div class="match-side">
               <span class="match-status ${m.status.toLowerCase()}">${this.escapeHtml(m.status)}</span>
-              ${m.canEdit ? `<button class="submit-result-btn primary-btn" data-type="${m.matchType}" data-id="${m.matchId}" type="button">Внести результат</button>` : `<span class="view-only">Тільки перегляд</span>`}
+              <button class="open-live-match-btn secondary-btn" data-type="${m.matchType}" data-id="${m.matchId}" type="button">Live / Деталі</button>
+              ${m.canEdit ? `<button class="submit-result-btn primary-btn" data-type="${m.matchType}" data-id="${m.matchId}" type="button">Швидкий результат</button>` : `<span class="view-only">Тільки перегляд</span>`}
             </div>
           </article>
         `).join("")}
@@ -315,9 +355,7 @@ export class TournamentsPage {
   private renderBracket(ev: EventCatalogItemDto) {
     if (!ev.bracket.length) return `<div class="empty-card">Сітка ще не сформована</div>`;
 
-    const rounds = ev.bracket
-      .slice()
-      .sort((a, b) => a.tour - b.tour || (a.group ?? 0) - (b.group ?? 0));
+    const rounds = ev.bracket.slice().sort((a, b) => a.tour - b.tour || (a.group ?? 0) - (b.group ?? 0));
 
     return `
       <div class="bracket-panel vertical-bracket-panel">
@@ -347,7 +385,7 @@ export class TournamentsPage {
                 </div>
 
                 <div class="vertical-round-grid">
-                  ${round.matches.map((match, matchIndex) => this.renderVerticalBracketMatch(match, roundIndex, matchIndex)).join("")}
+                  ${round.matches.map((match, matchIndex) => this.renderVerticalBracketMatch(match, matchIndex)).join("")}
                 </div>
 
                 ${roundIndex < rounds.length - 1 ? `
@@ -361,18 +399,11 @@ export class TournamentsPage {
             `).join("")}
           </div>
         </div>
-
-        <div class="bracket-legend">
-          <span><i class="legend-dot upcoming"></i> Upcoming</span>
-          <span><i class="legend-dot live"></i> Live</span>
-          <span><i class="legend-dot finished"></i> Finished</span>
-          <span><i class="legend-line vertical"></i> прохід у наступний раунд</span>
-        </div>
       </div>
     `;
   }
 
-  private renderVerticalBracketMatch(match: EventMatchCatalogDto, roundIndex: number, matchIndex: number) {
+  private renderVerticalBracketMatch(match: EventMatchCatalogDto, matchIndex: number) {
     const winner = match.winner || this.resolveWinnerByScore(match);
     const firstWinner = winner && this.isWinner(match.firstParticipant, match.firstLogin, winner);
     const secondWinner = winner && this.isWinner(match.secondParticipant, match.secondLogin, winner);
@@ -405,6 +436,10 @@ export class TournamentsPage {
           ${winner ? `<em>Переможець: ${this.escapeHtml(winner)}</em>` : `<em>Очікує результат</em>`}
         </div>
 
+        <button class="open-live-match-btn bracket-live-btn" data-type="${match.matchType}" data-id="${match.matchId}" type="button">
+          Live / Деталі
+        </button>
+
         ${winner ? `<div class="winner-flow-arrow">↓</div>` : ""}
       </article>
     `;
@@ -412,9 +447,7 @@ export class TournamentsPage {
 
   private resolveWinnerByScore(match: EventMatchCatalogDto) {
     if (!match.score) return "";
-
     const parsed = match.score.match(/(-?\d+)\s*[:\-]\s*(-?\d+)/);
-
     if (!parsed) return "";
 
     const first = Number(parsed[1]);
@@ -422,7 +455,6 @@ export class TournamentsPage {
 
     if (first > second) return match.firstParticipant;
     if (second > first) return match.secondParticipant;
-
     return "";
   }
 
@@ -433,15 +465,13 @@ export class TournamentsPage {
   private renderStandings(ev: EventCatalogItemDto) {
     if (!ev.standings.length) return `<div class="empty-card">Таблиця буде після завершених матчів</div>`;
 
-    const sorted = ev.standings
-      .slice()
-      .sort((a, b) =>
-        a.group - b.group ||
-        b.points - a.points ||
-        b.scoreDiff - a.scoreDiff ||
-        b.scoreFor - a.scoreFor ||
-        a.participant.localeCompare(b.participant)
-      );
+    const sorted = ev.standings.slice().sort((a, b) =>
+      a.group - b.group ||
+      b.points - a.points ||
+      b.scoreDiff - a.scoreDiff ||
+      b.scoreFor - a.scoreFor ||
+      a.participant.localeCompare(b.participant)
+    );
 
     return `
       <div class="standings-panel">
@@ -460,18 +490,7 @@ export class TournamentsPage {
           <table class="standings-table upgraded">
             <thead>
               <tr>
-                <th>#</th>
-                <th>Учасник</th>
-                <th>Group</th>
-                <th title="Played">PL</th>
-                <th title="Points">P</th>
-                <th title="Wins">W</th>
-                <th title="Draws">D</th>
-                <th title="Losses">L</th>
-                <th title="Score For">SF</th>
-                <th title="Score Against">SA</th>
-                <th title="Score Difference">+/-</th>
-                <th>Форма</th>
+                <th>#</th><th>Учасник</th><th>Group</th><th>PL</th><th>P</th><th>W</th><th>D</th><th>L</th><th>SF</th><th>SA</th><th>+/-</th><th>Форма</th>
               </tr>
             </thead>
             <tbody>
@@ -482,14 +501,8 @@ export class TournamentsPage {
                     <strong>${this.escapeHtml(s.participant)}</strong>
                     ${s.participantLogin ? `<small>${this.escapeHtml(s.participantLogin)}</small>` : ""}
                   </td>
-                  <td>${s.group}</td>
-                  <td>${s.played}</td>
-                  <td><b>${s.points}</b></td>
-                  <td>${s.wins}</td>
-                  <td>${s.draws}</td>
-                  <td>${s.losses}</td>
-                  <td>${s.scoreFor}</td>
-                  <td>${s.scoreAgainst}</td>
+                  <td>${s.group}</td><td>${s.played}</td><td><b>${s.points}</b></td><td>${s.wins}</td><td>${s.draws}</td><td>${s.losses}</td>
+                  <td>${s.scoreFor}</td><td>${s.scoreAgainst}</td>
                   <td class="${s.scoreDiff > 0 ? "positive" : s.scoreDiff < 0 ? "negative" : ""}">${s.scoreDiff}</td>
                   <td>${this.renderFormDots(s.wins, s.draws, s.losses)}</td>
                 </tr>
