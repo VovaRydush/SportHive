@@ -1,2 +1,7 @@
 import './styles/main.css';
-import './main';
+import { NavigationManager } from './components/NavigationManager';
+
+document.addEventListener('DOMContentLoaded', () => {
+  const nav = new NavigationManager();
+  nav.init();
+});

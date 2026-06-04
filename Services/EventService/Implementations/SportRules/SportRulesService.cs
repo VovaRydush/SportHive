@@ -15,11 +15,13 @@ namespace SportHive.Implementations.SportRules
     {
         private readonly AppDbContext _context;
         private readonly IHubContext<MatchLiveHub> _hub;
+        private readonly IEventCatalogService _eventCatalogService;
 
-        public SportRulesService(AppDbContext context, IHubContext<MatchLiveHub> hub)
+        public SportRulesService(AppDbContext context, IHubContext<MatchLiveHub> hub, IEventCatalogService eventCatalogService)
         {
             _context = context;
             _hub = hub;
+            _eventCatalogService = eventCatalogService;
         }
 
         public List<SportRuleDto> GetRules()
@@ -162,8 +164,28 @@ namespace SportHive.Implementations.SportRules
             await SetMatchInfoAsync(dto.MatchType, dto.MatchId, ToInfoString(info), dto.FinishMatch ? StatusMatch.Finished : StatusMatch.Live);
 
             var updated = await GetMatchStateAsync(dto.MatchType, dto.MatchId, dto.Login, dto.Role);
+
+            if (dto.FinishMatch)
+            {
+                await TryAdvanceTournamentAsync(updated.IdEvent, dto.Login, dto.Role);
+                updated = await GetMatchStateAsync(dto.MatchType, dto.MatchId, dto.Login, dto.Role);
+            }
+
             await BroadcastAsync(updated);
             return updated;
+        }
+
+        private async Task TryAdvanceTournamentAsync(long idEvent, string? login, string? role)
+        {
+            try
+            {
+                await _eventCatalogService.GenerateNextRoundAsync(idEvent, login, role);
+            }
+            catch
+            {
+                // Not every sport/system should generate a new round immediately.
+                // We keep final result saving stable and leave manual generation available.
+            }
         }
 
         public SportScoreValidationResultDto ValidateFinalScore(string sport, string score, string firstParticipant, string secondParticipant, string? winner)

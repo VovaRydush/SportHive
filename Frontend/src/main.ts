@@ -1,6 +1,6 @@
 import { NavigationManager } from './components/NavigationManager';
 
-document.addEventListener('DOMContentLoaded', () => {
+export function bootstrapSportHive() {
   const nav = new NavigationManager();
   nav.init();
-});
+}
