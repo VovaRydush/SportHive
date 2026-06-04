@@ -1,472 +1,485 @@
 import { eventCatalogApi } from "../api/eventCatalogApi";
-import type { EventCatalogItemDto, EventMatchCatalogDto } from "../api/eventCatalogTypes";
+import type { EventCatalogItemDto, EventMatchCatalogDto, EventStandingDto } from "../api/eventCatalogTypes";
 import { NotificationKarina } from "./Notification";
 import { SportLiveMatchPanel } from "./SportLiveMatchPanel";
 import "./tournamentsPage.css";
+
+type StatusFilter = "all" | "Live" | "Finished" | "Upcoming";
 
 export class TournamentsPage {
   private container: HTMLElement;
   private events: EventCatalogItemDto[] = [];
   private selectedEvent?: EventCatalogItemDto;
-  private searchTimer?: number;
-  private bracketScale = 1;
-  private hasUserSelectedEvent = false;
+  private selectedSport = "all";
+  private statusFilter: StatusFilter = "all";
+  private selectedSystem = "all";
+  private searchText = "";
+  private activeTab: "matches" | "table" | "bracket" = "matches";
 
   constructor(containerId: string) {
     const element = document.getElementById(containerId);
-    if (!element) throw new Error(`Element with id '${containerId}' not found`);
+
+    if (!element) {
+      throw new Error(`Element with id '${containerId}' not found`);
+    }
+
     this.container = element;
   }
 
   async render() {
     this.container.innerHTML = `
-      <section class="tournaments-page">
-        <div class="tournaments-hero">
-          <div>
-            <h1>Турніри SportHive</h1>
-            <p>Усі турніри, матчі, сітка, таблиця та права доступу в одному місці.</p>
+      <section class="score-page">
+        <div class="score-top">
+          <div class="score-title">
+            <span class="score-kicker">SportHive scores</span>
+            <h1>Заходи, матчі та результати</h1>
           </div>
-          <button id="reload-tournaments" class="primary-btn" type="button">Оновити</button>
+          <button id="score-refresh" class="score-btn score-btn-dark" type="button">Оновити</button>
         </div>
 
-        <div class="tournament-filters">
-          <input id="tournament-search" type="text" placeholder="Швидкий пошук по назві, спорту, системі..." />
-          <select id="tournament-status">
-            <option value="all">Усі статуси</option>
-            <option value="Upcoming">Upcoming</option>
-            <option value="Live">Live</option>
-            <option value="Finished">Finished</option>
-          </select>
-          <select id="tournament-system">
-            <option value="all">Усі системи</option>
-            <option value="RoundRobin">Round Robin</option>
-            <option value="GroupStage">Group Stage</option>
-            <option value="PlayOff">PlayOff</option>
-            <option value="OlympicSystem">Olympic</option>
-            <option value="KnockoutSystem">Knockout</option>
-            <option value="SwissSystem">Swiss</option>
-            <option value="DoubleElimination">Double Elimination</option>
-            <option value="QualificationByStandards">Qualification</option>
-          </select>
+        <div id="sports-strip" class="sports-strip">
+          <button class="sport-chip active" type="button">Завантаження...</button>
         </div>
 
-        <div class="tournament-layout">
-          <aside id="tournaments-list" class="tournaments-list">
-            <div class="loading-card">Завантаження турнірів...</div>
+        <div class="score-filters">
+          <div class="score-datebar">
+            <button class="date-btn active" type="button">Усі дати</button>
+            <button class="date-btn" type="button">Сьогодні</button>
+            <button class="date-btn" type="button">Найближчі</button>
+          </div>
+
+          <div class="score-statusbar">
+            <button class="status-pill active" data-status="all" type="button">Усі</button>
+            <button class="status-pill" data-status="Live" type="button">Live</button>
+            <button class="status-pill" data-status="Finished" type="button">Завершені</button>
+            <button class="status-pill" data-status="Upcoming" type="button">Очікують</button>
+          </div>
+        </div>
+
+        <div class="score-layout">
+          <aside class="score-sidebar">
+            <div class="score-card score-search-card">
+              <input id="event-search" class="score-search" placeholder="Пошук команди, заходу, спорту..." />
+            </div>
+
+            <div class="score-card">
+              <div class="card-head">
+                <h3>Види спорту</h3>
+              </div>
+              <div id="sports-list" class="sidebar-list"></div>
+            </div>
+
+            <div class="score-card">
+              <div class="card-head">
+                <h3>Системи</h3>
+              </div>
+              <select id="system-filter" class="score-select">
+                <option value="all">Усі системи</option>
+                <option value="RoundRobin">Round Robin</option>
+                <option value="GroupStage">Group Stage</option>
+                <option value="PlayOff">PlayOff</option>
+                <option value="OlympicSystem">Olympic</option>
+                <option value="KnockoutSystem">Knockout</option>
+                <option value="SwissSystem">Swiss</option>
+                <option value="DoubleElimination">Double Elimination</option>
+                <option value="QualificationByStandards">Qualification</option>
+              </select>
+            </div>
           </aside>
 
-          <main id="tournament-details" class="tournament-details">
-            <div class="empty-card">Оберіть турнір зі списку</div>
+          <main class="score-feed">
+            <div id="feed-summary" class="feed-summary"></div>
+            <div id="events-feed" class="events-feed">
+              <div class="score-card muted-card">Завантаження заходів...</div>
+            </div>
           </main>
+
+          <aside id="event-detail" class="score-detail">
+            <div class="score-card muted-card">
+              Обери захід або матч. Тут буде детальна інформація, матчі, таблиця та сітка.
+            </div>
+          </aside>
         </div>
       </section>
     `;
 
     this.bindBaseEvents();
-    await this.loadEvents(false);
+    await this.loadEvents();
   }
 
   private bindBaseEvents() {
-    document.getElementById("reload-tournaments")?.addEventListener("click", () => this.loadEvents(true));
+    document.getElementById("score-refresh")?.addEventListener("click", () => this.loadEvents(true));
 
-    const search = document.getElementById("tournament-search") as HTMLInputElement | null;
-    const status = document.getElementById("tournament-status") as HTMLSelectElement | null;
-    const system = document.getElementById("tournament-system") as HTMLSelectElement | null;
+    const search = document.getElementById("event-search") as HTMLInputElement | null;
+    let searchTimer: number | undefined;
 
     search?.addEventListener("input", () => {
-      window.clearTimeout(this.searchTimer);
-      this.searchTimer = window.setTimeout(() => {
-        this.selectedEvent = undefined;
-        this.hasUserSelectedEvent = false;
-        this.loadEvents(false);
-      }, 350);
+      window.clearTimeout(searchTimer);
+      searchTimer = window.setTimeout(() => {
+        this.searchText = search.value.trim().toLowerCase();
+        this.renderAll();
+      }, 220);
     });
 
-    status?.addEventListener("change", () => {
-      this.selectedEvent = undefined;
-      this.hasUserSelectedEvent = false;
-      this.loadEvents(false);
+    document.querySelectorAll<HTMLButtonElement>(".status-pill").forEach(button => {
+      button.addEventListener("click", () => {
+        document.querySelectorAll(".status-pill").forEach(x => x.classList.remove("active"));
+        button.classList.add("active");
+        this.statusFilter = (button.dataset.status as StatusFilter) || "all";
+        this.renderAll();
+      });
     });
+
+    const system = document.getElementById("system-filter") as HTMLSelectElement | null;
 
     system?.addEventListener("change", () => {
-      this.selectedEvent = undefined;
-      this.hasUserSelectedEvent = false;
-      this.loadEvents(false);
+      this.selectedSystem = system.value || "all";
+      this.renderAll();
     });
   }
 
-  private async loadEvents(keepSelection: boolean) {
-    const list = document.getElementById("tournaments-list");
-    if (list) list.innerHTML = `<div class="loading-card">Завантаження турнірів...</div>`;
-
-    const search = (document.getElementById("tournament-search") as HTMLInputElement | null)?.value || "";
-    const status = (document.getElementById("tournament-status") as HTMLSelectElement | null)?.value || "all";
-    const system = (document.getElementById("tournament-system") as HTMLSelectElement | null)?.value || "all";
-
+  private async loadEvents(keepSelected = false) {
     try {
-      this.events = await eventCatalogApi.getEvents({ search, status, system });
-      this.renderList();
+      const previousId = this.selectedEvent?.idEvent;
+      this.events = await eventCatalogApi.getEvents({});
 
-      if (keepSelection && this.selectedEvent) {
-        const exists = this.events.some(e => e.idEvent === this.selectedEvent?.idEvent);
-        if (exists) {
-          await this.openEvent(this.selectedEvent.idEvent, false);
-          return;
+      if (keepSelected && previousId) {
+        const refreshed = this.events.find(e => e.idEvent === previousId);
+
+        if (refreshed) {
+          this.selectedEvent = await eventCatalogApi.getEvent(refreshed.idEvent);
         }
       }
 
-      if (!this.hasUserSelectedEvent) {
-        this.renderDetailsEmpty("Оберіть турнір зі списку зліва. Автоматично відкривати перший турнір більше не буде.");
-        return;
-      }
+      this.renderAll();
 
-      if (!this.events.length) {
-        this.renderDetailsEmpty("Турнірів не знайдено");
+      if (this.selectedEvent) {
+        this.renderDetail(this.selectedEvent);
       }
     } catch (error) {
-      console.error("Помилка завантаження турнірів:", error);
-      new NotificationKarina().show(error instanceof Error ? error.message : "Не вдалося завантажити турніри", "error");
-      if (list) list.innerHTML = `<div class="empty-card error">Не вдалося завантажити турніри</div>`;
+      console.error(error);
+      new NotificationKarina().show(error instanceof Error ? error.message : "Не вдалося завантажити заходи", "error");
+
+      const feed = document.getElementById("events-feed");
+      if (feed) {
+        feed.innerHTML = `<div class="score-card error-card">Не вдалося завантажити заходи</div>`;
+      }
     }
   }
 
-  private renderList() {
-    const list = document.getElementById("tournaments-list");
-    if (!list) return;
+  private renderAll() {
+    this.renderSportsStrip();
+    this.renderSportsList();
+    this.renderSummary();
+    this.renderFeed();
+  }
 
-    if (!this.events.length) {
-      list.innerHTML = `<div class="empty-card">Турнірів немає</div>`;
+  private getSports() {
+    const map = new Map<string, number>();
+
+    this.events.forEach(event => {
+      const sport = event.typeSport || "Інше";
+      map.set(sport, (map.get(sport) || 0) + 1);
+    });
+
+    return Array.from(map.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+  }
+
+  private renderSportsStrip() {
+    const root = document.getElementById("sports-strip");
+    if (!root) return;
+
+    const sports = this.getSports();
+
+    root.innerHTML = `
+      <button class="sport-chip ${this.selectedSport === "all" ? "active" : ""}" data-sport="all" type="button">
+        <span>🏆</span> Усі
+      </button>
+      ${sports.map(([sport]) => `
+        <button class="sport-chip ${this.selectedSport === sport ? "active" : ""}" data-sport="${this.escapeAttr(sport)}" type="button">
+          <span>${this.sportIcon(sport)}</span> ${this.escapeHtml(this.sportName(sport))}
+        </button>
+      `).join("")}
+    `;
+
+    root.querySelectorAll<HTMLButtonElement>(".sport-chip").forEach(button => {
+      button.addEventListener("click", () => {
+        this.selectedSport = button.dataset.sport || "all";
+        this.renderAll();
+      });
+    });
+  }
+
+  private renderSportsList() {
+    const root = document.getElementById("sports-list");
+    if (!root) return;
+
+    const sports = this.getSports();
+
+    root.innerHTML = `
+      <button class="sidebar-item ${this.selectedSport === "all" ? "active" : ""}" data-sport="all" type="button">
+        <span><b>🏆</b> Усі види</span>
+        <strong>${this.events.length}</strong>
+      </button>
+      ${sports.map(([sport, count]) => `
+        <button class="sidebar-item ${this.selectedSport === sport ? "active" : ""}" data-sport="${this.escapeAttr(sport)}" type="button">
+          <span><b>${this.sportIcon(sport)}</b> ${this.escapeHtml(this.sportName(sport))}</span>
+          <strong>${count}</strong>
+        </button>
+      `).join("")}
+    `;
+
+    root.querySelectorAll<HTMLButtonElement>(".sidebar-item").forEach(button => {
+      button.addEventListener("click", () => {
+        this.selectedSport = button.dataset.sport || "all";
+        this.renderAll();
+      });
+    });
+  }
+
+  private filteredEvents() {
+    return this.events.filter(event => {
+      if (this.selectedSport !== "all" && event.typeSport !== this.selectedSport) return false;
+      if (this.statusFilter !== "all" && event.status !== this.statusFilter) return false;
+      if (this.selectedSystem !== "all" && event.system !== this.selectedSystem) return false;
+
+      if (this.searchText) {
+        const matchText = event.matches
+          ?.map(match => `${match.firstParticipant} ${match.secondParticipant} ${match.score || ""}`)
+          .join(" ") || "";
+
+        const text = `${event.nameEvent} ${event.description} ${event.typeSport} ${event.system} ${matchText}`.toLowerCase();
+
+        if (!text.includes(this.searchText)) return false;
+      }
+
+      return true;
+    });
+  }
+
+  private renderSummary() {
+    const root = document.getElementById("feed-summary");
+    if (!root) return;
+
+    const events = this.filteredEvents();
+    const live = events.reduce((sum, event) => sum + (event.liveMatches || 0), 0);
+    const matches = events.reduce((sum, event) => sum + (event.totalMatches || 0), 0);
+    const finished = events.reduce((sum, event) => sum + (event.finishedMatches || 0), 0);
+
+    root.innerHTML = `
+      <div class="summary-item">
+        <span>Заходів</span>
+        <b>${events.length}</b>
+      </div>
+      <div class="summary-item">
+        <span>Матчів</span>
+        <b>${matches}</b>
+      </div>
+      <div class="summary-item live">
+        <span>Live</span>
+        <b>${live}</b>
+      </div>
+      <div class="summary-item">
+        <span>Завершено</span>
+        <b>${finished}</b>
+      </div>
+    `;
+  }
+
+  private renderFeed() {
+    const root = document.getElementById("events-feed");
+    if (!root) return;
+
+    const events = this.filteredEvents();
+
+    if (!events.length) {
+      root.innerHTML = `
+        <div class="score-card empty-state">
+          <h3>Нічого не знайдено</h3>
+          <p>Зміни спорт, статус, систему або пошук.</p>
+        </div>
+      `;
       return;
     }
 
-    list.innerHTML = this.events.map(ev => `
-      <button class="tournament-list-card ${this.selectedEvent?.idEvent === ev.idEvent ? "active" : ""}" data-id="${ev.idEvent}" type="button">
-        <span class="status-dot ${ev.status.toLowerCase()}"></span>
-        <div>
-          <strong>${this.escapeHtml(ev.nameEvent)}</strong>
-          <small>${this.escapeHtml(ev.typeSport)} · ${this.escapeHtml(ev.system)}</small>
-          <small>${ev.finishedMatches}/${ev.totalMatches} матчів завершено</small>
-        </div>
-      </button>
+    const grouped = this.groupBySport(events);
+
+    root.innerHTML = Array.from(grouped.entries()).map(([sport, sportEvents]) => `
+      <section class="competition-card">
+        <header class="competition-header">
+          <div>
+            <span class="competition-country">${this.sportIcon(sport)} ${this.escapeHtml(this.sportName(sport))}</span>
+            <h2>${this.escapeHtml(sportEvents.length === 1 ? sportEvents[0].nameEvent : `${sportEvents.length} заходів`)}</h2>
+          </div>
+          <span class="competition-count">${sportEvents.reduce((sum, e) => sum + (e.totalMatches || 0), 0)} матчів</span>
+        </header>
+
+        ${sportEvents.map(event => this.renderEventBlock(event)).join("")}
+      </section>
     `).join("");
 
-    list.querySelectorAll<HTMLButtonElement>(".tournament-list-card").forEach(btn => {
-      btn.addEventListener("click", () => {
-        this.hasUserSelectedEvent = true;
-        this.openEvent(Number(btn.dataset.id), true);
-      });
-    });
-  }
-
-  private async openEvent(idEvent: number, userInitiated: boolean) {
-    try {
-      if (userInitiated) this.hasUserSelectedEvent = true;
-
-      this.bracketScale = 1;
-      this.selectedEvent = await eventCatalogApi.getEvent(idEvent);
-      this.renderList();
-      this.renderDetails(this.selectedEvent);
-    } catch (error) {
-      console.error("Помилка відкриття турніру:", error);
-      new NotificationKarina().show(error instanceof Error ? error.message : "Не вдалося відкрити турнір", "error");
-    }
-  }
-
-  private openLiveMatch(matchType: string, matchId: number) {
-    new SportLiveMatchPanel("app", matchType, matchId).render();
-  }
-
-  private renderDetails(ev: EventCatalogItemDto) {
-    const root = document.getElementById("tournament-details");
-    if (!root) return;
-
-    root.innerHTML = `
-      <div class="event-detail-header">
-        <img src="${this.escapeHtml(ev.eventPhoto || "https://placehold.co/900x280?text=Tournament")}" alt="${this.escapeHtml(ev.nameEvent)}" />
-        <div>
-          <span class="event-status ${ev.status.toLowerCase()}">${this.escapeHtml(ev.status)}</span>
-          <h2>${this.escapeHtml(ev.nameEvent)}</h2>
-          <p>${this.escapeHtml(ev.description || "")}</p>
-          <div class="event-meta">
-            <span>${this.escapeHtml(ev.typeSport)}</span>
-            <span>${this.escapeHtml(ev.system)}</span>
-            <span>${this.formatDate(ev.dataStart)}</span>
-            <span>${this.escapeHtml(ev.accessLevel)}</span>
-          </div>
-
-          ${
-            ev.canManageEvent && ev.status !== "Finished" && ev.system !== "QualificationByStandards"
-              ? `<div class="event-actions">
-                  <button id="generate-next-round-btn" class="primary-btn" type="button">Згенерувати наступний раунд</button>
-                  <button id="rebuild-event-btn" class="secondary-btn" type="button">Перерахувати</button>
-                </div>`
-              : ""
-          }
-        </div>
-      </div>
-
-      <div class="event-summary-grid">
-        <div class="summary-card"><b>${ev.totalMatches}</b><span>Усього матчів</span></div>
-        <div class="summary-card live"><b>${ev.liveMatches}</b><span>Live</span></div>
-        <div class="summary-card finished"><b>${ev.finishedMatches}</b><span>Завершені</span></div>
-        <div class="summary-card upcoming"><b>${ev.upcomingMatches}</b><span>Очікують</span></div>
-      </div>
-
-      <div class="event-tabs">
-        <button class="event-tab active" data-tab="matches" type="button">Матчі</button>
-        <button class="event-tab" data-tab="bracket" type="button">Вертикальна сітка</button>
-        <button class="event-tab" data-tab="standings" type="button">Таблиця</button>
-      </div>
-
-      <section id="tab-matches" class="event-tab-content active">
-        ${this.renderMatches(ev.matches)}
-      </section>
-
-      <section id="tab-bracket" class="event-tab-content">
-        ${this.renderBracket(ev)}
-      </section>
-
-      <section id="tab-standings" class="event-tab-content">
-        ${this.renderStandings(ev)}
-      </section>
-    `;
-
-    this.bindDetailsEvents(ev);
-  }
-
-  private bindDetailsEvents(ev: EventCatalogItemDto) {
-    document.querySelectorAll<HTMLButtonElement>(".event-tab").forEach(tab => {
-      tab.addEventListener("click", () => {
-        document.querySelectorAll(".event-tab").forEach(x => x.classList.remove("active"));
-        document.querySelectorAll(".event-tab-content").forEach(x => x.classList.remove("active"));
-
-        tab.classList.add("active");
-        document.getElementById(`tab-${tab.dataset.tab}`)?.classList.add("active");
-      });
+    root.querySelectorAll<HTMLButtonElement>(".open-event-detail").forEach(button => {
+      button.addEventListener("click", () => this.openEvent(Number(button.dataset.id)));
     });
 
-    document.getElementById("generate-next-round-btn")?.addEventListener("click", async () => {
-      try {
-        this.selectedEvent = await eventCatalogApi.generateNextRound(ev.idEvent);
-        this.renderDetails(this.selectedEvent);
-        new NotificationKarina().show("Наступний раунд згенеровано", "success");
-      } catch (error) {
-        new NotificationKarina().show(error instanceof Error ? error.message : "Не вдалося згенерувати раунд", "error");
-      }
-    });
+    root.querySelectorAll<HTMLButtonElement>(".open-match-live").forEach(button => {
+      button.addEventListener("click", () => {
+        const type = button.dataset.type || "team";
+        const id = Number(button.dataset.id);
 
-    document.getElementById("rebuild-event-btn")?.addEventListener("click", async () => {
-      try {
-        this.selectedEvent = await eventCatalogApi.rebuild(ev.idEvent);
-        this.renderDetails(this.selectedEvent);
-        new NotificationKarina().show("Турнір перераховано", "success");
-      } catch (error) {
-        new NotificationKarina().show(error instanceof Error ? error.message : "Не вдалося перерахувати", "error");
-      }
-    });
-
-    document.getElementById("bracket-zoom-in")?.addEventListener("click", () => this.changeBracketZoom(0.1));
-    document.getElementById("bracket-zoom-out")?.addEventListener("click", () => this.changeBracketZoom(-0.1));
-    document.getElementById("bracket-zoom-reset")?.addEventListener("click", () => this.resetBracketZoom());
-
-    document.querySelectorAll<HTMLButtonElement>(".open-live-match-btn").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const type = btn.dataset.type || "";
-        const id = Number(btn.dataset.id);
-
-        if (!type || !id) return;
+        if (!id) return;
 
         this.openLiveMatch(type, id);
       });
     });
+  }
 
-    document.querySelectorAll<HTMLButtonElement>(".submit-result-btn").forEach(btn => {
-      btn.addEventListener("click", async () => {
-        const matchType = btn.dataset.type || "";
-        const matchId = Number(btn.dataset.id);
-        const score = prompt("Рахунок / результат. Наприклад 2:1");
-        if (!score) return;
+  private renderEventBlock(event: EventCatalogItemDto) {
+    const visibleMatches = this.pickVisibleMatches(event.matches || []);
 
-        const winner = prompt("Переможець. Введи назву команди або login спортсмена. Можна залишити пустим, якщо рахуємо по score.") || "";
+    return `
+      <article class="event-block ${this.selectedEvent?.idEvent === event.idEvent ? "selected" : ""}">
+        <button class="event-main-line open-event-detail" data-id="${event.idEvent}" type="button">
+          <div class="event-name-line">
+            <span class="event-status ${event.status.toLowerCase()}">${this.statusLabel(event.status)}</span>
+            <strong>${this.escapeHtml(event.nameEvent)}</strong>
+          </div>
+          <div class="event-right">
+            <span>${this.escapeHtml(event.system)}</span>
+            <b>${event.finishedMatches}/${event.totalMatches}</b>
+          </div>
+        </button>
 
-        try {
-          await eventCatalogApi.submitResult({
-            matchType,
-            matchId,
-            score,
-            winner,
-            notes: "",
-            finishMatch: true,
-          });
+        <div class="event-match-preview">
+          ${
+            visibleMatches.length
+              ? visibleMatches.map(match => this.renderMatchLine(match)).join("")
+              : `<div class="match-line disabled"><span>Матчів поки немає</span></div>`
+          }
+        </div>
+      </article>
+    `;
+  }
 
-          await this.openEvent(ev.idEvent, false);
-          new NotificationKarina().show("Результат збережено", "success");
-        } catch (error) {
-          new NotificationKarina().show(error instanceof Error ? error.message : "Не вдалося зберегти результат", "error");
-        }
+  private renderMatchLine(match: EventMatchCatalogDto) {
+    return `
+      <div class="match-line">
+        <button class="match-teams open-match-live" data-type="${match.matchType}" data-id="${match.matchId}" type="button">
+          <span class="match-minute">${match.status === "Live" ? "LIVE" : `R${match.tour}`}</span>
+          <span class="team-name">${this.escapeHtml(match.firstParticipant)}</span>
+          <strong class="match-score">${this.scorePart(match.score, 0)}</strong>
+          <span class="team-name">${this.escapeHtml(match.secondParticipant)}</span>
+          <strong class="match-score">${this.scorePart(match.score, 1)}</strong>
+        </button>
+        <button class="match-action open-match-live" data-type="${match.matchType}" data-id="${match.matchId}" type="button">
+          Деталі
+        </button>
+      </div>
+    `;
+  }
+
+  private pickVisibleMatches(matches: EventMatchCatalogDto[]) {
+    const sorted = matches.slice().sort((a, b) => {
+      const statusRank = (status: string) => status === "Live" ? 0 : status === "Upcoming" ? 1 : 2;
+      return statusRank(a.status) - statusRank(b.status) || a.tour - b.tour || a.matchId - b.matchId;
+    });
+
+    return sorted.slice(0, 4);
+  }
+
+  private async openEvent(idEvent: number) {
+    try {
+      this.selectedEvent = await eventCatalogApi.getEvent(idEvent);
+      this.activeTab = "matches";
+      this.renderDetail(this.selectedEvent);
+      this.renderFeed();
+    } catch (error) {
+      new NotificationKarina().show(error instanceof Error ? error.message : "Не вдалося відкрити захід", "error");
+    }
+  }
+
+  private renderDetail(event: EventCatalogItemDto) {
+    const root = document.getElementById("event-detail");
+    if (!root) return;
+
+    root.innerHTML = `
+      <div class="detail-card">
+        <div class="detail-hero">
+          <span class="event-status ${event.status.toLowerCase()}">${this.statusLabel(event.status)}</span>
+          <h2>${this.escapeHtml(event.nameEvent)}</h2>
+          <p>${this.escapeHtml(event.description || "Опис відсутній")}</p>
+          <div class="detail-meta">
+            <span>${this.sportIcon(event.typeSport)} ${this.escapeHtml(this.sportName(event.typeSport))}</span>
+            <span>${this.escapeHtml(event.system)}</span>
+            <span>${this.formatDate(event.dataStart)}</span>
+          </div>
+        </div>
+
+        <div class="detail-tabs">
+          <button class="detail-tab ${this.activeTab === "matches" ? "active" : ""}" data-tab="matches" type="button">Матчі</button>
+          <button class="detail-tab ${this.activeTab === "table" ? "active" : ""}" data-tab="table" type="button">Таблиця</button>
+          <button class="detail-tab ${this.activeTab === "bracket" ? "active" : ""}" data-tab="bracket" type="button">Сітка</button>
+        </div>
+
+        <div id="detail-content" class="detail-content">
+          ${this.renderDetailContent(event)}
+        </div>
+      </div>
+    `;
+
+    root.querySelectorAll<HTMLButtonElement>(".detail-tab").forEach(button => {
+      button.addEventListener("click", () => {
+        this.activeTab = (button.dataset.tab as "matches" | "table" | "bracket") || "matches";
+        this.renderDetail(event);
+      });
+    });
+
+    root.querySelectorAll<HTMLButtonElement>(".open-match-live").forEach(button => {
+      button.addEventListener("click", () => {
+        const type = button.dataset.type || "team";
+        const id = Number(button.dataset.id);
+
+        if (!id) return;
+
+        this.openLiveMatch(type, id);
       });
     });
   }
 
-  private changeBracketZoom(delta: number) {
-    this.bracketScale = Math.min(1.6, Math.max(0.55, Number((this.bracketScale + delta).toFixed(2))));
-    this.applyBracketZoom();
+  private renderDetailContent(event: EventCatalogItemDto) {
+    if (this.activeTab === "table") return this.renderStanding(event.standings || []);
+    if (this.activeTab === "bracket") return this.renderBracket(event);
+    return this.renderAllMatches(event.matches || []);
   }
 
-  private resetBracketZoom() {
-    this.bracketScale = 1;
-    this.applyBracketZoom();
-  }
-
-  private applyBracketZoom() {
-    const canvas = document.getElementById("bracket-canvas") as HTMLElement | null;
-    const label = document.getElementById("bracket-zoom-value");
-
-    if (!canvas) return;
-    canvas.style.transform = `scale(${this.bracketScale})`;
-    if (label) label.textContent = `${Math.round(this.bracketScale * 100)}%`;
-  }
-
-  private renderMatches(matches: EventMatchCatalogDto[]) {
-    if (!matches.length) return `<div class="empty-card">Матчів поки немає</div>`;
+  private renderAllMatches(matches: EventMatchCatalogDto[]) {
+    if (!matches.length) return `<div class="empty-state compact">Матчів поки немає</div>`;
 
     return `
-      <div class="matches-list">
-        ${matches.map(m => `
-          <article class="match-row ${m.status.toLowerCase()}">
-            <div class="match-main">
-              <span class="match-type">${this.escapeHtml(m.matchType)} · Round ${m.tour}${m.group ? ` · Group ${m.group}` : ""}</span>
-              <h3>${this.escapeHtml(m.firstParticipant)} <span>vs</span> ${this.escapeHtml(m.secondParticipant)}</h3>
-              <p>${this.escapeHtml(m.locationName || "-")} · ${this.formatDate(m.dataMatch)} · ${this.escapeHtml(String(m.timeMatch || ""))}</p>
-              ${m.score ? `<p class="score-line">Score: ${this.escapeHtml(m.score)} ${m.winner ? `· Winner: ${this.escapeHtml(m.winner)}` : ""}</p>` : ""}
-              <p class="access-line">${this.escapeHtml(m.accessReason)} · Judge: ${this.escapeHtml(m.loginJudge || "-")}</p>
+      <div class="detail-match-list">
+        ${matches.map(match => `
+          <div class="detail-match-row">
+            <div>
+              <span class="match-round">${match.matchType} · Round ${match.tour}${match.group ? ` · Group ${match.group}` : ""}</span>
+              <h3>${this.escapeHtml(match.firstParticipant)} — ${this.escapeHtml(match.secondParticipant)}</h3>
+              <p>${this.escapeHtml(match.locationName || "Локацію не вказано")} · Суддя: ${this.escapeHtml(match.loginJudge || "-")}</p>
             </div>
-            <div class="match-side">
-              <span class="match-status ${m.status.toLowerCase()}">${this.escapeHtml(m.status)}</span>
-              <button class="open-live-match-btn secondary-btn" data-type="${m.matchType}" data-id="${m.matchId}" type="button">Live / Деталі</button>
-              ${m.canEdit ? `<button class="submit-result-btn primary-btn" data-type="${m.matchType}" data-id="${m.matchId}" type="button">Швидкий результат</button>` : `<span class="view-only">Тільки перегляд</span>`}
+            <div class="detail-score">
+              <b>${this.escapeHtml(match.score || "vs")}</b>
+              <button class="score-btn open-match-live" data-type="${match.matchType}" data-id="${match.matchId}" type="button">
+                ${match.canEdit ? "Внести" : "Деталі"}
+              </button>
             </div>
-          </article>
+          </div>
         `).join("")}
       </div>
     `;
   }
 
-  private renderBracket(ev: EventCatalogItemDto) {
-    if (!ev.bracket.length) return `<div class="empty-card">Сітка ще не сформована</div>`;
+  private renderStanding(rows: EventStandingDto[]) {
+    if (!rows.length) return `<div class="empty-state compact">Таблиця буде після завершених матчів</div>`;
 
-    const rounds = ev.bracket.slice().sort((a, b) => a.tour - b.tour || (a.group ?? 0) - (b.group ?? 0));
-
-    return `
-      <div class="bracket-panel vertical-bracket-panel">
-        <div class="bracket-toolbar">
-          <div>
-            <h3>Вертикальна сітка турніру</h3>
-            <p>Раунди йдуть зверху вниз. Переможці підсвічені, а стрілки показують прохід у наступний раунд.</p>
-          </div>
-          <div class="bracket-zoom-controls">
-            <button id="bracket-zoom-out" type="button">−</button>
-            <span id="bracket-zoom-value">100%</span>
-            <button id="bracket-zoom-in" type="button">+</button>
-            <button id="bracket-zoom-reset" type="button">Reset</button>
-          </div>
-        </div>
-
-        <div class="vertical-bracket-viewport">
-          <div id="bracket-canvas" class="vertical-bracket-map" style="transform: scale(${this.bracketScale});">
-            ${rounds.map((round, roundIndex) => `
-              <section class="vertical-round" data-round="${round.tour}">
-                <div class="vertical-round-header">
-                  <div>
-                    <span class="round-kicker">Round ${round.tour}</span>
-                    <h4>${round.group ? `Group ${round.group}` : this.escapeHtml(round.bracketCode)}</h4>
-                  </div>
-                  <span class="round-count">${round.matches.length} матчів</span>
-                </div>
-
-                <div class="vertical-round-grid">
-                  ${round.matches.map((match, matchIndex) => this.renderVerticalBracketMatch(match, matchIndex)).join("")}
-                </div>
-
-                ${roundIndex < rounds.length - 1 ? `
-                  <div class="round-flow">
-                    <span></span>
-                    <b>переможці проходять нижче</b>
-                    <span></span>
-                  </div>
-                ` : ""}
-              </section>
-            `).join("")}
-          </div>
-        </div>
-      </div>
-    `;
-  }
-
-  private renderVerticalBracketMatch(match: EventMatchCatalogDto, matchIndex: number) {
-    const winner = match.winner || this.resolveWinnerByScore(match);
-    const firstWinner = winner && this.isWinner(match.firstParticipant, match.firstLogin, winner);
-    const secondWinner = winner && this.isWinner(match.secondParticipant, match.secondLogin, winner);
-
-    return `
-      <article class="vertical-match-card ${match.status.toLowerCase()} ${winner ? "has-winner" : ""}">
-        <div class="vertical-match-top">
-          <span>${this.escapeHtml(match.matchType)} #${match.matchId}</span>
-          <b>${this.escapeHtml(match.status)}</b>
-        </div>
-
-        <div class="vertical-match-body">
-          <div class="vertical-player ${firstWinner ? "winner" : ""}">
-            <span class="seed-number">${matchIndex * 2 + 1}</span>
-            <strong>${this.escapeHtml(match.firstParticipant)}</strong>
-          </div>
-
-          <div class="vertical-score">
-            <span>${this.escapeHtml(match.score || "vs")}</span>
-          </div>
-
-          <div class="vertical-player ${secondWinner ? "winner" : ""}">
-            <span class="seed-number">${matchIndex * 2 + 2}</span>
-            <strong>${this.escapeHtml(match.secondParticipant)}</strong>
-          </div>
-        </div>
-
-        <div class="vertical-match-footer">
-          <span>${this.escapeHtml(match.locationName || "-")}</span>
-          ${winner ? `<em>Переможець: ${this.escapeHtml(winner)}</em>` : `<em>Очікує результат</em>`}
-        </div>
-
-        <button class="open-live-match-btn bracket-live-btn" data-type="${match.matchType}" data-id="${match.matchId}" type="button">
-          Live / Деталі
-        </button>
-
-        ${winner ? `<div class="winner-flow-arrow">↓</div>` : ""}
-      </article>
-    `;
-  }
-
-  private resolveWinnerByScore(match: EventMatchCatalogDto) {
-    if (!match.score) return "";
-    const parsed = match.score.match(/(-?\d+)\s*[:\-]\s*(-?\d+)/);
-    if (!parsed) return "";
-
-    const first = Number(parsed[1]);
-    const second = Number(parsed[2]);
-
-    if (first > second) return match.firstParticipant;
-    if (second > first) return match.secondParticipant;
-    return "";
-  }
-
-  private isWinner(name: string, login: string | null | undefined, winner: string) {
-    return winner === name || winner === login;
-  }
-
-  private renderStandings(ev: EventCatalogItemDto) {
-    if (!ev.standings.length) return `<div class="empty-card">Таблиця буде після завершених матчів</div>`;
-
-    const sorted = ev.standings.slice().sort((a, b) =>
-      a.group - b.group ||
+    const sorted = rows.slice().sort((a, b) =>
       b.points - a.points ||
       b.scoreDiff - a.scoreDiff ||
       b.scoreFor - a.scoreFor ||
@@ -474,64 +487,128 @@ export class TournamentsPage {
     );
 
     return `
-      <div class="standings-panel">
-        <div class="standings-header">
-          <div>
-            <h3>Турнірна таблиця</h3>
-            <p>P — очки, W/D/L — перемоги/нічиї/поразки, SF/SA — забито/пропущено, +/- — різниця.</p>
-          </div>
-          <div class="standings-badges">
-            <span>${ev.standings.length} учасників</span>
-            <span>${ev.finishedMatches} завершених матчів</span>
-          </div>
-        </div>
-
-        <div class="standings-table-wrap">
-          <table class="standings-table upgraded">
-            <thead>
+      <div class="standing-table-wrap">
+        <table class="score-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Учасник</th>
+              <th>PL</th>
+              <th>W</th>
+              <th>D</th>
+              <th>L</th>
+              <th>+/-</th>
+              <th>P</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${sorted.map((row, index) => `
               <tr>
-                <th>#</th><th>Учасник</th><th>Group</th><th>PL</th><th>P</th><th>W</th><th>D</th><th>L</th><th>SF</th><th>SA</th><th>+/-</th><th>Форма</th>
+                <td>${index + 1}</td>
+                <td class="participant-cell">${this.escapeHtml(row.participant)}</td>
+                <td>${row.played}</td>
+                <td>${row.wins}</td>
+                <td>${row.draws}</td>
+                <td>${row.losses}</td>
+                <td>${row.scoreDiff}</td>
+                <td><b>${row.points}</b></td>
               </tr>
-            </thead>
-            <tbody>
-              ${sorted.map((s, index) => `
-                <tr class="${index < 2 ? "top-place" : ""}">
-                  <td><span class="rank-badge">${index + 1}</span></td>
-                  <td>
-                    <strong>${this.escapeHtml(s.participant)}</strong>
-                    ${s.participantLogin ? `<small>${this.escapeHtml(s.participantLogin)}</small>` : ""}
-                  </td>
-                  <td>${s.group}</td><td>${s.played}</td><td><b>${s.points}</b></td><td>${s.wins}</td><td>${s.draws}</td><td>${s.losses}</td>
-                  <td>${s.scoreFor}</td><td>${s.scoreAgainst}</td>
-                  <td class="${s.scoreDiff > 0 ? "positive" : s.scoreDiff < 0 ? "negative" : ""}">${s.scoreDiff}</td>
-                  <td>${this.renderFormDots(s.wins, s.draws, s.losses)}</td>
-                </tr>
-              `).join("")}
-            </tbody>
-          </table>
-        </div>
+            `).join("")}
+          </tbody>
+        </table>
       </div>
     `;
   }
 
-  private renderFormDots(wins: number, draws: number, losses: number) {
-    const dots: string[] = [];
-    for (let i = 0; i < Math.min(wins, 5); i++) dots.push(`<i class="form-dot win">W</i>`);
-    for (let i = 0; i < Math.min(draws, 5 - dots.length); i++) dots.push(`<i class="form-dot draw">D</i>`);
-    for (let i = 0; i < Math.min(losses, 5 - dots.length); i++) dots.push(`<i class="form-dot loss">L</i>`);
-    return dots.length ? dots.join("") : `<span class="muted">—</span>`;
+  private renderBracket(event: EventCatalogItemDto) {
+    if (!event.bracket?.length) return `<div class="empty-state compact">Сітка ще не сформована</div>`;
+
+    return `
+      <div class="compact-bracket">
+        ${event.bracket.map(round => `
+          <section class="round-card">
+            <header>
+              <strong>Round ${round.tour}</strong>
+              <span>${round.group ? `Group ${round.group}` : round.bracketCode}</span>
+            </header>
+            ${round.matches.map(match => `
+              <button class="bracket-match open-match-live" data-type="${match.matchType}" data-id="${match.matchId}" type="button">
+                <span>${this.escapeHtml(match.firstParticipant)}</span>
+                <b>${this.escapeHtml(match.score || "vs")}</b>
+                <span>${this.escapeHtml(match.secondParticipant)}</span>
+              </button>
+            `).join("")}
+          </section>
+        `).join("")}
+      </div>
+    `;
   }
 
-  private renderDetailsEmpty(text: string) {
-    const root = document.getElementById("tournament-details");
-    if (root) root.innerHTML = `<div class="empty-card">${this.escapeHtml(text)}</div>`;
+  private openLiveMatch(matchType: string, matchId: number) {
+    new SportLiveMatchPanel("app", matchType, matchId).render();
+  }
+
+  private groupBySport(events: EventCatalogItemDto[]) {
+    const map = new Map<string, EventCatalogItemDto[]>();
+
+    events.forEach(event => {
+      const sport = event.typeSport || "Інше";
+      const list = map.get(sport) || [];
+      list.push(event);
+      map.set(sport, list);
+    });
+
+    return map;
+  }
+
+  private scorePart(score: string | null | undefined, index: 0 | 1) {
+    if (!score) return "-";
+
+    const normalized = score.replace(/ /g, "");
+    const parts = normalized.split(/[:\-]/);
+
+    return parts[index] || (index === 0 ? score : "");
+  }
+
+  private statusLabel(status: string) {
+    if (status === "Live") return "LIVE";
+    if (status === "Finished") return "FT";
+    if (status === "Upcoming") return "NS";
+    return status || "-";
+  }
+
+  private sportIcon(sport: string) {
+    const key = (sport || "").toLowerCase();
+
+    if (key.includes("football") || key.includes("фут")) return "⚽";
+    if (key.includes("basket") || key.includes("бас")) return "🏀";
+    if (key.includes("tennis") || key.includes("тен")) return "🎾";
+    if (key.includes("hockey") || key.includes("хок")) return "🏒";
+    if (key.includes("volley") || key.includes("вол")) return "🏐";
+    if (key.includes("box") || key.includes("бокс")) return "🥊";
+    if (key.includes("chess") || key.includes("шах")) return "♟️";
+    if (key.includes("check")) return "🔲";
+    if (key.includes("base")) return "⚾";
+
+    return "🏆";
+  }
+
+  private sportName(sport: string) {
+    return sport || "Інше";
   }
 
   private formatDate(value?: string | null) {
     if (!value) return "-";
+
     const date = new Date(value);
+
     if (Number.isNaN(date.getTime())) return "-";
-    return date.toLocaleDateString("uk-UA");
+
+    return date.toLocaleDateString("uk-UA", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
   }
 
   private escapeHtml(value: unknown) {
@@ -541,5 +618,9 @@ export class TournamentsPage {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
+  }
+
+  private escapeAttr(value: unknown) {
+    return this.escapeHtml(value).replace(/`/g, "&#096;");
   }
 }

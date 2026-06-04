@@ -5,14 +5,15 @@ export class HomePage {
 
   constructor(containerId: string) {
     const element = document.getElementById(containerId);
+
     if (!element) {
       throw new Error(`Element with id '${containerId}' not found`);
     }
+
     this.container = element;
   }
 
   async render() {
-    this.container.innerHTML = `<div id="home-tournaments-root"></div>`;
-    await new TournamentsPage('home-tournaments-root').render();
+    await new TournamentsPage(this.container.id).render();
   }
 }
