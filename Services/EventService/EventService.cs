@@ -94,6 +94,7 @@ builder.Services.AddScoped<UserProfileFactory>();
 builder.Services.AddScoped<EnumWork>();
 builder.Services.AddScoped<ISetResultMatch, SetResultMatch>();
 builder.Services.AddScoped<IMatchsGenerator, MatchsGenerator>();
+builder.Services.AddScoped<IStage3TournamentService, Stage3TournamentService>();
 builder.Services.AddScoped<IInitalSystemGrid, InitalSystemGrid>();
 builder.Services.AddScoped<IGetPointMatch, GetPointMatch>();
 builder.Services.AddScoped<IEventCatalogService, EventCatalogService>();

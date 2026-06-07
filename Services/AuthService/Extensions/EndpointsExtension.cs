@@ -9,6 +9,8 @@ namespace AuthService.Extensions{
             app.UserManipuleteEndpoint();
             app.UserProfileEndpoint();
             app.OrganizationLinkedSearchEndpoint();
+            app.OrganizationInvitationEndpoint();
+
         }
     }
 }

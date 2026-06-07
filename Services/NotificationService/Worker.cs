@@ -1,67 +1,101 @@
 namespace NotificationService;
+
 using Confluent.Kafka;
 using DB.SportHive.Domain;
 using StackExchange.Redis;
 using System.Net;
 using System.Net.Mail;
 using System.Text.Json;
-using System.Threading;
+
 public class ConsumerEmail : BackgroundService
 {
     private readonly ILogger<ConsumerEmail> _logger;
     private readonly IDatabase _database;
-    private ConsumerConfig config;
-    private IConsumer<Null, string> consumer;
+    private readonly ConsumerConfig config;
+    private readonly IConsumer<Null, string> consumer;
+    private readonly IConfiguration _configuration;
 
-    public ConsumerEmail(ILogger<ConsumerEmail> logger,IConnectionMultiplexer database)
+    public ConsumerEmail(
+        ILogger<ConsumerEmail> logger,
+        IConnectionMultiplexer database,
+        IConfiguration configuration)
     {
         _database = database.GetDatabase();
         _logger = logger;
+        _configuration = configuration;
+
         config = new ConsumerConfig
         {
-            BootstrapServers = "localhost:9093",
+            BootstrapServers = _configuration["Kafka:BootstrapServers"] ?? "localhost:9093",
             GroupId = "email-consumer",
             AutoOffsetReset = AutoOffsetReset.Earliest,
             EnableAutoCommit = false
         };
+
         consumer = new ConsumerBuilder<Null, string>(config).Build();
         consumer.Subscribe("user_email");
     }
 
-    public async Task SendEmail(EmailMessageDto message)
+    public async Task SendEmail(EnhancedEmailMessageDto message)
     {
         try
         {
-            using var smtp = new SmtpClient("smtp.gmail.com")
+            var smtpHost = _configuration["Smtp:Host"] ?? "smtp.gmail.com";
+            var smtpPort = int.TryParse(_configuration["Smtp:Port"], out var parsedPort) ? parsedPort : 587;
+            var smtpUser = _configuration["Smtp:Username"] ?? "vadimrudis7@gmail.com";
+            var smtpPassword = _configuration["Smtp:Password"] ?? "qtfo apob lfjd nqfp";
+            var from = string.IsNullOrWhiteSpace(message.From)
+                ? (_configuration["Smtp:From"] ?? smtpUser)
+                : message.From;
+
+            using var smtp = new SmtpClient(smtpHost)
             {
-                Credentials = new NetworkCredential("vadimrudis7@gmail.com", "qtfo apob lfjd nqfp"),
+                Credentials = new NetworkCredential(smtpUser, smtpPassword),
                 EnableSsl = true,
-                Port = 587
+                Port = smtpPort
             };
-            Random random = new Random();
-            string code = random.Next(100000, 1000000).ToString();
-           
-            _ = _database.StringSetAsync(message.To, code,TimeSpan.FromMinutes(10));
+
+            var subject = string.IsNullOrWhiteSpace(message.Subject)
+                ? "SportHive"
+                : message.Subject;
+
+            string body;
+
+            if (!string.IsNullOrWhiteSpace(message.Body))
+            {
+                body = message.IsBodyHtml
+                    ? message.Body
+                    : ToHtml(message.Body);
+            }
+            else
+            {
+                // Backward compatibility with old registration/recovery emails:
+                // old AuthService sends only To/From/Subject, so we generate confirmation code as before.
+                var random = new Random();
+                var code = random.Next(100000, 1000000).ToString();
+                _ = _database.StringSetAsync(message.To, code, TimeSpan.FromMinutes(10));
+                body = HTMLTemplate.getHTMLPage(code, subject);
+            }
 
             var mail = new MailMessage
             {
-                From = new MailAddress(message.From),
-                Subject = message.Subject,
-                Body = HTMLTemplate.getHTMLPage(code, message.Subject),
-                IsBodyHtml = true 
+                From = new MailAddress(from),
+                Subject = subject,
+                Body = body,
+                IsBodyHtml = true
             };
 
-            
             foreach (var recipient in message.To.Split(',', StringSplitOptions.RemoveEmptyEntries))
             {
                 mail.To.Add(recipient.Trim());
             }
 
             await smtp.SendMailAsync(mail);
+            _logger.LogInformation("Email sent to {Email} with subject {Subject}", message.To, subject);
         }
         catch (Exception ex)
         {
-            _logger.LogError($"Error sending email: {ex.Message}");
+            _logger.LogError(ex, "Error sending email to {Email}", message.To);
         }
     }
 
@@ -72,15 +106,26 @@ public class ConsumerEmail : BackgroundService
             while (!stoppingToken.IsCancellationRequested)
             {
                 var cr = consumer.Consume(stoppingToken);
+
                 try
                 {
-                    EmailMessageDto message = JsonSerializer.Deserialize<EmailMessageDto>(cr.Message.Value);
+                    var message = JsonSerializer.Deserialize<EnhancedEmailMessageDto>(
+                        cr.Message.Value,
+                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                    if (message is null || string.IsNullOrWhiteSpace(message.To))
+                    {
+                        _logger.LogWarning("Invalid email message from Kafka: {Message}", cr.Message.Value);
+                        consumer.Commit(cr);
+                        continue;
+                    }
+
                     await SendEmail(message);
                     consumer.Commit(cr);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError($"Error deserializing message: {ex.Message}");
+                    _logger.LogError(ex, "Error processing Kafka email message: {Message}", cr.Message.Value);
                 }
             }
         }
@@ -93,5 +138,21 @@ public class ConsumerEmail : BackgroundService
             consumer.Close();
         }
     }
+
+    private static string ToHtml(string text)
+    {
+        return "<div style=\"font-family:Arial,sans-serif;line-height:1.5\">" +
+               WebUtility.HtmlEncode(text).Replace("\n", "<br/>") +
+               "</div>";
+    }
 }
 
+public sealed class EnhancedEmailMessageDto
+{
+    public string From { get; set; } = "";
+    public string To { get; set; } = "";
+    public string Subject { get; set; } = "";
+    public string? Body { get; set; }
+    public bool IsBodyHtml { get; set; } = true;
+    public string? Kind { get; set; }
+}

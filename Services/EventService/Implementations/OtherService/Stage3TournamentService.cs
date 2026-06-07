@@ -352,48 +352,101 @@ namespace SportHive.Implementations
             await _context.SaveChangesAsync();
         }
 
-        private async Task<long> CreateMatch(long idEvent, string type, string entity1, string entity2, int tour, int? group, string? loginJudge, string addInfo)
+        private async Task CreateMatch(
+    long idEvent,
+    string type,
+    string entity1,
+    string entity2,
+    int tour,
+    int? group,
+    string? loginJudge,
+    string? addInfo)
+{
+    var safeGroup = group ?? 1;
+    var safeAddInfo = addInfo ?? "";
+    var safeJudge = string.IsNullOrWhiteSpace(loginJudge) ? null : loginJudge;
+
+    // Do NOT write "Default" here.
+    // LocationName has FK to "Location"("LocationName").
+    // If "Default" is not present in Location table, PostgreSQL throws 23503.
+    string? safeLocation = null;
+
+    var safeStatus = (StatusMatch)0;
+
+    if (string.Equals(type, "team", StringComparison.OrdinalIgnoreCase))
+    {
+        var match = new TeamMatch
         {
-            long id;
-            if (type == "team")
-            {
-                var match = new TeamMatch
-                {
-                    IdEvent = idEvent,
-                    NameFirstTeam = entity1,
-                    NameSecondTeam = entity2,
-                    Tour = tour,
-                    Group = group,
-                    StatusMatch = StatusMatch.Upcoming,
-                    loginJudge = loginJudge,
-                    AddInformation = addInfo
-                };
-                _context.TeamMatches.Add(match);
-                await _context.SaveChangesAsync();
-                id = match.IdTeamMatch;
-            }
-            else
-            {
-                var match = new IndividualMatch
-                {
-                    IdEvent = idEvent,
-                    loginFirstAthlete = entity1,
-                    loginSecondAthlete = entity2,
-                    Tour = tour,
-                    StatusMatch = StatusMatch.Upcoming,
-                    loginJudge = loginJudge,
-                    AddInformation = addInfo
-                };
-                _context.IndividualMatches.Add(match);
-                await _context.SaveChangesAsync();
-                id = match.IdIndividualMatch;
-            }
+            IdEvent = idEvent,
+            NameFirstTeam = entity1,
+            NameSecondTeam = entity2,
+            Tour = tour,
+            Group = safeGroup,
+            AddInformation = safeAddInfo,
+            StatusMatch = safeStatus,
+            LocationName = safeLocation,
+            loginJudge = safeJudge,
+            DataMatch = DateTime.UtcNow,
+            TimeMatch = TimeSpan.Zero
+        };
 
-            await SaveGrid(idEvent, id, entity1, entity2, tour, group, false);
-            await SaveMongoMatch(idEvent, id, entity1, entity2);
+        _context.TeamMatches.Add(match);
+        await _context.SaveChangesAsync();
+        return;
+    }
 
-            return id;
-        }
+    if (string.Equals(type, "individual", StringComparison.OrdinalIgnoreCase))
+    {
+        var match = new IndividualMatch
+        {
+            IdEvent = idEvent,
+            loginFirstAthlete = entity1,
+            loginSecondAthlete = entity2,
+            Tour = tour,
+            Group = safeGroup,
+            AddInformation = safeAddInfo,
+            StatusMatch = safeStatus,
+            LocationName = safeLocation,
+            loginJudge = safeJudge,
+            DataMatch = DateTime.UtcNow,
+            TimeMatch = TimeSpan.Zero
+        };
+
+        _context.IndividualMatches.Add(match);
+        await _context.SaveChangesAsync();
+        return;
+    }
+
+    if (string.Equals(type, "extreme", StringComparison.OrdinalIgnoreCase))
+    {
+        var match = new ExtremeMatch
+        {
+            IdEvent = idEvent,
+            Tour = tour,
+            Group = safeGroup,
+            AddInformation = safeAddInfo,
+            StatusMatch = safeStatus,
+            LocationName = safeLocation,
+            loginJudge = safeJudge,
+            DataMatch = DateTime.UtcNow,
+            TimeMatch = TimeSpan.Zero
+        };
+
+        _context.ExtremeMatches.Add(match);
+        await _context.SaveChangesAsync();
+
+        /*
+          If your previous CreateMatch added rows to EMatchesAthlete / EMatchesTeam
+          after creating ExtremeMatch, keep that old participant insert code here.
+          The FK fix is LocationName = null.
+        */
+
+        return;
+    }
+
+    throw new InvalidOperationException($"Unknown match type: {type}");
+}
+
 
         private async Task<long> CreateExtremeMatch(long idEvent, int tour, string? loginJudge, string addInfo)
         {

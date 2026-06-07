@@ -13,7 +13,7 @@ namespace AuthService.Endpoints
             group.MapGet("/judges", async (AppDbContext db, string loginOrganization, string? query) =>
             {
                 return Results.Ok(await QueryAsync(db, """
-                    SELECT 
+                    SELECT
                         j."Login" AS "login",
                         CONCAT(j."FirsName", ' ', j."LastName") AS "fullName",
                         'Judge' AS "role",
@@ -23,11 +23,11 @@ namespace AuthService.Endpoints
                     LEFT JOIN "UserPhoto" up ON up."login" = j."Login"
                     WHERE oj."LoginOrganization" = @org
                       AND (
-                        @q = '' OR
-                        LOWER(j."Login") LIKE LOWER(@like) OR
-                        LOWER(j."FirsName") LIKE LOWER(@like) OR
-                        LOWER(j."LastName") LIKE LOWER(@like) OR
-                        LOWER(CONCAT(j."FirsName", ' ', j."LastName")) LIKE LOWER(@like)
+                        @q = ''
+                        OR LOWER(j."Login") LIKE LOWER(@like)
+                        OR LOWER(j."FirsName") LIKE LOWER(@like)
+                        OR LOWER(j."LastName") LIKE LOWER(@like)
+                        OR LOWER(CONCAT(j."FirsName", ' ', j."LastName")) LIKE LOWER(@like)
                       )
                     ORDER BY j."LastName", j."FirsName"
                     LIMIT 20
@@ -37,7 +37,7 @@ namespace AuthService.Endpoints
             group.MapGet("/trainers", async (AppDbContext db, string loginOrganization, string? query) =>
             {
                 return Results.Ok(await QueryAsync(db, """
-                    SELECT 
+                    SELECT
                         t."Login" AS "login",
                         CONCAT(t."FirsName", ' ', t."LastName") AS "fullName",
                         'Trainer' AS "role",
@@ -47,11 +47,11 @@ namespace AuthService.Endpoints
                     LEFT JOIN "UserPhoto" up ON up."login" = t."Login"
                     WHERE ot."LoginOrganization" = @org
                       AND (
-                        @q = '' OR
-                        LOWER(t."Login") LIKE LOWER(@like) OR
-                        LOWER(t."FirsName") LIKE LOWER(@like) OR
-                        LOWER(t."LastName") LIKE LOWER(@like) OR
-                        LOWER(CONCAT(t."FirsName", ' ', t."LastName")) LIKE LOWER(@like)
+                        @q = ''
+                        OR LOWER(t."Login") LIKE LOWER(@like)
+                        OR LOWER(t."FirsName") LIKE LOWER(@like)
+                        OR LOWER(t."LastName") LIKE LOWER(@like)
+                        OR LOWER(CONCAT(t."FirsName", ' ', t."LastName")) LIKE LOWER(@like)
                       )
                     ORDER BY t."LastName", t."FirsName"
                     LIMIT 20
@@ -61,7 +61,7 @@ namespace AuthService.Endpoints
             group.MapGet("/teams", async (AppDbContext db, string loginOrganization, string? query) =>
             {
                 return Results.Ok(await QueryAsync(db, """
-                    SELECT 
+                    SELECT
                         t."TeamName" AS "teamName",
                         t."TeamName" AS "name",
                         t."TypeSport" AS "typeSport",
@@ -71,10 +71,10 @@ namespace AuthService.Endpoints
                     JOIN "Team" t ON t."TeamName" = ot."NameComand"
                     WHERE ot."LoginOrganization" = @org
                       AND (
-                        @q = '' OR
-                        LOWER(t."TeamName") LIKE LOWER(@like) OR
-                        LOWER(t."TypeSport") LIKE LOWER(@like) OR
-                        LOWER(t."LoginTrainer") LIKE LOWER(@like)
+                        @q = ''
+                        OR LOWER(t."TeamName") LIKE LOWER(@like)
+                        OR LOWER(t."TypeSport") LIKE LOWER(@like)
+                        OR LOWER(t."LoginTrainer") LIKE LOWER(@like)
                       )
                     ORDER BY t."TeamName"
                     LIMIT 20
@@ -95,11 +95,11 @@ namespace AuthService.Endpoints
                     LEFT JOIN "UserPhoto" up ON up."login" = a."Login"
                     WHERE ot."LoginOrganization" = @org
                       AND (
-                        @q = '' OR
-                        LOWER(a."Login") LIKE LOWER(@like) OR
-                        LOWER(a."FirsName") LIKE LOWER(@like) OR
-                        LOWER(a."LastName") LIKE LOWER(@like) OR
-                        LOWER(CONCAT(a."FirsName", ' ', a."LastName")) LIKE LOWER(@like)
+                        @q = ''
+                        OR LOWER(a."Login") LIKE LOWER(@like)
+                        OR LOWER(a."FirsName") LIKE LOWER(@like)
+                        OR LOWER(a."LastName") LIKE LOWER(@like)
+                        OR LOWER(CONCAT(a."FirsName", ' ', a."LastName")) LIKE LOWER(@like)
                       )
                     ORDER BY "fullName"
                     LIMIT 20
@@ -120,7 +120,6 @@ namespace AuthService.Endpoints
                 await connection.OpenAsync();
 
             await using var command = connection.CreateCommand();
-
             command.CommandText = sql;
 
             Add(command, "@org", loginOrganization);
@@ -134,9 +133,7 @@ namespace AuthService.Endpoints
                 var row = new Dictionary<string, object?>();
 
                 for (var i = 0; i < reader.FieldCount; i++)
-                {
                     row[reader.GetName(i)] = reader.IsDBNull(i) ? null : reader.GetValue(i);
-                }
 
                 result.Add(row);
             }
