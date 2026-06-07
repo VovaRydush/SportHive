@@ -1,15 +1,12 @@
 import { commandApi } from "../api/commandApi";
-import type { AthleteTeamInfo, NewSatatusAthlete, TeamInfoDto } from "../api/commandTypes";
-import { NotificationKarina } from "./Notification";
+import type { AthleteTeamInfo, TeamInfoDto, TeamMatchInfo } from "../api/commandTypes";
+import { UserProfilePage } from "./UserProfile";
 import "./teamPage.css";
-
-const MANAGER_ROLES = ["Trainer", "Organization"];
-const STATUS_OPTIONS = ["Active", "Reserve", "Injured", "Disqualified"];
 
 export class TeamPageLook {
   private container: HTMLElement;
   private teamName: string;
-  private teamData!: TeamInfoDto;
+  private teamData?: TeamInfoDto;
 
   constructor(containerId: string, nameTeam: string) {
     const element = document.getElementById(containerId);
@@ -23,243 +20,231 @@ export class TeamPageLook {
   }
 
   async render() {
-    this.container.innerHTML = `<div class="team-page"><div class="empty-state">Завантаження команди...</div></div>`;
+    this.container.innerHTML = `
+      <section class="team-view-page">
+        <div class="team-loading">Завантаження команди...</div>
+      </section>
+    `;
 
     try {
       this.teamData = await commandApi.getTeam(this.teamName);
-      this.renderHtml();
-      this.bindAthleteActions();
+      this.renderPage();
     } catch (error) {
-      console.error("Помилка завантаження команди:", error);
-      new NotificationKarina().show(
-        error instanceof Error ? error.message : `Команду ${this.teamName} не знайдено`,
-        "error"
-      );
-
       this.container.innerHTML = `
-        <div class="team-page">
-          <div class="empty-state">Команду не знайдено або ComandService недоступний.</div>
-        </div>
+        <section class="team-view-page">
+          <button id="team-back" class="team-view-btn secondary" type="button">← Назад</button>
+          <div class="team-empty">${this.escapeHtml(error instanceof Error ? error.message : "Не вдалося завантажити команду")}</div>
+        </section>
       `;
+      document.getElementById("team-back")?.addEventListener("click", () => window.history.back());
     }
   }
 
-  private renderHtml() {
-    const nameTeam = this.pick(this.teamData.nameTeam, this.teamData.NameTeam, this.teamName);
-    const typeSport = this.pick(this.teamData.typeSport, this.teamData.TypeSport, "-");
-    const trainerLogin = this.pick(this.teamData.trainerLogin, this.teamData.TrainerLogin, "-");
-    const trainerFirstName = this.pick(this.teamData.trainerFirstName, this.teamData.TrainerFirstName, "");
-    const trainerLastName = this.pick(this.teamData.trainerLastName, this.teamData.TrainerLastName, "");
-    const teamPhoto = this.normalizePhoto(this.pick(this.teamData.photoTeam, this.teamData.PhotoTeam, ""));
-    const trainerPhoto = this.normalizePhoto(this.pick(this.teamData.trainerPhotp, this.teamData.TrainerPhotp, ""));
-    const athletes = this.teamData.athletes || this.teamData.Athletes || [];
-    const organizations = this.teamData.organizations || this.teamData.Organizations || [];
+  private renderPage() {
+    if (!this.teamData) return;
 
-    const currentRole = localStorage.getItem("userRole") || localStorage.getItem("role") || "";
-    const currentLogin = localStorage.getItem("login") || "";
-    const canManage = MANAGER_ROLES.includes(currentRole) && (currentRole === "Organization" || trainerLogin === currentLogin);
+    const team = this.teamData;
+    const name = this.pick(team, ["nameTeam", "NameTeam"]) || this.teamName;
+    const sport = this.pick(team, ["typeSport", "TypeSport"]);
+    const trainerLogin = this.pick(team, ["trainerLogin", "TrainerLogin"]);
+    const trainerName = [
+      this.pick(team, ["trainerFirstName", "TrainerFirstName"]),
+      this.pick(team, ["trainerLastName", "TrainerLastName"]),
+    ].filter(Boolean).join(" ") || trainerLogin || "-";
+
+    const athletes = this.array<AthleteTeamInfo>(team.athletes ?? team.Athletes);
+    const orgs = this.array<any>(team.organizations ?? team.Organizations);
+    const matches = this.array<TeamMatchInfo>(team.matches ?? team.Matches);
+    const stats = team.stats ?? this.buildStats(matches, name);
 
     this.container.innerHTML = `
-      <div class="team-page">
-        <section class="team-header">
-          <div class="team-photo">
-            <img
-              src="${this.escapeHtml(teamPhoto || "https://placehold.co/200x200?text=Team")}" 
-              alt="${this.escapeHtml(nameTeam)}"
-            />
+      <section class="team-view-page">
+        <button id="team-back" class="team-view-btn secondary" type="button">← Назад</button>
+
+        <header class="team-view-hero">
+          <div class="team-view-logo">
+            ${this.pick(team, ["photoTeam", "PhotoTeam"])
+              ? `<img src="${this.escapeAttr(commandApi.getPhotoUrl(this.pick(team, ["photoTeam", "PhotoTeam"])))}" alt="" />`
+              : `<span>${this.escapeHtml(name[0] || "T")}</span>`}
+            <b>КОМАНДА</b>
           </div>
 
-          <div class="team-info">
-            <h1>${this.escapeHtml(nameTeam)}</h1>
-            <div class="sport-type">${this.getSportIcon(typeSport)} ${this.escapeHtml(typeSport)}</div>
-            <p><b>Тренер:</b> ${this.escapeHtml(`${trainerFirstName} ${trainerLastName}`.trim() || trainerLogin)}</p>
-            <p><b>Login тренера:</b> ${this.escapeHtml(trainerLogin)}</p>
-            <p><b>Спортсменів:</b> ${athletes.length}</p>
+          <div class="team-view-main">
+            <span class="team-kicker">SportHive · команда</span>
+            <h1>${this.escapeHtml(name)}</h1>
 
-            ${organizations.length ? `
-              <div class="organizations">
-                <h3>Організації:</h3>
-                <div class="organization-logos team-org-list">
-                  ${organizations.map((org) => `
-                    <span class="team-org-chip">
-                      ${this.escapeHtml(this.pick(org.nameOrganization, org.NameOrganization, org.loginOrganization, org.LoginOrganization, "Організація"))}
-                    </span>
-                  `).join("")}
-                </div>
-              </div>
-            ` : ""}
-          </div>
-        </section>
-
-        <section class="trainer-section">
-          <h2>Тренер</h2>
-          <div class="trainer-card">
-            <img
-              class="trainer-photo"
-              src="${this.escapeHtml(trainerPhoto || "https://placehold.co/150x150?text=Trainer")}" 
-              alt="Trainer"
-            />
-            <div class="trainer-info">
-              <h3>${this.escapeHtml(`${trainerFirstName} ${trainerLastName}`.trim() || trainerLogin)}</h3>
-              <p>Логін: ${this.escapeHtml(trainerLogin)}</p>
-              <p>Спорт: ${this.escapeHtml(typeSport)}</p>
+            <div class="team-meta">
+              <span>🏅 ${this.escapeHtml(sport || "-")}</span>
+              <button class="link-like" type="button" data-user-login="${this.escapeAttr(trainerLogin)}" data-user-role="Trainer">
+                Тренер: ${this.escapeHtml(trainerName)}
+              </button>
+              <span>Спортсменів: ${athletes.length}</span>
             </div>
           </div>
+        </header>
+
+        <section class="team-view-stats">
+          <div><b>${stats.totalMatches}</b><span>Матчів</span></div>
+          <div><b>${stats.finishedMatches}</b><span>Завершено</span></div>
+          <div><b>${stats.wins}</b><span>Перемог</span></div>
+          <div><b>${stats.losses}</b><span>Поразок</span></div>
         </section>
 
-        <section class="athletes-section">
-          <div class="team-section-header">
-            <h2>Спортсмени команди</h2>
+        <section class="team-view-grid">
+          <div class="team-view-panel">
+            <h2>Спортсмени</h2>
+            ${this.renderAthletes(athletes)}
           </div>
 
-          <div class="athletes-grid">
-            ${athletes.length ? athletes.map((athlete) => this.renderAthleteCard(athlete, canManage)).join("") : `<div class="empty-state">Спортсменів поки немає</div>`}
+          <div class="team-view-panel">
+            <h2>Організації</h2>
+            ${this.renderOrganizations(orgs)}
           </div>
         </section>
-      </div>
+
+        <section class="team-view-panel">
+          <h2>Матчі команди</h2>
+          ${this.renderMatches(matches)}
+        </section>
+      </section>
     `;
+
+    document.getElementById("team-back")?.addEventListener("click", () => window.history.back());
+
+    this.container.querySelectorAll<HTMLButtonElement>("[data-user-login]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const login = btn.dataset.userLogin || "";
+        const role = (btn.dataset.userRole || "Athlete") as "Athlete" | "Trainer" | "Judge";
+
+        if (login) new UserProfilePage("app", login, role).render();
+      });
+    });
   }
 
-  private renderAthleteCard(athlete: AthleteTeamInfo, canManage: boolean) {
-    const login = this.pick(athlete.login, "");
-    const firstName = this.pick(athlete.firsName, athlete.FirsName, "");
-    const lastName = this.pick(athlete.lastName, athlete.LastName, "");
-    const fullName = `${firstName} ${lastName}`.trim() || login;
-    const typeSport = this.pick(athlete.typeSport, athlete.TypeSport, "-");
-    const status = this.pick(athlete.athleteStatus, athlete.AthleteStatus, "Active");
-    const photo = this.normalizePhoto(this.pick(athlete.photo, athlete.Photo, ""));
+  private renderAthletes(athletes: AthleteTeamInfo[]) {
+    if (!athletes.length) return `<div class="team-empty">Спортсменів поки немає</div>`;
 
     return `
-      <div class="athlete-card" data-login="${this.escapeHtml(login)}">
-        ${canManage ? `
-          <div class="athlete-actions">
-            <button class="btn-icon btn-edit" data-action="status" title="Змінити статус">✎</button>
-            <button class="btn-icon btn-delete" data-action="remove" title="Видалити">×</button>
-          </div>
-        ` : ""}
+      <div class="team-list">
+        ${athletes.map(a => {
+          const login = this.pick(a, ["login", "Login"]);
+          const fullName =
+            this.pick(a, ["fullName", "FullName"]) ||
+            [this.pick(a, ["firsName", "FirsName"]), this.pick(a, ["lastName", "LastName"])].filter(Boolean).join(" ") ||
+            login;
 
-        <img
-          class="athlete-photo"
-          src="${this.escapeHtml(photo || "https://placehold.co/120x120?text=User")}" 
-          alt="${this.escapeHtml(fullName)}"
-        />
-
-        <div class="athlete-info">
-          <h3>${this.escapeHtml(fullName)}</h3>
-          <p>Логін: ${this.escapeHtml(login)}</p>
-          <p>Спорт: ${this.escapeHtml(typeSport)}</p>
-          <p>Статус: <b>${this.escapeHtml(status)}</b></p>
-        </div>
+          return `
+            <button class="team-list-item clickable" type="button" data-user-login="${this.escapeAttr(login)}" data-user-role="Athlete">
+              <b>${this.escapeHtml(fullName || login)}</b>
+              <span>${this.escapeHtml(login)}</span>
+              <small>${this.escapeHtml(this.pick(a, ["athleteStatus", "AthleteStatus"]) || "Active")}</small>
+            </button>
+          `;
+        }).join("")}
       </div>
     `;
   }
 
-  private bindAthleteActions() {
-    this.container.querySelectorAll<HTMLButtonElement>("[data-action='remove']").forEach((button) => {
-      button.addEventListener("click", async () => {
-        const card = button.closest(".athlete-card") as HTMLElement | null;
-        const loginAthlete = card?.dataset.login || "";
+  private renderOrganizations(orgs: any[]) {
+    if (!orgs.length) return `<div class="team-empty">Організацій поки немає</div>`;
 
-        if (!loginAthlete) return;
-        await this.removeAthlete(loginAthlete);
-      });
-    });
-
-    this.container.querySelectorAll<HTMLButtonElement>("[data-action='status']").forEach((button) => {
-      button.addEventListener("click", async () => {
-        const card = button.closest(".athlete-card") as HTMLElement | null;
-        const loginAthlete = card?.dataset.login || "";
-
-        if (!loginAthlete) return;
-
-        const current = card?.querySelector(".athlete-info b")?.textContent || "Active";
-        const newStatus = prompt(`Новий статус (${STATUS_OPTIONS.join(" / ")}):`, current);
-
-        if (!newStatus) return;
-
-        await this.changeAthleteStatus({
-          nameTeam: this.pick(this.teamData.nameTeam, this.teamData.NameTeam, this.teamName),
-          loginAthlete,
-          newStatus,
-        });
-      });
-    });
+    return `
+      <div class="team-list">
+        ${orgs.map(org => `
+          <article class="team-list-item">
+            <b>${this.escapeHtml(this.pick(org, ["nameOrganization", "NameOrganization"]) || this.pick(org, ["loginOrganization", "LoginOrganization"]))}</b>
+            <span>${this.escapeHtml(this.pick(org, ["loginOrganization", "LoginOrganization"]))}</span>
+            <small>${this.escapeHtml(this.pick(org, ["country", "Country"]) || "")}</small>
+          </article>
+        `).join("")}
+      </div>
+    `;
   }
 
-  private async removeAthlete(loginAthlete: string) {
-    if (!confirm("Видалити спортсмена з команди?")) return;
+  private renderMatches(matches: TeamMatchInfo[]) {
+    if (!matches.length) return `<div class="team-empty">Матчів поки немає</div>`;
 
-    try {
-      await commandApi.removeAthlet({
-        nameTeam: this.pick(this.teamData.nameTeam, this.teamData.NameTeam, this.teamName),
-        loginAthlete,
-        newStatus: "",
-      });
+    return `
+      <div class="team-match-list">
+        ${matches.map(m => `
+          <article class="team-match-card">
+            <span>${this.escapeHtml(m.nameEvent || "Матч")}</span>
+            <b>${this.escapeHtml(m.firstTeam || "-")} vs ${this.escapeHtml(m.secondTeam || "-")}</b>
+            <small>
+              ${m.dataMatch ? this.date(m.dataMatch) : "-"}
+              · ${this.escapeHtml(m.score || "score -")}
+              · ${this.status(m.statusMatch)}
+              · R${m.tour ?? "-"}
+            </small>
+          </article>
+        `).join("")}
+      </div>
+    `;
+  }
 
-      new NotificationKarina().show("Спортсмена видалено з команди.", "success");
-      await this.render();
-    } catch (error) {
-      new NotificationKarina().show(
-        error instanceof Error ? error.message : "Не вдалося видалити спортсмена.",
-        "error"
-      );
+  private buildStats(matches: TeamMatchInfo[], teamName: string) {
+    let wins = 0;
+    let losses = 0;
+    let draws = 0;
+    let finishedMatches = 0;
+
+    for (const m of matches) {
+      if (m.statusMatch !== 2) continue;
+      finishedMatches++;
+
+      const parts = String(m.score || "").split(":").map(x => Number(x));
+      if (parts.length !== 2 || parts.some(Number.isNaN)) continue;
+
+      const isFirst = m.firstTeam === teamName;
+
+      if (parts[0] === parts[1]) draws++;
+      else if ((isFirst && parts[0] > parts[1]) || (!isFirst && parts[1] > parts[0])) wins++;
+      else losses++;
     }
-  }
 
-  private async changeAthleteStatus(data: NewSatatusAthlete) {
-    try {
-      await commandApi.changeStatusAthlet(data);
-      new NotificationKarina().show("Статус спортсмена змінено.", "success");
-      await this.render();
-    } catch (error) {
-      new NotificationKarina().show(
-        error instanceof Error ? error.message : "Не вдалося змінити статус.",
-        "error"
-      );
-    }
-  }
-
-  private normalizePhoto(photo: string) {
-    if (!photo) return "";
-    if (photo.startsWith("http") || photo.startsWith("data:")) return photo;
-    return commandApi.getPhotoUrl(photo);
-  }
-
-  private getSportIcon(sportType: string): string {
-    const icons: Record<string, string> = {
-      "Футбол": "⚽",
-      Football: "⚽",
-      "Баскетбол": "🏀",
-      Basketball: "🏀",
-      "Волейбол": "🏐",
-      Volleyball: "🏐",
-      "Теніс": "🎾",
-      Tennis: "🎾",
-      "Хокей": "🏒",
-      Hockey: "🏒",
-      "Бокс": "🥊",
-      Boxing: "🥊",
-      Wrestling: "🤼",
-      Chess: "♟️",
-      Checkers: "⛀",
+    return {
+      totalMatches: matches.length,
+      finishedMatches,
+      wins,
+      losses,
+      draws,
     };
-
-    return icons[sportType] || "🏅";
   }
 
-  private pick(...values: any[]) {
-    for (const value of values) {
-      if (value !== undefined && value !== null && value !== "") return String(value);
+  private pick(obj: any, keys: string[]) {
+    for (const key of keys) {
+      const value = obj?.[key];
+      if (value !== undefined && value !== null && String(value).trim() !== "") return String(value);
     }
+
     return "";
   }
 
-  private escapeHtml(value: unknown) {
+  private array<T>(value: T[] | undefined | null) {
+    return Array.isArray(value) ? value : [];
+  }
+
+  private status(status?: number) {
+    if (status === 2) return "Finished";
+    if (status === 1) return "Live";
+    return "Upcoming";
+  }
+
+  private date(value: string) {
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? "-" : date.toLocaleDateString("uk-UA");
+  }
+
+   private escapeHtml(value: unknown) {
     return String(value ?? "")
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#039;");
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+  }
+
+  private escapeAttr(value: unknown) {
+    return this.escapeHtml(value).replace(/`/g, "&#096;");
   }
 }

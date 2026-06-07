@@ -412,3 +412,23 @@
     height: 150px;
   }
 }
+
+.clickable-card {
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+}
+
+.team-card.clickable-card,
+.member-card.clickable-card {
+  width: 100%;
+}
+
+.team-card small,
+.member-card em {
+  display: block;
+  margin-top: 8px;
+  color: #111;
+  font-style: normal;
+  font-weight: 900;
+}

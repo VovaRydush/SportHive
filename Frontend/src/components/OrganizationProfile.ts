@@ -1,6 +1,8 @@
 import { organizationApi, type OrgRole, type OrgSearchUser, type OrganizationProfileData } from "../api/organizationApi";
 import { NotificationKarina } from "./Notification";
 import { CreateTeamModal } from "./CreateTeam";
+import { TeamPageLook } from "./TeamPage";
+import { UserProfilePage } from "./UserProfile";
 import "./organizationProfile.css";
 
 export class OrganizationProfile {
@@ -110,7 +112,7 @@ export class OrganizationProfile {
             <button id="send-invite-btn" class="org-btn dark" type="button">Надіслати запрошення</button>
           </div>
 
-          <div id="selected-invite-user" class="selected-invite-user">
+          <div id="selected-invite-user" class="selected-invite-user muted">
             Користувача ще не вибрано
           </div>
         </section>
@@ -127,14 +129,14 @@ export class OrganizationProfile {
             <div class="section-title">
               <h2>Судді</h2>
             </div>
-            ${this.renderMembers(this.data.judges, "Суддів поки немає")}
+            ${this.renderMembers(this.data.judges, "Judge", "Суддів поки немає")}
           </div>
 
           <div class="org-section">
             <div class="section-title">
               <h2>Тренери</h2>
             </div>
-            ${this.renderMembers(this.data.trainers, "Тренерів поки немає")}
+            ${this.renderMembers(this.data.trainers, "Trainer", "Тренерів поки немає")}
           </div>
         </section>
 
@@ -167,6 +169,22 @@ export class OrganizationProfile {
   private bind() {
     document.getElementById("create-team-btn")?.addEventListener("click", () => {
       new CreateTeamModal("app").show();
+    });
+
+    this.container.querySelectorAll<HTMLButtonElement>("[data-team-name]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const name = btn.dataset.teamName;
+        if (name) new TeamPageLook("app", name).render();
+      });
+    });
+
+    this.container.querySelectorAll<HTMLButtonElement>("[data-profile-login]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const login = btn.dataset.profileLogin;
+        const role = btn.dataset.profileRole as "Athlete" | "Trainer" | "Judge";
+
+        if (login && role) new UserProfilePage("app", login, role).render();
+      });
     });
 
     const role = document.getElementById("invite-role") as HTMLSelectElement | null;
@@ -295,29 +313,31 @@ export class OrganizationProfile {
     return `
       <div class="teams-grid">
         ${this.data.teams.map(t => `
-          <article class="team-card">
+          <button class="team-card clickable-card" type="button" data-team-name="${this.escapeAttr(t.teamName)}">
             <div class="team-cover">${this.escapeHtml(t.teamName[0] || "T")}</div>
             <h3>${this.escapeHtml(t.teamName)}</h3>
             <p>Вид спорту: ${this.escapeHtml(t.typeSport || "-")}</p>
             <p>Тренер: ${this.escapeHtml(t.loginTrainer || "-")}</p>
             <p>Спортсменів: ${t.athletesCount}</p>
-          </article>
+            <small>Переглянути команду →</small>
+          </button>
         `).join("")}
       </div>
     `;
   }
 
-  private renderMembers(items: any[], empty: string) {
+  private renderMembers(items: any[], role: "Trainer" | "Judge", empty: string) {
     if (!items.length) return `<div class="org-empty">${this.escapeHtml(empty)}</div>`;
 
     return `
       <div class="member-list">
         ${items.map(m => `
-          <article class="member-card">
+          <button class="member-card clickable-card" type="button" data-profile-login="${this.escapeAttr(m.login)}" data-profile-role="${role}">
             <b>${this.escapeHtml(m.fullName || m.login)}</b>
             <span>${this.escapeHtml(m.login)}</span>
             ${m.mail ? `<small>${this.escapeHtml(m.mail)}</small>` : ""}
-          </article>
+            <em>Переглянути профіль →</em>
+          </button>
         `).join("")}
       </div>
     `;
@@ -336,11 +356,12 @@ export class OrganizationProfile {
             <h3>${this.escapeHtml(sport)} <span>${groups[sport].length}</span></h3>
             <div class="member-list">
               ${groups[sport].map(a => `
-                <article class="member-card">
+                <button class="member-card clickable-card" type="button" data-profile-login="${this.escapeAttr(a.login)}" data-profile-role="Athlete">
                   <b>${this.escapeHtml(a.fullName || a.login)}</b>
                   <span>${this.escapeHtml(a.login)}</span>
                   ${a.mail ? `<small>${this.escapeHtml(a.mail)}</small>` : ""}
-                </article>
+                  <em>Переглянути профіль →</em>
+                </button>
               `).join("")}
             </div>
           </section>
@@ -390,7 +411,7 @@ export class OrganizationProfile {
     return Number.isNaN(date.getTime()) ? "-" : date.toLocaleDateString("uk-UA");
   }
 
- private escapeHtml(value: unknown) {
+   private escapeHtml(value: unknown) {
     return String(value ?? "")
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")

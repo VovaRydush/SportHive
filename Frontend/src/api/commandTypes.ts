@@ -37,7 +37,10 @@ export type AthleteTeamInfo = {
   FirsName?: string;
   lastName?: string;
   LastName?: string;
+  fullName?: string;
+  FullName?: string;
   login?: string;
+  Login?: string;
   typeSport?: string;
   TypeSport?: string;
   athleteStatus?: string;
@@ -57,9 +60,24 @@ export type OrganizationTeamInfo = {
   TypeOrganozation?: string;
 };
 
+export type TeamMatchInfo = {
+  id?: number;
+  idEvent?: number;
+  nameEvent?: string;
+  firstTeam?: string;
+  secondTeam?: string;
+  score?: string;
+  statusMatch?: number;
+  tour?: number;
+  group?: number;
+  dataMatch?: string;
+  timeMatch?: string;
+};
+
 export type TeamInfoDto = {
   nameTeam?: string;
   NameTeam?: string;
+
   trainerFirstName?: string;
   TrainerFirstName?: string;
   trainerLastName?: string;
@@ -68,14 +86,29 @@ export type TeamInfoDto = {
   TrainerPhotp?: string;
   trainerLogin?: string;
   TrainerLogin?: string;
+
   photoTeam?: string;
   PhotoTeam?: string;
   typeSport?: string;
   TypeSport?: string;
+
   athletes?: AthleteTeamInfo[];
   Athletes?: AthleteTeamInfo[];
+
   organizations?: OrganizationTeamInfo[];
   Organizations?: OrganizationTeamInfo[];
+
   athletesCount?: number;
   AthletesCount?: number;
+
+  matches?: TeamMatchInfo[];
+  Matches?: TeamMatchInfo[];
+
+  stats?: {
+    totalMatches: number;
+    finishedMatches: number;
+    wins: number;
+    losses: number;
+    draws: number;
+  };
 };

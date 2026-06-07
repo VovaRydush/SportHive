@@ -71,13 +71,9 @@ function createTeamFormData(data: TeamModelDto | FormData) {
   const normalized = normalizeTeamInput(data);
   const formData = new FormData();
 
-  // Backend TeamModelDto uses PascalCase.
   appendIfExists(formData, "NameTeam", normalized.nameTeam);
   appendIfExists(formData, "LoginTrainer", normalized.loginTrainer);
   appendIfExists(formData, "TypeSport", normalized.typeSport);
-
-  // IMPORTANT FIX:
-  // Backend now links team to org inside create-team if this field exists.
   appendIfExists(formData, "LoginOrganization", normalized.loginOrganization);
 
   if (normalized.photo) {
@@ -118,8 +114,6 @@ function normalizeOrganizationTeam(data: OrganizationTeamDto | any) {
   return {
     LoginOrganization: loginOrganization,
     NameTeam: nameTeam,
-
-    // aliases; backend should ignore extra values if DTO does not contain them
     loginOrganization,
     nameTeam,
     nameComand: nameTeam,
