@@ -36,81 +36,78 @@ async function tryGet<T>(baseUrl: string, path: string): Promise<T | null> {
     });
 
     if (!response.ok) {
-      console.warn(`[entitySearchApi] ${response.status} ${baseUrl}${path}`);
+      console.warn(`[entitySearchApi] ${response.status}: ${baseUrl}${path}`);
       return null;
     }
 
     return (await response.json()) as T;
   } catch (error) {
-    console.warn(`[entitySearchApi] request failed: ${baseUrl}${path}`, error);
+    console.warn(`[entitySearchApi] failed: ${baseUrl}${path}`, error);
     return null;
   }
 }
 
-function value(obj: any, keys: string[]) {
+function s(obj: any, keys: string[]) {
   for (const key of keys) {
-    const v = obj?.[key];
+    const value = obj?.[key];
 
-    if (v !== undefined && v !== null && String(v).trim() !== "") {
-      return String(v);
+    if (value !== undefined && value !== null && String(value).trim() !== "") {
+      return String(value);
     }
   }
 
   return "";
 }
 
-function normalizePhoto(input: unknown) {
-  if (!input) return undefined;
+function photo(value: unknown) {
+  if (!value) return undefined;
 
-  const text = String(input);
+  const text = String(value);
 
   if (text.startsWith("http") || text.startsWith("data:")) return text;
-
-  if (text.length > 80 && !text.includes("/") && !text.includes("\\")) {
-    return `data:image/png;base64,${text}`;
-  }
+  if (text.length > 80 && !text.includes("/") && !text.includes("\\")) return `data:image/png;base64,${text}`;
 
   return text;
 }
 
 function normalize(type: PickerEntityType, item: any): PickerEntity {
   const id =
-    value(item, ["login", "Login", "id", "Id", "teamName", "TeamName", "nameTeam", "NameTeam"]) ||
+    s(item, ["login", "Login", "id", "Id", "teamName", "TeamName", "nameTeam", "NameTeam"]) ||
     crypto.randomUUID();
 
-  const fullName =
-    value(item, ["fullName", "FullName", "name", "Name", "teamName", "TeamName", "nameTeam", "NameTeam"]) ||
-    [value(item, ["firsName", "FirsName", "firstName", "FirstName"]), value(item, ["lastName", "LastName"])]
+  const title =
+    s(item, ["fullName", "FullName", "name", "Name", "teamName", "TeamName", "nameTeam", "NameTeam"]) ||
+    [s(item, ["firsName", "FirsName", "firstName", "FirstName"]), s(item, ["lastName", "LastName"])]
       .filter(Boolean)
       .join(" ") ||
     id;
 
   const subtitle = [
-    value(item, ["typeSport", "TypeSport"]),
-    value(item, ["role", "Role"]),
-    id !== fullName ? `login: ${id}` : "",
+    s(item, ["typeSport", "TypeSport"]),
+    s(item, ["role", "Role"]),
+    s(item, ["source", "Source"]),
+    id !== title ? `login: ${id}` : "",
   ].filter(Boolean).join(" · ");
 
   return {
     id,
-    title: fullName,
+    title,
     subtitle,
     type,
-    photo: normalizePhoto(value(item, [
-      "profilePhoto",
-      "ProfilePhoto",
-      "profilePhotoPath",
-      "ProfilePhotoPath",
-      "photo",
-      "Photo",
-      "teamPhoto",
-      "TeamPhoto"
-    ])),
+    photo: photo(s(item, ["profilePhoto", "ProfilePhoto", "profilePhotoPath", "ProfilePhotoPath", "photo", "Photo", "teamPhoto", "TeamPhoto"])),
     raw: item,
   };
 }
 
-function onlyMatching(items: PickerEntity[], query: string) {
+function unique(items: PickerEntity[]) {
+  const map = new Map<string, PickerEntity>();
+  items.forEach(item => {
+    if (!map.has(item.id)) map.set(item.id, item);
+  });
+  return Array.from(map.values());
+}
+
+function match(items: PickerEntity[], query: string) {
   const q = query.toLowerCase();
 
   return items.filter(item =>
@@ -118,84 +115,75 @@ function onlyMatching(items: PickerEntity[], query: string) {
   );
 }
 
+function asArray<T>(value: T[] | T | null | undefined): T[] {
+  if (!value) return [];
+  return Array.isArray(value) ? value : [value];
+}
+
 export const entitySearchApi = {
   async search(type: PickerEntityType, query: string): Promise<PickerEntity[]> {
     const text = query.trim();
-
     if (!text) return [];
 
     const q = encodeURIComponent(text);
     const org = encodeURIComponent(getOrgLogin());
 
     if (type === "trainer") {
-      if (!org) return [];
+      const linked = org
+        ? await tryGet<any[]>(AUTH_API_URL, `/organization-linked/trainers?loginOrganization=${org}&query=${q}`)
+        : [];
 
-      const data =
-        (await tryGet<any[]>(AUTH_API_URL, `/organization-linked/trainers?loginOrganization=${org}&query=${q}`)) ??
-        [];
-
-      return onlyMatching(data.map(x => normalize("trainer", x)), text);
+      return match(unique(asArray(linked).map(x => normalize("trainer", x))), text);
     }
 
     if (type === "athlete") {
-      const orgAthletes = org
+      const linked = org
         ? await tryGet<any[]>(AUTH_API_URL, `/organization-linked/athletes?loginOrganization=${org}&query=${q}`)
-        : null;
+        : [];
 
-      if (orgAthletes?.length) {
-        return onlyMatching(orgAthletes.map(x => normalize("athlete", x)), text);
-      }
+      const global1 = await tryGet<any[] | any>(AUTH_API_URL, `/get-search-athlete?FullName=${q}`);
+      const global2 = await tryGet<any[] | any>(AUTH_API_URL, `/get-search-athlete/${q}`);
 
-      // Fallback for old project state where OrganizationAthlete is not filled yet.
-      const globalAthletes =
-        (await tryGet<any[]>(AUTH_API_URL, `/get-search-athlete?FullName=${q}`)) ??
-        (await tryGet<any[]>(AUTH_API_URL, `/get-search-athlete/${q}`)) ??
-        [];
+      const merged = [
+        ...asArray(linked).map(x => normalize("athlete", x)),
+        ...asArray(global1).map(x => normalize("athlete", x)),
+        ...asArray(global2).map(x => normalize("athlete", x)),
+      ];
 
-      return onlyMatching(globalAthletes.map(x => normalize("athlete", x)), text);
+      return match(unique(merged), text);
     }
 
     if (type === "judge") {
-      if (!org) return [];
+      const linked = org
+        ? await tryGet<any[]>(AUTH_API_URL, `/organization-linked/judges?loginOrganization=${org}&query=${q}`)
+        : [];
 
-      const data =
-        (await tryGet<any[]>(AUTH_API_URL, `/organization-linked/judges?loginOrganization=${org}&query=${q}`)) ??
-        [];
-
-      return onlyMatching(data.map(x => normalize("judge", x)), text);
+      return match(unique(asArray(linked).map(x => normalize("judge", x))), text);
     }
 
     if (type === "team") {
-      const linked =
-        org
-          ? await tryGet<any[]>(AUTH_API_URL, `/organization-linked/teams?loginOrganization=${org}&query=${q}`)
-          : null;
+      const linked = org
+        ? await tryGet<any[]>(AUTH_API_URL, `/organization-linked/teams?loginOrganization=${org}&query=${q}`)
+        : [];
 
-      if (linked?.length) {
-        return onlyMatching(linked.map(x => normalize("team", x)), text);
-      }
-
-      const data =
-        (await tryGet<any[]>(COMMAND_API_URL, `/teams/search?query=${q}`)) ??
-        (await tryGet<any[]>(COMMAND_API_URL, `/get-search-team?NameTeam=${q}`)) ??
+      const global =
+        await tryGet<any[]>(COMMAND_API_URL, `/teams/search?query=${q}`) ??
+        await tryGet<any[]>(COMMAND_API_URL, `/get-search-team?NameTeam=${q}`) ??
         [];
 
-      return onlyMatching(data.map(x => normalize("team", x)), text);
+      return match(unique([...asArray(linked), ...asArray(global)].map(x => normalize("team", x))), text);
     }
 
     if (type === "organization") {
       const data =
-        (await tryGet<any[]>(AUTH_API_URL, `/organization/search?query=${q}`)) ??
-        (await tryGet<any[]>(AUTH_API_URL, `/get-search-organization?Name=${q}`)) ??
+        await tryGet<any[]>(AUTH_API_URL, `/organization/search?query=${q}`) ??
+        await tryGet<any[]>(AUTH_API_URL, `/get-search-organization?Name=${q}`) ??
         [];
 
-      return onlyMatching(data.map(x => normalize("organization", x)), text);
+      return match(unique(asArray(data).map(x => normalize("organization", x))), text);
     }
 
-    const data =
-      (await tryGet<any[]>(AUTH_API_URL, `/users/search?query=${q}`)) ??
-      [];
-
-    return onlyMatching(data.map(x => normalize("user", x)), text);
+    const users = await tryGet<any[]>(AUTH_API_URL, `/users/search?query=${q}`) ?? [];
+    return match(unique(asArray(users).map(x => normalize("user", x))), text);
   },
 };

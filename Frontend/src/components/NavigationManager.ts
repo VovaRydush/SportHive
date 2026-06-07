@@ -47,14 +47,13 @@ export class NavigationManager {
 
   private renderUserNav(role: string | null) {
     let content = `
-      <button class="nav-btn" id="homePagest">Головна</button>
       <button class="nav-btn" id="tournaments-btn">Турніри</button>
     `;
 
     switch (role) {
       case 'Organization':
         content += `
-          <button class="nav-btn" id="judge-btn">Призначити суддю</button>
+          
           <button class="nav-btn" id="event-btn">Створити захід</button>
           <button class="nav-btn" id="profil-btn">Профіль Організації</button>
         `;

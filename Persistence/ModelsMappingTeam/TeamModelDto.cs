@@ -9,6 +9,11 @@ namespace DB.SportHive.Domain
         public string LoginTrainer { get; set; } = null!;
         public string TypeSport { get; set; } = null!;
         public IFormFile? Photo { get; set; }
+
+        // IMPORTANT:
+        // Needed for automatic link Team -> Organization during create-team.
+        public string? LoginOrganization { get; set; }
+
         public string? AthletsJson { get; set; }
 
         public List<TeamAthleteDto> Athlets
@@ -20,8 +25,7 @@ namespace DB.SportHive.Domain
 
                 return JsonSerializer.Deserialize<List<TeamAthleteDto>>(
                     AthletsJson,
-                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
-                ) ?? new List<TeamAthleteDto>();
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new List<TeamAthleteDto>();
             }
         }
     }

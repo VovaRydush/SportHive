@@ -2,6 +2,7 @@ import { AdaptiveEntityPicker } from "./AdaptiveEntityPicker";
 import type { PickerEntity } from "../api/entityPickerTypes";
 import { NotificationKarina } from "./Notification";
 import { commandApi } from "../api/commandApi";
+import type { TeamModelDto } from "../api/commandTypes";
 import "./createTeam.css";
 
 type SelectedAthlete = {
@@ -9,6 +10,19 @@ type SelectedAthlete = {
   nameTeam: string;
   athleteStatus: string;
 };
+
+function cleanStorage(value: string | null) {
+  return (value || "").replace(/^"(.+)"$/, "$1").trim();
+}
+
+function getCurrentOrganizationLogin() {
+  return (
+    cleanStorage(localStorage.getItem("organizationLogin")) ||
+    cleanStorage(localStorage.getItem("loginOrganization")) ||
+    cleanStorage(localStorage.getItem("login")) ||
+    cleanStorage(localStorage.getItem("userLogin"))
+  );
+}
 
 export class CreateTeamModal {
   private container: HTMLElement;
@@ -45,19 +59,19 @@ export class CreateTeamModal {
           </div>
         </header>
 
-        <form id="create-team-form" class="team-create-form">
+        <form id="create-team-form" class="team-create-form" novalidate>
           <section class="team-card">
             <h2>Основна інформація</h2>
 
             <div class="team-form-grid">
               <label>
                 Назва команди
-                <input name="NameTeam" required placeholder="Наприклад: SportHive Lions" />
+                <input id="create-team-name" name="nameTeam" type="text" required autocomplete="off" placeholder="Наприклад: SportHive Lions" />
               </label>
 
               <label>
                 Вид спорту
-                <select name="TypeSport" required>
+                <select id="create-team-sport" name="typeSport" required>
                   <option value="Football">Football</option>
                   <option value="Basketball">Basketball</option>
                   <option value="Tennis">Tennis</option>
@@ -99,13 +113,13 @@ export class CreateTeamModal {
 
             <label class="team-file-input">
               <span>Завантажити фото</span>
-              <input name="Photo" type="file" accept="image/*" />
+              <input id="create-team-photo" name="photo" type="file" accept="image/*" />
             </label>
           </section>
 
           <div class="team-actions">
             <button class="team-btn secondary" id="team-back-btn" type="button">Назад</button>
-            <button class="team-btn primary" type="submit">Створити команду</button>
+            <button class="team-btn primary" id="create-team-submit" type="submit">Створити команду</button>
           </div>
         </form>
       </section>
@@ -203,45 +217,88 @@ export class CreateTeamModal {
 
   private bindSubmit() {
     const form = document.getElementById("create-team-form") as HTMLFormElement | null;
+    const submitButton = document.getElementById("create-team-submit") as HTMLButtonElement | null;
 
-    form?.addEventListener("submit", async event => {
+    if (!form) return;
+
+    form.onsubmit = async event => {
       event.preventDefault();
+      event.stopPropagation();
 
-      const formData = new FormData(form);
-      const nameTeam = String(formData.get("NameTeam") || "").trim();
+      const notify = new NotificationKarina();
+
+      const nameInput = document.getElementById("create-team-name") as HTMLInputElement | null;
+      const sportInput = document.getElementById("create-team-sport") as HTMLSelectElement | null;
+      const photoInput = document.getElementById("create-team-photo") as HTMLInputElement | null;
+
+      const nameTeam = (nameInput?.value || "").trim();
+      const typeSport = (sportInput?.value || "").trim();
+      const photo = photoInput?.files?.[0] ?? null;
+      const loginOrganization = getCurrentOrganizationLogin();
+
+      console.log("[CreateTeam] submit values:", {
+        nameTeam,
+        typeSport,
+        loginOrganization,
+        trainer: this.selectedTrainer?.id,
+        athletes: this.selectedAthletes.map(a => a.id),
+      });
 
       if (!nameTeam) {
-        new NotificationKarina().show("Введи назву команди", "error");
+        notify.show("Назва команди обов'язкова", "error");
+        nameInput?.focus();
         return;
       }
 
-      if (!this.selectedTrainer) {
-        new NotificationKarina().show("Обери тренера команди", "error");
+      if (!typeSport) {
+        notify.show("Вид спорту обов'язковий", "error");
+        sportInput?.focus();
+        return;
+      }
+
+      if (!this.selectedTrainer?.id) {
+        notify.show("Обери тренера команди", "error");
         return;
       }
 
       if (!this.selectedAthletes.length) {
-        new NotificationKarina().show("Обери хоча б одного спортсмена", "error");
+        notify.show("Обери хоча б одного спортсмена", "error");
         return;
       }
 
-      const athletes: SelectedAthlete[] = this.selectedAthletes.map(athlete => ({
+      if (!loginOrganization) {
+        notify.show("Не знайдено login організації. Перелогінься як організація.", "error");
+        return;
+      }
+
+      const athlets: SelectedAthlete[] = this.selectedAthletes.map(athlete => ({
         loginAthlets: athlete.id,
         nameTeam,
         athleteStatus: this.selectedStatuses.get(athlete.id) || "Active",
       }));
 
-      formData.set("NameTeam", nameTeam);
-      formData.set("LoginTrainer", this.selectedTrainer.id);
-      formData.set("AthletsJson", JSON.stringify(athletes));
+      const payload = {
+        nameTeam,
+        loginTrainer: this.selectedTrainer.id,
+        typeSport,
+        photo,
+        athlets,
+        athletsJson: JSON.stringify(athlets),
+        loginOrganization,
+      } as TeamModelDto & { loginOrganization: string };
 
       try {
-        await commandApi.createTeam(formData as any);
-        new NotificationKarina().show("Команду створено", "success");
+        if (submitButton) submitButton.disabled = true;
+
+        await commandApi.createTeam(payload);
+
+        notify.show("Команду створено і прив'язано до організації", "success");
       } catch (error) {
-        new NotificationKarina().show(error instanceof Error ? error.message : "Не вдалося створити команду", "error");
+        notify.show(error instanceof Error ? error.message : "Не вдалося створити або прив'язати команду", "error");
+      } finally {
+        if (submitButton) submitButton.disabled = false;
       }
-    });
+    };
   }
 
    private escapeHtml(value: unknown) {
@@ -253,9 +310,10 @@ export class CreateTeamModal {
     .replace(/'/g, "&#039;");
   }
 
-  private escapeAttr(value: unknown) { return this.escapeHtml(value).replace(/`/g, "&#096;"); }
+  private escapeAttr(value: unknown) {
+    return this.escapeHtml(value).replace(/`/g, "&#096;");
+  }
 }
-
 
 export class CreateTeam extends CreateTeamModal {}
 export default CreateTeamModal;
