@@ -11,6 +11,9 @@ import { commandApi } from "../api/commandApi";
 import { TeamPageLook } from "./TeamPage";
 import { NotificationKarina } from "./Notification";
 import { CreateTeamModal } from "./CreateTeam";
+import { AdaptiveEntityPicker } from "./AdaptiveEntityPicker";
+import type { PickerEntity } from "../api/entityPickerTypes";
+import "./adaptiveEntityPicker.css";
 import "./organizationProfile.css";
 
 type EmployeeRole = "Athlete" | "Judge" | "Trainer";
@@ -44,6 +47,7 @@ export class OrganizationProfile {
   private searchResults: SearchPerson[] = [];
   private selectedRole: EmployeeRole = "Athlete";
   private searchTimer?: number;
+  private selectedEmployees: PickerEntity[] = [];
 
   constructor(containerId: string) {
     const element = document.getElementById(containerId);
@@ -211,12 +215,12 @@ export class OrganizationProfile {
           <div>
             <h2 class="section-title employee-title">Додати учасника в організацію</h2>
             <p class="employee-subtitle">
-              Знайди атлета, суддю або тренера і додай його до організації.
+              Обери роль, знайди користувача через адаптивний пошук і додай його до організації.
             </p>
           </div>
         </div>
 
-        <div class="employee-form">
+        <div class="employee-form adaptive-employee-form">
           <div class="employee-field">
             <label for="employee-role">Кого додати</label>
             <select id="employee-role">
@@ -227,58 +231,89 @@ export class OrganizationProfile {
           </div>
 
           <div class="employee-field employee-search-field">
-            <label for="employee-search">Пошук по ПІБ</label>
-            <input
-              id="employee-search"
-              type="text"
-              placeholder="Наприклад: Іван Петренко"
-              autocomplete="off"
-            />
+            <label>Пошук і вибір</label>
+            <div id="employee-picker"></div>
           </div>
 
-          <button id="employee-search-btn" class="employee-btn" type="button">
-            Знайти
+          <button id="employee-add-selected-btn" class="employee-btn" type="button">
+            Додати вибраних
           </button>
         </div>
 
         <div id="employee-message" class="employee-message"></div>
-        <div id="employee-results" class="employee-results"></div>
       </section>
     `;
   }
 
   private bindEmployeeManagerEvents() {
     const roleSelect = document.getElementById("employee-role") as HTMLSelectElement | null;
-    const searchInput = document.getElementById("employee-search") as HTMLInputElement | null;
-    const searchButton = document.getElementById("employee-search-btn") as HTMLButtonElement | null;
+    const addButton = document.getElementById("employee-add-selected-btn") as HTMLButtonElement | null;
+
+    const mountPicker = () => {
+      const root = document.getElementById("employee-picker");
+      if (!root) return;
+
+      this.selectedEmployees = [];
+
+      const entityType = this.selectedRole === "Athlete" ? "athlete" : this.selectedRole === "Judge" ? "judge" : "trainer";
+      const placeholder = this.selectedRole === "Athlete"
+        ? "Знайти атлета за ПІБ або login..."
+        : this.selectedRole === "Judge"
+          ? "Знайти суддю за ПІБ або login..."
+          : "Знайти тренера за ПІБ або login...";
+
+      new AdaptiveEntityPicker(root, {
+        entityType,
+        multiple: true,
+        placeholder,
+        onChange: (items) => {
+          this.selectedEmployees = items;
+        },
+      }).render();
+    };
 
     roleSelect?.addEventListener("change", () => {
       this.selectedRole = roleSelect.value as EmployeeRole;
-      this.renderSearchResults();
+      this.showEmployeeMessage("", "info");
+      mountPicker();
     });
 
-    searchButton?.addEventListener("click", () => {
-      this.searchPeople();
+    addButton?.addEventListener("click", async () => {
+      await this.linkSelectedEmployees(addButton);
     });
 
-    searchInput?.addEventListener("input", () => {
-      window.clearTimeout(this.searchTimer);
-      this.searchTimer = window.setTimeout(() => {
-        if (searchInput.value.trim().length >= 2) {
-          this.searchPeople();
-        } else {
-          this.searchResults = [];
-          this.renderSearchResults();
-        }
-      }, 450);
-    });
+    mountPicker();
+  }
 
-    searchInput?.addEventListener("keydown", (event) => {
-      if (event.key === "Enter") {
-        event.preventDefault();
-        this.searchPeople();
+  private async linkSelectedEmployees(button: HTMLButtonElement) {
+    if (!this.selectedEmployees.length) {
+      this.showEmployeeMessage("Спочатку обери користувачів зі списку.", "info");
+      return;
+    }
+
+    button.disabled = true;
+    button.textContent = "Додавання...";
+
+    try {
+      for (const item of this.selectedEmployees) {
+        await this.linkEmployee({
+          login: item.id,
+          fullName: item.title,
+          role: this.selectedRole,
+          sport: item.subtitle,
+          photo: item.photo,
+          raw: item.raw,
+        }, button);
       }
-    });
+
+      this.showEmployeeMessage("Вибраних користувачів додано до організації.", "success");
+      // Перерендер робиться після пакетного додавання або вручну, щоб picker не зникав після першого користувача.
+    } catch (error) {
+      this.showEmployeeMessage(error instanceof Error ? error.message : "Не вдалося додати користувачів.", "error");
+    } finally {
+      button.disabled = false;
+      button.textContent = "Додати вибраних";
+    }
   }
 
   private async searchPeople() {
@@ -444,7 +479,7 @@ export class OrganizationProfile {
 
       this.showEmployeeMessage(`${person.fullName} успішно додано в організацію.`, "success");
 
-      await this.render();
+      // Перерендер робиться після пакетного додавання або вручну, щоб picker не зникав після першого користувача.
     } catch (error) {
       console.error("Помилка додавання учасника:", error);
 

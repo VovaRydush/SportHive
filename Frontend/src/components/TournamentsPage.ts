@@ -5,6 +5,7 @@ import { SportLiveMatchPanel } from "./SportLiveMatchPanel";
 import "./tournamentsPage.css";
 
 type StatusFilter = "all" | "Live" | "Finished" | "Upcoming";
+type DetailTab = "matches" | "table" | "bracket";
 
 export class TournamentsPage {
   private container: HTMLElement;
@@ -14,65 +15,48 @@ export class TournamentsPage {
   private statusFilter: StatusFilter = "all";
   private selectedSystem = "all";
   private searchText = "";
-  private activeTab: "matches" | "table" | "bracket" = "matches";
+  private activeTab: DetailTab = "matches";
 
   constructor(containerId: string) {
     const element = document.getElementById(containerId);
-
-    if (!element) {
-      throw new Error(`Element with id '${containerId}' not found`);
-    }
-
+    if (!element) throw new Error(`Element with id '${containerId}' not found`);
     this.container = element;
   }
 
   async render() {
     this.container.innerHTML = `
       <section class="score-page">
-        <div class="score-top">
-          <div class="score-title">
-            <span class="score-kicker">SportHive scores</span>
-            <h1>Заходи, матчі та результати</h1>
+        <header class="score-header">
+          <div>
+            <span class="score-kicker">SportHive</span>
+            <h1>Матч-центр</h1>
+            <p>Турніри згруповані по видах спорту. Матчі показані компактно: час, статус, учасники, рахунок і дія.</p>
           </div>
           <button id="score-refresh" class="score-btn score-btn-dark" type="button">Оновити</button>
-        </div>
+        </header>
 
-        <div id="sports-strip" class="sports-strip">
-          <button class="sport-chip active" type="button">Завантаження...</button>
-        </div>
+        <nav id="sports-strip" class="sports-strip"></nav>
 
-        <div class="score-filters">
-          <div class="score-datebar">
-            <button class="date-btn active" type="button">Усі дати</button>
-            <button class="date-btn" type="button">Сьогодні</button>
-            <button class="date-btn" type="button">Найближчі</button>
-          </div>
-
+        <div class="score-toolbar">
           <div class="score-statusbar">
             <button class="status-pill active" data-status="all" type="button">Усі</button>
             <button class="status-pill" data-status="Live" type="button">Live</button>
-            <button class="status-pill" data-status="Finished" type="button">Завершені</button>
             <button class="status-pill" data-status="Upcoming" type="button">Очікують</button>
+            <button class="status-pill" data-status="Finished" type="button">Завершені</button>
           </div>
+
+          <input id="event-search" class="score-search" placeholder="Пошук заходу, команди, спортсмена..." />
         </div>
 
         <div class="score-layout">
           <aside class="score-sidebar">
-            <div class="score-card score-search-card">
-              <input id="event-search" class="score-search" placeholder="Пошук команди, заходу, спорту..." />
-            </div>
-
             <div class="score-card">
-              <div class="card-head">
-                <h3>Види спорту</h3>
-              </div>
+              <div class="card-head"><h3>Види спорту</h3></div>
               <div id="sports-list" class="sidebar-list"></div>
             </div>
 
             <div class="score-card">
-              <div class="card-head">
-                <h3>Системи</h3>
-              </div>
+              <div class="card-head"><h3>Система</h3></div>
               <select id="system-filter" class="score-select">
                 <option value="all">Усі системи</option>
                 <option value="RoundRobin">Round Robin</option>
@@ -90,13 +74,13 @@ export class TournamentsPage {
           <main class="score-feed">
             <div id="feed-summary" class="feed-summary"></div>
             <div id="events-feed" class="events-feed">
-              <div class="score-card muted-card">Завантаження заходів...</div>
+              <div class="score-card muted-card">Завантаження...</div>
             </div>
           </main>
 
           <aside id="event-detail" class="score-detail">
             <div class="score-card muted-card">
-              Обери захід або матч. Тут буде детальна інформація, матчі, таблиця та сітка.
+              Обери захід. Тут буде детальна інформація, матчі, таблиця та сітка.
             </div>
           </aside>
         </div>
@@ -111,14 +95,14 @@ export class TournamentsPage {
     document.getElementById("score-refresh")?.addEventListener("click", () => this.loadEvents(true));
 
     const search = document.getElementById("event-search") as HTMLInputElement | null;
-    let searchTimer: number | undefined;
+    let timer: number | undefined;
 
     search?.addEventListener("input", () => {
-      window.clearTimeout(searchTimer);
-      searchTimer = window.setTimeout(() => {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => {
         this.searchText = search.value.trim().toLowerCase();
         this.renderAll();
-      }, 220);
+      }, 200);
     });
 
     document.querySelectorAll<HTMLButtonElement>(".status-pill").forEach(button => {
@@ -131,7 +115,6 @@ export class TournamentsPage {
     });
 
     const system = document.getElementById("system-filter") as HTMLSelectElement | null;
-
     system?.addEventListener("change", () => {
       this.selectedSystem = system.value || "all";
       this.renderAll();
@@ -144,26 +127,15 @@ export class TournamentsPage {
       this.events = await eventCatalogApi.getEvents({});
 
       if (keepSelected && previousId) {
-        const refreshed = this.events.find(e => e.idEvent === previousId);
-
-        if (refreshed) {
-          this.selectedEvent = await eventCatalogApi.getEvent(refreshed.idEvent);
-        }
+        const stillExists = this.events.find(event => event.idEvent === previousId);
+        if (stillExists) this.selectedEvent = await eventCatalogApi.getEvent(previousId);
       }
 
       this.renderAll();
-
-      if (this.selectedEvent) {
-        this.renderDetail(this.selectedEvent);
-      }
+      if (this.selectedEvent) this.renderDetail(this.selectedEvent);
     } catch (error) {
       console.error(error);
-      new NotificationKarina().show(error instanceof Error ? error.message : "Не вдалося завантажити заходи", "error");
-
-      const feed = document.getElementById("events-feed");
-      if (feed) {
-        feed.innerHTML = `<div class="score-card error-card">Не вдалося завантажити заходи</div>`;
-      }
+      new NotificationKarina().show(error instanceof Error ? error.message : "Не вдалося завантажити турніри", "error");
     }
   }
 
@@ -176,12 +148,10 @@ export class TournamentsPage {
 
   private getSports() {
     const map = new Map<string, number>();
-
     this.events.forEach(event => {
       const sport = event.typeSport || "Інше";
       map.set(sport, (map.get(sport) || 0) + 1);
     });
-
     return Array.from(map.entries()).sort((a, b) => a[0].localeCompare(b[0]));
   }
 
@@ -197,7 +167,7 @@ export class TournamentsPage {
       </button>
       ${sports.map(([sport]) => `
         <button class="sport-chip ${this.selectedSport === sport ? "active" : ""}" data-sport="${this.escapeAttr(sport)}" type="button">
-          <span>${this.sportIcon(sport)}</span> ${this.escapeHtml(this.sportName(sport))}
+          <span>${this.sportIcon(sport)}</span> ${this.escapeHtml(sport)}
         </button>
       `).join("")}
     `;
@@ -223,7 +193,7 @@ export class TournamentsPage {
       </button>
       ${sports.map(([sport, count]) => `
         <button class="sidebar-item ${this.selectedSport === sport ? "active" : ""}" data-sport="${this.escapeAttr(sport)}" type="button">
-          <span><b>${this.sportIcon(sport)}</b> ${this.escapeHtml(this.sportName(sport))}</span>
+          <span><b>${this.sportIcon(sport)}</b> ${this.escapeHtml(sport)}</span>
           <strong>${count}</strong>
         </button>
       `).join("")}
@@ -244,12 +214,11 @@ export class TournamentsPage {
       if (this.selectedSystem !== "all" && event.system !== this.selectedSystem) return false;
 
       if (this.searchText) {
-        const matchText = event.matches
-          ?.map(match => `${match.firstParticipant} ${match.secondParticipant} ${match.score || ""}`)
+        const matches = event.matches
+          ?.map(match => `${match.firstParticipant} ${match.secondParticipant} ${match.score || ""} ${match.winner || ""}`)
           .join(" ") || "";
 
-        const text = `${event.nameEvent} ${event.description} ${event.typeSport} ${event.system} ${matchText}`.toLowerCase();
-
+        const text = `${event.nameEvent} ${event.description || ""} ${event.typeSport} ${event.system} ${matches}`.toLowerCase();
         if (!text.includes(this.searchText)) return false;
       }
 
@@ -262,27 +231,15 @@ export class TournamentsPage {
     if (!root) return;
 
     const events = this.filteredEvents();
-    const live = events.reduce((sum, event) => sum + (event.liveMatches || 0), 0);
     const matches = events.reduce((sum, event) => sum + (event.totalMatches || 0), 0);
+    const live = events.reduce((sum, event) => sum + (event.liveMatches || 0), 0);
     const finished = events.reduce((sum, event) => sum + (event.finishedMatches || 0), 0);
 
     root.innerHTML = `
-      <div class="summary-item">
-        <span>Заходів</span>
-        <b>${events.length}</b>
-      </div>
-      <div class="summary-item">
-        <span>Матчів</span>
-        <b>${matches}</b>
-      </div>
-      <div class="summary-item live">
-        <span>Live</span>
-        <b>${live}</b>
-      </div>
-      <div class="summary-item">
-        <span>Завершено</span>
-        <b>${finished}</b>
-      </div>
+      <div class="summary-item"><span>Заходів</span><b>${events.length}</b></div>
+      <div class="summary-item"><span>Матчів</span><b>${matches}</b></div>
+      <div class="summary-item live"><span>Live</span><b>${live}</b></div>
+      <div class="summary-item"><span>Завершено</span><b>${finished}</b></div>
     `;
   }
 
@@ -308,12 +265,11 @@ export class TournamentsPage {
       <section class="competition-card">
         <header class="competition-header">
           <div>
-            <span class="competition-country">${this.sportIcon(sport)} ${this.escapeHtml(this.sportName(sport))}</span>
+            <span class="competition-country">${this.sportIcon(sport)} ${this.escapeHtml(sport)}</span>
             <h2>${this.escapeHtml(sportEvents.length === 1 ? sportEvents[0].nameEvent : `${sportEvents.length} заходів`)}</h2>
           </div>
           <span class="competition-count">${sportEvents.reduce((sum, e) => sum + (e.totalMatches || 0), 0)} матчів</span>
         </header>
-
         ${sportEvents.map(event => this.renderEventBlock(event)).join("")}
       </section>
     `).join("");
@@ -323,19 +279,18 @@ export class TournamentsPage {
     });
 
     root.querySelectorAll<HTMLButtonElement>(".open-match-live").forEach(button => {
-      button.addEventListener("click", () => {
-        const type = button.dataset.type || "team";
+      button.addEventListener("click", event => {
+        event.stopPropagation();
         const id = Number(button.dataset.id);
-
+        const type = button.dataset.type || "team";
         if (!id) return;
-
         this.openLiveMatch(type, id);
       });
     });
   }
 
   private renderEventBlock(event: EventCatalogItemDto) {
-    const visibleMatches = this.pickVisibleMatches(event.matches || []);
+    const matches = this.pickVisibleMatches(event.matches || []);
 
     return `
       <article class="event-block ${this.selectedEvent?.idEvent === event.idEvent ? "selected" : ""}">
@@ -352,27 +307,37 @@ export class TournamentsPage {
 
         <div class="event-match-preview">
           ${
-            visibleMatches.length
-              ? visibleMatches.map(match => this.renderMatchLine(match)).join("")
+            matches.length
+              ? matches.map(match => this.renderMatchLine(match)).join("")
               : `<div class="match-line disabled"><span>Матчів поки немає</span></div>`
           }
+          ${(event.matches?.length || 0) > matches.length ? `
+            <button class="show-all-matches open-event-detail" data-id="${event.idEvent}" type="button">
+              Показати всі матчі (${event.matches.length})
+            </button>
+          ` : ""}
         </div>
       </article>
     `;
   }
 
   private renderMatchLine(match: EventMatchCatalogDto) {
+    const firstScore = this.scorePart(match.score, 0);
+    const secondScore = this.scorePart(match.score, 1);
+    const canEnter = this.canEnterMatchData(match);
+    const actionText = canEnter ? "Внести" : "Деталі";
+
     return `
-      <div class="match-line">
+      <div class="match-line ${match.status.toLowerCase()}">
         <button class="match-teams open-match-live" data-type="${match.matchType}" data-id="${match.matchId}" type="button">
-          <span class="match-minute">${match.status === "Live" ? "LIVE" : `R${match.tour}`}</span>
-          <span class="team-name">${this.escapeHtml(match.firstParticipant)}</span>
-          <strong class="match-score">${this.scorePart(match.score, 0)}</strong>
-          <span class="team-name">${this.escapeHtml(match.secondParticipant)}</span>
-          <strong class="match-score">${this.scorePart(match.score, 1)}</strong>
+          <span class="match-time ${match.status.toLowerCase()}">${this.matchTimeLabel(match)}</span>
+          <span class="team-name first">${this.escapeHtml(match.firstParticipant)}</span>
+          <strong class="match-score first-score">${this.escapeHtml(firstScore)}</strong>
+          <span class="team-name second">${this.escapeHtml(match.secondParticipant)}</span>
+          <strong class="match-score second-score">${this.escapeHtml(secondScore)}</strong>
         </button>
         <button class="match-action open-match-live" data-type="${match.matchType}" data-id="${match.matchId}" type="button">
-          Деталі
+          ${actionText}
         </button>
       </div>
     `;
@@ -380,11 +345,10 @@ export class TournamentsPage {
 
   private pickVisibleMatches(matches: EventMatchCatalogDto[]) {
     const sorted = matches.slice().sort((a, b) => {
-      const statusRank = (status: string) => status === "Live" ? 0 : status === "Upcoming" ? 1 : 2;
-      return statusRank(a.status) - statusRank(b.status) || a.tour - b.tour || a.matchId - b.matchId;
+      const rank = (status: string) => status === "Live" ? 0 : status === "Upcoming" ? 1 : 2;
+      return rank(a.status) - rank(b.status) || a.tour - b.tour || a.matchId - b.matchId;
     });
-
-    return sorted.slice(0, 4);
+    return sorted.slice(0, 5);
   }
 
   private async openEvent(idEvent: number) {
@@ -409,7 +373,7 @@ export class TournamentsPage {
           <h2>${this.escapeHtml(event.nameEvent)}</h2>
           <p>${this.escapeHtml(event.description || "Опис відсутній")}</p>
           <div class="detail-meta">
-            <span>${this.sportIcon(event.typeSport)} ${this.escapeHtml(this.sportName(event.typeSport))}</span>
+            <span>${this.sportIcon(event.typeSport)} ${this.escapeHtml(event.typeSport)}</span>
             <span>${this.escapeHtml(event.system)}</span>
             <span>${this.formatDate(event.dataStart)}</span>
           </div>
@@ -421,7 +385,7 @@ export class TournamentsPage {
           <button class="detail-tab ${this.activeTab === "bracket" ? "active" : ""}" data-tab="bracket" type="button">Сітка</button>
         </div>
 
-        <div id="detail-content" class="detail-content">
+        <div class="detail-content">
           ${this.renderDetailContent(event)}
         </div>
       </div>
@@ -429,18 +393,16 @@ export class TournamentsPage {
 
     root.querySelectorAll<HTMLButtonElement>(".detail-tab").forEach(button => {
       button.addEventListener("click", () => {
-        this.activeTab = (button.dataset.tab as "matches" | "table" | "bracket") || "matches";
+        this.activeTab = (button.dataset.tab as DetailTab) || "matches";
         this.renderDetail(event);
       });
     });
 
     root.querySelectorAll<HTMLButtonElement>(".open-match-live").forEach(button => {
       button.addEventListener("click", () => {
-        const type = button.dataset.type || "team";
         const id = Number(button.dataset.id);
-
+        const type = button.dataset.type || "team";
         if (!id) return;
-
         this.openLiveMatch(type, id);
       });
     });
@@ -455,25 +417,31 @@ export class TournamentsPage {
   private renderAllMatches(matches: EventMatchCatalogDto[]) {
     if (!matches.length) return `<div class="empty-state compact">Матчів поки немає</div>`;
 
-    return `
-      <div class="detail-match-list">
-        ${matches.map(match => `
-          <div class="detail-match-row">
-            <div>
-              <span class="match-round">${match.matchType} · Round ${match.tour}${match.group ? ` · Group ${match.group}` : ""}</span>
-              <h3>${this.escapeHtml(match.firstParticipant)} — ${this.escapeHtml(match.secondParticipant)}</h3>
-              <p>${this.escapeHtml(match.locationName || "Локацію не вказано")} · Суддя: ${this.escapeHtml(match.loginJudge || "-")}</p>
+    const byRound = this.groupMatchesByRound(matches);
+
+    return Array.from(byRound.entries()).map(([round, roundMatches]) => `
+      <section class="detail-round">
+        <h3>${this.escapeHtml(round)}</h3>
+        <div class="detail-match-list">
+          ${roundMatches.map(match => `
+            <div class="detail-match-row">
+              <div>
+                <span class="match-round">${match.matchType}${match.group ? ` · Group ${match.group}` : ""}</span>
+                <h4>${this.escapeHtml(match.firstParticipant)} — ${this.escapeHtml(match.secondParticipant)}</h4>
+                <p>${this.matchDateTimeLabel(match)} · Суддя: ${this.escapeHtml(match.loginJudge || "-")}</p>
+                <small>${this.readinessLabel(match)}</small>
+              </div>
+              <div class="detail-score">
+                <b>${this.escapeHtml(match.score || "vs")}</b>
+                <button class="score-btn open-match-live" data-type="${match.matchType}" data-id="${match.matchId}" type="button">
+                  ${this.canEnterMatchData(match) ? "Внести" : "Перегляд"}
+                </button>
+              </div>
             </div>
-            <div class="detail-score">
-              <b>${this.escapeHtml(match.score || "vs")}</b>
-              <button class="score-btn open-match-live" data-type="${match.matchType}" data-id="${match.matchId}" type="button">
-                ${match.canEdit ? "Внести" : "Деталі"}
-              </button>
-            </div>
-          </div>
-        `).join("")}
-      </div>
-    `;
+          `).join("")}
+        </div>
+      </section>
+    `).join("");
   }
 
   private renderStanding(rows: EventStandingDto[]) {
@@ -491,14 +459,7 @@ export class TournamentsPage {
         <table class="score-table">
           <thead>
             <tr>
-              <th>#</th>
-              <th>Учасник</th>
-              <th>PL</th>
-              <th>W</th>
-              <th>D</th>
-              <th>L</th>
-              <th>+/-</th>
-              <th>P</th>
+              <th>#</th><th>Учасник</th><th>PL</th><th>W</th><th>D</th><th>L</th><th>SF</th><th>SA</th><th>+/-</th><th>P</th>
             </tr>
           </thead>
           <tbody>
@@ -510,6 +471,8 @@ export class TournamentsPage {
                 <td>${row.wins}</td>
                 <td>${row.draws}</td>
                 <td>${row.losses}</td>
+                <td>${row.scoreFor}</td>
+                <td>${row.scoreAgainst}</td>
                 <td>${row.scoreDiff}</td>
                 <td><b>${row.points}</b></td>
               </tr>
@@ -544,8 +507,20 @@ export class TournamentsPage {
     `;
   }
 
-  private openLiveMatch(matchType: string, matchId: number) {
-    new SportLiveMatchPanel("app", matchType, matchId).render();
+  private groupMatchesByRound(matches: EventMatchCatalogDto[]) {
+    const map = new Map<string, EventMatchCatalogDto[]>();
+
+    matches
+      .slice()
+      .sort((a, b) => a.tour - b.tour || (a.group || 0) - (b.group || 0) || a.matchId - b.matchId)
+      .forEach(match => {
+        const key = `Round ${match.tour}${match.group ? ` · Group ${match.group}` : ""}`;
+        const list = map.get(key) || [];
+        list.push(match);
+        map.set(key, list);
+      });
+
+    return map;
   }
 
   private groupBySport(events: EventCatalogItemDto[]) {
@@ -561,13 +536,66 @@ export class TournamentsPage {
     return map;
   }
 
+  private canEnterMatchData(match: EventMatchCatalogDto) {
+    if (!match.canEdit) return false;
+    if (match.status === "Finished") return false;
+    if (match.status === "Live") return true;
+
+    const date = this.getMatchDate(match);
+    if (!date) return false;
+
+    return date.getTime() <= Date.now();
+  }
+
+  private readinessLabel(match: EventMatchCatalogDto) {
+    if (match.status === "Finished") return "Матч завершений. Доступний перегляд результату.";
+    if (this.canEnterMatchData(match)) return "Час матчу настав. Суддя може вносити live-дані та результат.";
+    return "Матч ще очікується. Доступна тільки загальна інформація.";
+  }
+
+  private matchTimeLabel(match: EventMatchCatalogDto) {
+    if (match.status === "Live") return "LIVE";
+    if (match.status === "Finished") return "FT";
+
+    const date = this.getMatchDate(match);
+    if (!date) return `R${match.tour}`;
+
+    return date.toLocaleTimeString("uk-UA", { hour: "2-digit", minute: "2-digit" });
+  }
+
+  private matchDateTimeLabel(match: EventMatchCatalogDto) {
+    const date = this.getMatchDate(match);
+    if (!date) return "Дата/час не вказані";
+
+    return date.toLocaleString("uk-UA", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  }
+
+  private getMatchDate(match: EventMatchCatalogDto) {
+    if (!match.dataMatch) return null;
+
+    const datePart = String(match.dataMatch).split("T")[0];
+    const timeRaw = String(match.timeMatch || "00:00:00");
+    const timePart = timeRaw.includes(".") ? timeRaw.split(".")[0] : timeRaw;
+    const date = new Date(`${datePart}T${timePart}`);
+
+    if (Number.isNaN(date.getTime())) {
+      const fallback = new Date(String(match.dataMatch));
+      return Number.isNaN(fallback.getTime()) ? null : fallback;
+    }
+
+    return date;
+  }
+
   private scorePart(score: string | null | undefined, index: 0 | 1) {
     if (!score) return "-";
-
-    const normalized = score.replace(/ /g, "");
-    const parts = normalized.split(/[:\-]/);
-
-    return parts[index] || (index === 0 ? score : "");
+    const parts = score.replace(/ /g, "").split(/[:\\-]/);
+    return parts[index] || "-";
   }
 
   private statusLabel(status: string) {
@@ -579,7 +607,6 @@ export class TournamentsPage {
 
   private sportIcon(sport: string) {
     const key = (sport || "").toLowerCase();
-
     if (key.includes("football") || key.includes("фут")) return "⚽";
     if (key.includes("basket") || key.includes("бас")) return "🏀";
     if (key.includes("tennis") || key.includes("тен")) return "🎾";
@@ -589,19 +616,16 @@ export class TournamentsPage {
     if (key.includes("chess") || key.includes("шах")) return "♟️";
     if (key.includes("check")) return "🔲";
     if (key.includes("base")) return "⚾";
-
     return "🏆";
   }
 
-  private sportName(sport: string) {
-    return sport || "Інше";
+  private openLiveMatch(matchType: string, matchId: number) {
+    new SportLiveMatchPanel("app", matchType, matchId).render();
   }
 
   private formatDate(value?: string | null) {
     if (!value) return "-";
-
     const date = new Date(value);
-
     if (Number.isNaN(date.getTime())) return "-";
 
     return date.toLocaleDateString("uk-UA", {

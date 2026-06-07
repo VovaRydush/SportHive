@@ -1,409 +1,218 @@
-import { authApi } from "../api/authApi";
-import { commandApi } from "../api/commandApi";
-import type { SearchAthleteResult, TeamAthleteDto } from "../api/commandTypes";
+import { AdaptiveEntityPicker } from "./AdaptiveEntityPicker";
+import type { PickerEntity } from "../api/entityPickerTypes";
 import { NotificationKarina } from "./Notification";
-import "./createTeam.css";
+import { commandApi } from "../api/commandApi";
+import "./adaptiveEntityPicker.css";
 
-type SelectedAthlete = SearchAthleteResult & {
-  status: string;
+type SelectedAthlete = {
+  loginAthlets: string;
+  nameTeam: string;
+  athleteStatus: string;
 };
 
-const TEAM_STATUSES = ["Active", "Reserve", "Injured", "Disqualified"];
-
 export class CreateTeamModal {
-  private modalContainer: HTMLElement;
-  private searchResults: SearchAthleteResult[] = [];
-  private selectedAthletes: SelectedAthlete[] = [];
-  private searchTimer?: number;
+  private container: HTMLElement;
+  private selectedTrainer: PickerEntity | null = null;
+  private selectedAthletes: PickerEntity[] = [];
+  private selectedStatuses = new Map<string, string>();
 
-  constructor() {
-    this.modalContainer = document.createElement("div");
-    this.modalContainer.className = "team-modal-container";
-    document.body.appendChild(this.modalContainer);
+  constructor(containerId: string = "app") {
+    const element = document.getElementById(containerId);
+
+    if (!element) {
+      throw new Error(`Element with id '${containerId}' not found`);
+    }
+
+    this.container = element;
   }
 
-  async show() {
-    const role = localStorage.getItem("userRole") || localStorage.getItem("role") || "";
-    const currentLogin = localStorage.getItem("login") || "";
-    const defaultTrainerLogin = role === "Trainer" ? currentLogin : "";
+  /*
+    IMPORTANT COMPATIBILITY:
+    Existing files call:
+    new CreateTeamModal(...).show()
 
-    this.modalContainer.innerHTML = `
-      <div class="team-modal">
-        <div class="modal-header">
-          <h2>Створити нову команду</h2>
-          <button class="close-btn" type="button">×</button>
-        </div>
+    So show() must exist.
+  */
+  show() {
+    this.render();
+  }
 
-        <form id="createTeamForm" class="team-form">
-          <div class="form-group">
-            <label for="teamName">Назва команди</label>
-            <input id="teamName" name="teamName" type="text" required />
+  /*
+    Some newer files may call open().
+  */
+  open() {
+    this.render();
+  }
+
+  render() {
+    this.container.innerHTML = `
+      <section class="create-team-page">
+        <h1>Створити команду</h1>
+
+        <form id="create-team-form" class="create-team-form">
+          <label>Назва команди</label>
+          <input name="NameTeam" required placeholder="Наприклад: SportHive Lions" />
+
+          <label>Вид спорту</label>
+          <select name="TypeSport" required>
+            <option value="Football">Football</option>
+            <option value="Basketball">Basketball</option>
+            <option value="Tennis">Tennis</option>
+            <option value="Boxing">Boxing</option>
+            <option value="Volleyball">Volleyball</option>
+            <option value="Chess">Chess</option>
+          </select>
+
+          <div class="event-picker-section">
+            <h2>Тренер</h2>
+            <p>Обери тренера, привʼязаного до організації.</p>
+            <div id="team-trainer-picker"></div>
           </div>
 
-          <div class="form-group">
-            <label for="trainerLogin">Логін тренера</label>
-            <input
-              id="trainerLogin"
-              name="trainerLogin"
-              type="text"
-              value="${this.escapeHtml(defaultTrainerLogin)}"
-              placeholder="Введіть існуючий login тренера"
-              required
-            />
-            <small class="team-help">
-              Важливо: це має бути існуючий користувач з роллю Trainer. Якщо ви організація — введіть login тренера, а не login організації.
-            </small>
+          <div class="event-picker-section">
+            <h2>Спортсмени</h2>
+            <p>Обери спортсменів через адаптивний пошук.</p>
+            <div id="team-athletes-picker"></div>
+            <div id="selected-athletes-statuses" class="selected-athletes-statuses"></div>
           </div>
 
-          <div class="form-group">
-            <label for="sportType">Вид спорту</label>
-            <select id="sportType" name="sportType" required>
-              <option value="">Оберіть вид спорту</option>
-              <option value="Football">Футбол</option>
-              <option value="Basketball">Баскетбол</option>
-              <option value="Volleyball">Волейбол</option>
-              <option value="Tennis">Теніс</option>
-              <option value="Boxing">Бокс</option>
-              <option value="Wrestling">Боротьба</option>
-              <option value="Hockey">Хокей</option>
-              <option value="Baseball">Бейсбол</option>
-              <option value="Chess">Шахи</option>
-              <option value="Checkers">Шашки</option>
-              <option value="Badminton">Бадмінтон</option>
-              <option value="TableTennis">Настільний теніс</option>
-            </select>
-          </div>
+          <label>Логотип команди</label>
+          <input name="Photo" type="file" accept="image/*" />
 
-          <div class="form-group">
-            <label for="teamPhoto">Логотип команди</label>
-            <input id="teamPhoto" name="teamPhoto" type="file" accept="image/*" />
-            <div id="photoPreview" class="photo-preview"></div>
-          </div>
-
-          <div class="form-group">
-            <label for="athleteSearch">Додати спортсменів</label>
-            <div class="search-box">
-              <input
-                id="athleteSearch"
-                type="text"
-                placeholder="Введіть ім'я або прізвище спортсмена"
-                autocomplete="off"
-              />
-              <button class="search-btn" type="button">Пошук</button>
-            </div>
-          </div>
-
-          <section class="athletes-list">
-            <h3>Знайдені спортсмени</h3>
-            <div id="athleteSearchMessage" class="team-form-message"></div>
-            <div id="availableAthletes" class="athletes-grid"></div>
-          </section>
-
-          <section class="selected-athletes">
-            <h3>Обрані спортсмени</h3>
-            <div id="selectedAthletesList" class="selected-list">
-              <span class="selected-athlete empty">Не обрано жодного спортсмена</span>
-            </div>
-          </section>
-
-          <div class="form-actions">
-            <button class="btn btn-primary" type="submit" id="createTeamBtn">
-              Створити команду
-            </button>
-          </div>
+          <button class="primary-btn" type="submit">Створити команду</button>
         </form>
-      </div>
+      </section>
     `;
 
-    this.addEventListeners();
-    this.modalContainer.style.display = "flex";
+    this.mountPickers();
+    this.bindSubmit();
   }
 
-  private addEventListeners() {
-    this.modalContainer.querySelector(".close-btn")?.addEventListener("click", () => {
-      this.close();
-    });
+  private mountPickers() {
+    const trainerRoot = document.getElementById("team-trainer-picker");
+    const athletesRoot = document.getElementById("team-athletes-picker");
 
-    const photoInput = this.modalContainer.querySelector("#teamPhoto") as HTMLInputElement;
-    const photoPreview = this.modalContainer.querySelector("#photoPreview") as HTMLElement;
-
-    photoInput.addEventListener("change", (event) => {
-      const file = (event.target as HTMLInputElement).files?.[0];
-
-      if (!file) {
-        photoPreview.innerHTML = "";
-        return;
-      }
-
-      const reader = new FileReader();
-      reader.onload = () => {
-        photoPreview.innerHTML = `<img src="${String(reader.result)}" alt="Логотип команди" />`;
-      };
-      reader.readAsDataURL(file);
-    });
-
-    const searchInput = this.modalContainer.querySelector("#athleteSearch") as HTMLInputElement;
-    const searchBtn = this.modalContainer.querySelector(".search-btn") as HTMLButtonElement;
-
-    searchBtn.addEventListener("click", () => this.searchAthletes(searchInput.value));
-
-    searchInput.addEventListener("input", () => {
-      window.clearTimeout(this.searchTimer);
-      this.searchTimer = window.setTimeout(() => {
-        if (searchInput.value.trim().length >= 2) {
-          this.searchAthletes(searchInput.value);
-        }
-      }, 450);
-    });
-
-    searchInput.addEventListener("keydown", (event) => {
-      if (event.key === "Enter") {
-        event.preventDefault();
-        this.searchAthletes(searchInput.value);
-      }
-    });
-
-    const form = this.modalContainer.querySelector("#createTeamForm") as HTMLFormElement;
-    form.addEventListener("submit", (event) => this.handleSubmit(event));
-  }
-
-  private async searchAthletes(query: string) {
-    const message = this.modalContainer.querySelector("#athleteSearchMessage") as HTMLElement;
-    const container = this.modalContainer.querySelector("#availableAthletes") as HTMLElement;
-
-    const search = query.trim();
-
-    if (!search) {
-      message.textContent = "Введіть ім'я або прізвище спортсмена.";
-      container.innerHTML = "";
-      return;
+    if (trainerRoot) {
+      new AdaptiveEntityPicker(trainerRoot, {
+        entityType: "trainer",
+        multiple: false,
+        placeholder: "Знайти тренера організації...",
+        onChange: items => {
+          this.selectedTrainer = items[0] || null;
+        },
+      }).render();
     }
 
-    try {
-      message.textContent = "Пошук...";
-      container.innerHTML = "";
+    if (athletesRoot) {
+      new AdaptiveEntityPicker(athletesRoot, {
+        entityType: "athlete",
+        multiple: true,
+        placeholder: "Знайти спортсмена...",
+        onChange: items => {
+          this.selectedAthletes = items;
 
-      const response = await authApi.searchAthlete(search);
-      const list = Array.isArray(response) ? response : [response];
+          items.forEach(item => {
+            if (!this.selectedStatuses.has(item.id)) {
+              this.selectedStatuses.set(item.id, "Active");
+            }
+          });
 
-      this.searchResults = list
-        .map((item) => this.normalizeAthlete(item))
-        .filter((athlete) => Boolean(athlete.login));
-
-      if (!this.searchResults.length) {
-        message.textContent = "Спортсменів не знайдено.";
-        return;
-      }
-
-      message.textContent = "";
-      this.renderAvailableAthletes();
-    } catch (error) {
-      console.error("Помилка пошуку спортсменів:", error);
-      message.textContent = error instanceof Error ? error.message : "Помилка пошуку спортсменів.";
+          this.renderAthleteStatuses();
+        },
+      }).render();
     }
   }
 
-  private renderAvailableAthletes() {
-    const container = this.modalContainer.querySelector("#availableAthletes") as HTMLElement;
+  private renderAthleteStatuses() {
+    const root = document.getElementById("selected-athletes-statuses");
 
-    container.innerHTML = this.searchResults
-      .map((athlete) => {
-        const checked = this.selectedAthletes.some((a) => a.login === athlete.login) ? "checked" : "";
-
-        return `
-          <div class="athlete-card">
-            <label>
-              <input
-                type="checkbox"
-                name="selectedAthletes"
-                value="${this.escapeHtml(athlete.login)}"
-                ${checked}
-              />
-              <span>${this.escapeHtml(athlete.fullName)} (${this.escapeHtml(athlete.sport || "спорт не вказано")})</span>
-            </label>
-          </div>
-        `;
-      })
-      .join("");
-
-    container
-      .querySelectorAll<HTMLInputElement>('input[name="selectedAthletes"]')
-      .forEach((checkbox) => {
-        checkbox.addEventListener("change", () => {
-          const athlete = this.searchResults.find((a) => a.login === checkbox.value);
-          if (!athlete) return;
-
-          if (checkbox.checked) {
-            this.addSelectedAthlete(athlete);
-          } else {
-            this.selectedAthletes = this.selectedAthletes.filter((a) => a.login !== athlete.login);
-          }
-
-          this.updateSelectedAthletes();
-        });
-      });
-  }
-
-  private addSelectedAthlete(athlete: SearchAthleteResult) {
-    if (this.selectedAthletes.some((a) => a.login === athlete.login)) return;
-
-    this.selectedAthletes.push({
-      ...athlete,
-      status: "Active",
-    });
-  }
-
-  private updateSelectedAthletes() {
-    const selectedList = this.modalContainer.querySelector("#selectedAthletesList") as HTMLElement;
+    if (!root) return;
 
     if (!this.selectedAthletes.length) {
-      selectedList.innerHTML = `<span class="selected-athlete empty">Не обрано жодного спортсмена</span>`;
+      root.innerHTML = "";
       return;
     }
 
-    selectedList.innerHTML = this.selectedAthletes
-      .map(
-        (athlete) => `
-          <span class="selected-athlete">
-            ${this.escapeHtml(athlete.fullName)}
-            <select data-login="${this.escapeHtml(athlete.login)}" class="athlete-status-select">
-              ${TEAM_STATUSES.map((status) => `
-                <option value="${status}" ${athlete.status === status ? "selected" : ""}>${status}</option>
-              `).join("")}
-            </select>
-            <button type="button" class="remove-selected-athlete" data-login="${this.escapeHtml(athlete.login)}">×</button>
-          </span>
-        `
-      )
-      .join("");
+    root.innerHTML = `
+      <h3>Статус спортсменів</h3>
+      ${this.selectedAthletes.map(athlete => `
+        <div class="athlete-status-row">
+          <span>${this.escapeHtml(athlete.title)} <small>${this.escapeHtml(athlete.id)}</small></span>
+          <select data-athlete-status="${this.escapeAttr(athlete.id)}">
+            <option value="Active" ${this.selectedStatuses.get(athlete.id) === "Active" ? "selected" : ""}>Active</option>
+            <option value="Reserve" ${this.selectedStatuses.get(athlete.id) === "Reserve" ? "selected" : ""}>Reserve</option>
+            <option value="Injured" ${this.selectedStatuses.get(athlete.id) === "Injured" ? "selected" : ""}>Injured</option>
+          </select>
+        </div>
+      `).join("")}
+    `;
 
-    selectedList.querySelectorAll<HTMLSelectElement>(".athlete-status-select").forEach((select) => {
+    root.querySelectorAll<HTMLSelectElement>("[data-athlete-status]").forEach(select => {
       select.addEventListener("change", () => {
-        const login = select.dataset.login;
-        const athlete = this.selectedAthletes.find((a) => a.login === login);
-        if (athlete) athlete.status = select.value;
-      });
-    });
+        const login = select.dataset.athleteStatus;
 
-    selectedList.querySelectorAll<HTMLButtonElement>(".remove-selected-athlete").forEach((button) => {
-      button.addEventListener("click", () => {
-        const login = button.dataset.login;
-        this.selectedAthletes = this.selectedAthletes.filter((a) => a.login !== login);
-        this.updateSelectedAthletes();
-        this.renderAvailableAthletes();
+        if (login) {
+          this.selectedStatuses.set(login, select.value);
+        }
       });
     });
   }
 
-  private async handleSubmit(event: Event) {
-    event.preventDefault();
+  private bindSubmit() {
+    const form = document.getElementById("create-team-form") as HTMLFormElement | null;
 
-    const notification = new NotificationKarina();
-    const button = this.modalContainer.querySelector("#createTeamBtn") as HTMLButtonElement;
+    form?.addEventListener("submit", async event => {
+      event.preventDefault();
 
-    const nameTeam = (this.modalContainer.querySelector("#teamName") as HTMLInputElement).value.trim();
-    const loginTrainer = (this.modalContainer.querySelector("#trainerLogin") as HTMLInputElement).value.trim();
-    const typeSport = (this.modalContainer.querySelector("#sportType") as HTMLSelectElement).value;
-    const photo = (this.modalContainer.querySelector("#teamPhoto") as HTMLInputElement).files?.[0] || null;
+      const formData = new FormData(form);
+      const nameTeam = String(formData.get("NameTeam") || "");
 
-    if (!nameTeam || !loginTrainer || !typeSport) {
-      notification.show("Заповніть назву команди, логін тренера та вид спорту.", "info");
-      return;
-    }
-
-    const athletes: TeamAthleteDto[] = this.selectedAthletes.map((athlete) => ({
-      nameTeam,
-      loginAthlets: athlete.login,
-      athleteStatus: athlete.status || "Active",
-    }));
-
-    try {
-      button.disabled = true;
-      button.textContent = "Створення...";
-
-      await commandApi.createTeam({
-        nameTeam,
-        loginTrainer,
-        typeSport,
-        photo,
-        athlets: athletes,
-      });
-
-      const role = localStorage.getItem("userRole") || localStorage.getItem("role");
-      const loginOrganization = localStorage.getItem("login") || "";
-
-      if (role === "Organization" && loginOrganization) {
-        await commandApi.linkTeamOrganization({
-          loginOrganization,
-          nameTeam,
-        });
+      if (!this.selectedTrainer) {
+        new NotificationKarina().show("Обери тренера команди", "error");
+        return;
       }
 
-      notification.show("Команду успішно створено!", "success");
-      this.close();
-      window.dispatchEvent(new CustomEvent("sporthive:team-created", { detail: { nameTeam } }));
-    } catch (error) {
-      console.error("Помилка створення команди:", error);
-      notification.show(
-        error instanceof Error ? error.message : "Сталася помилка при створенні команди",
-        "error"
-      );
-    } finally {
-      button.disabled = false;
-      button.textContent = "Створити команду";
-    }
+      if (!this.selectedAthletes.length) {
+        new NotificationKarina().show("Обери хоча б одного спортсмена", "error");
+        return;
+      }
+
+      const athletes: SelectedAthlete[] = this.selectedAthletes.map(athlete => ({
+        loginAthlets: athlete.id,
+        nameTeam,
+        athleteStatus: this.selectedStatuses.get(athlete.id) || "Active",
+      }));
+
+      formData.set("LoginTrainer", this.selectedTrainer.id);
+      formData.set("AthletsJson", JSON.stringify(athletes));
+
+      try {
+        await commandApi.createTeam(formData as any);
+        new NotificationKarina().show("Команду створено", "success");
+      } catch (error) {
+        new NotificationKarina().show(error instanceof Error ? error.message : "Не вдалося створити команду", "error");
+      }
+    });
   }
 
-  private normalizeAthlete(item: any): SearchAthleteResult {
-    const firstName =
-      item?.fistName ||
-      item?.FistName ||
-      item?.firstName ||
-      item?.FirstName ||
-      item?.FirsName ||
-      item?.firsName ||
-      "";
-
-    const lastName = item?.lastName || item?.LastName || "";
-
-    const fullName =
-      item?.fullName ||
-      item?.FullName ||
-      item?.name ||
-      item?.Name ||
-      `${firstName} ${lastName}`.trim() ||
-      "Спортсмен";
-
-    const login =
-      item?.login ||
-      item?.Login ||
-      item?.loginAthlets ||
-      item?.LoginAthlets ||
-      item?.userName ||
-      item?.UserName ||
-      "";
-
-    return {
-      login,
-      fullName,
-      sport: item?.sport || item?.Sport || item?.typeSport || item?.TypeSport || item?.SportType,
-      photo: item?.photo || item?.Photo || item?.profilePhoto || item?.ProfilePhoto,
-      raw: item,
-    };
-  }
-
-  private escapeHtml(value: unknown) {
+ private escapeHtml(value: unknown) {
     return String(value ?? "")
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#039;");
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
   }
 
-  close() {
-    this.modalContainer.style.display = "none";
-    this.modalContainer.innerHTML = "";
-    this.modalContainer.remove();
-  }
+  private escapeAttr(value: unknown) { return this.escapeHtml(value).replace(/`/g, "&#096;"); }
 }
+
+/*
+  Compatibility exports:
+  Existing project files may import:
+  - CreateTeamModal
+  - CreateTeam
+  - default
+*/
+export class CreateTeam extends CreateTeamModal {}
+export default CreateTeamModal;

@@ -1,18 +1,15 @@
-/* SportHive SofaScore-like UI.
-   Reference logic: sports row + date/status filters + grouped match feed + right detail panel.
-   Visual style: original SportHive black/white, simple borders, no foreign dashboard colors.
-*/
+/* SportHive match-center UI. Keeps old black/white style, but uses SofaScore-like structure. */
 
 .tournaments-page,
 .score-page {
   --sh-bg: #f4f5f7;
   --sh-card: #ffffff;
-  --sh-card-soft: #fafafa;
   --sh-border: #111111;
   --sh-text: #111111;
   --sh-muted: #667085;
+  --sh-soft: #f7f7f7;
+  --sh-line: #e7e7e7;
   --sh-live: #16a34a;
-  --sh-warning: #f0c541;
   --sh-danger: #dc2626;
 
   max-width: 1480px;
@@ -23,47 +20,47 @@
   background: var(--sh-bg);
 }
 
-.score-top {
+.score-header {
   display: flex;
   justify-content: space-between;
+  gap: 18px;
   align-items: flex-end;
-  gap: 16px;
   margin-bottom: 12px;
 }
 
-.score-title {
-  min-width: 0;
+.score-header h1 {
+  margin: 3px 0;
+  font-size: clamp(28px, 3vw, 42px);
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+.score-header p {
+  margin: 0;
+  color: var(--sh-muted);
+  font-weight: 700;
+  line-height: 1.4;
 }
 
 .score-kicker {
   display: inline-block;
-  font-size: 12px;
-  text-transform: uppercase;
-  font-weight: 900;
-  letter-spacing: .08em;
   border: 2px solid var(--sh-border);
-  background: var(--sh-card);
-  padding: 5px 8px;
-  margin-bottom: 7px;
-}
-
-.score-title h1 {
-  margin: 0;
-  font-size: clamp(25px, 3vw, 38px);
-  line-height: 1;
-  letter-spacing: -0.04em;
+  background: #fff;
+  padding: 5px 9px;
+  font-size: 12px;
+  font-weight: 950;
+  text-transform: uppercase;
+  letter-spacing: .08em;
 }
 
 .score-btn,
-.score-btn-dark,
-.score-btn-light,
 .score-select,
 .score-search,
 .sport-chip,
 .status-pill,
-.date-btn,
 .sidebar-item,
-.match-action {
+.match-action,
+.show-all-matches {
   font: inherit;
 }
 
@@ -96,7 +93,6 @@
   flex: 0 0 auto;
   border: 0;
   background: transparent;
-  color: var(--sh-text);
   padding: 8px 11px;
   border-radius: 999px;
   font-weight: 900;
@@ -113,39 +109,44 @@
   color: #fff;
 }
 
-.score-filters {
-  display: flex;
-  justify-content: space-between;
+.score-toolbar {
+  display: grid;
+  grid-template-columns: auto minmax(260px, 1fr);
   gap: 10px;
   margin-bottom: 12px;
 }
 
-.score-datebar,
 .score-statusbar {
   display: flex;
   gap: 7px;
   overflow-x: auto;
 }
 
-.date-btn,
 .status-pill {
   border: 2px solid var(--sh-border);
-  background: var(--sh-card);
+  background: #fff;
   padding: 8px 11px;
   font-weight: 900;
   cursor: pointer;
   white-space: nowrap;
 }
 
-.status-pill.active,
-.date-btn.active {
+.status-pill.active {
   background: var(--sh-border);
   color: #fff;
 }
 
+.score-search {
+  width: 100%;
+  border: 2px solid var(--sh-border);
+  background: #fff;
+  padding: 10px 12px;
+  font-size: 14px;
+}
+
 .score-layout {
   display: grid;
-  grid-template-columns: 260px minmax(0, 1fr) 380px;
+  grid-template-columns: 250px minmax(0, 1fr) 390px;
   gap: 12px;
   align-items: start;
 }
@@ -168,24 +169,9 @@
   margin-bottom: 12px;
 }
 
-.card-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 8px;
-}
-
 .card-head h3 {
-  margin: 0;
+  margin: 0 0 8px;
   font-size: 16px;
-}
-
-.score-search {
-  width: 100%;
-  border: 2px solid var(--sh-border);
-  background: #fff;
-  padding: 11px 12px;
-  font-size: 14px;
 }
 
 .score-select {
@@ -198,8 +184,8 @@
 
 .sidebar-list {
   display: grid;
-  gap: 5px;
-  max-height: calc(100vh - 310px);
+  gap: 4px;
+  max-height: calc(100vh - 280px);
   overflow: auto;
 }
 
@@ -296,7 +282,7 @@
 
 .competition-country {
   font-size: 12px;
-  opacity: .82;
+  opacity: .85;
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: .05em;
@@ -309,11 +295,11 @@
 }
 
 .event-block {
-  border-top: 1px solid #e6e6e6;
+  border-top: 1px solid var(--sh-line);
 }
 
 .event-block.selected {
-  background: #f7f7f7;
+  background: #f8f8f8;
 }
 
 .event-main-line {
@@ -341,6 +327,7 @@
 }
 
 .event-name-line strong {
+  font-size: 14px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -360,7 +347,7 @@
 }
 
 .event-status {
-  min-width: 42px;
+  min-width: 44px;
   text-align: center;
   border: 1px solid #d1d5db;
   background: #fff;
@@ -378,18 +365,14 @@
   color: var(--sh-muted);
 }
 
-.event-status.upcoming {
-  color: var(--sh-text);
-}
-
 .event-match-preview {
   border-top: 1px solid #eeeeee;
 }
 
 .match-line {
-  min-height: 38px;
+  min-height: 40px;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 66px;
+  grid-template-columns: minmax(0, 1fr) 74px;
   align-items: center;
   border-top: 1px solid #f0f0f0;
 }
@@ -405,11 +388,16 @@
   font-weight: 800;
 }
 
+.match-line.live {
+  background: #f4fff7;
+}
+
 .match-teams {
   border: 0;
   background: transparent;
   display: grid;
-  grid-template-columns: 44px minmax(0, 1fr) 30px minmax(0, 1fr) 30px;
+  grid-template-columns: 54px minmax(0, 1fr) 34px minmax(0, 1fr) 34px;
+  grid-template-areas: "time first firstScore second secondScore";
   gap: 8px;
   align-items: center;
   width: 100%;
@@ -423,10 +411,15 @@
   background: #f7f7f7;
 }
 
-.match-minute {
+.match-time {
+  grid-area: time;
   color: var(--sh-muted);
   font-size: 12px;
-  font-weight: 900;
+  font-weight: 950;
+}
+
+.match-time.live {
+  color: var(--sh-live);
 }
 
 .team-name {
@@ -434,18 +427,27 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  font-size: 14px;
   font-weight: 800;
 }
 
+.team-name.first { grid-area: first; }
+.team-name.second { grid-area: second; }
+
 .match-score {
+  font-size: 15px;
   font-family: "Roboto Mono", monospace;
   text-align: center;
 }
+
+.first-score { grid-area: firstScore; }
+.second-score { grid-area: secondScore; }
 
 .match-action {
   border: 0;
   background: transparent;
   color: var(--sh-muted);
+  font-size: 13px;
   font-weight: 900;
   cursor: pointer;
   padding: 8px;
@@ -454,6 +456,17 @@
 .match-action:hover {
   color: var(--sh-text);
   text-decoration: underline;
+}
+
+.show-all-matches {
+  width: 100%;
+  border: 0;
+  border-top: 1px solid #eeeeee;
+  background: #fafafa;
+  padding: 9px 12px;
+  color: var(--sh-muted);
+  font-weight: 900;
+  cursor: pointer;
 }
 
 .detail-card {
@@ -475,6 +488,7 @@
   margin: 0 0 10px;
   color: var(--sh-muted);
   line-height: 1.4;
+  font-weight: 700;
 }
 
 .detail-meta {
@@ -519,6 +533,17 @@
   padding: 12px;
 }
 
+.detail-round {
+  margin-bottom: 14px;
+}
+
+.detail-round > h3 {
+  margin: 0 0 8px;
+  font-size: 14px;
+  color: var(--sh-muted);
+  text-transform: uppercase;
+}
+
 .detail-match-list {
   display: grid;
   gap: 8px;
@@ -529,18 +554,20 @@
   background: #fff;
   padding: 10px;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 82px;
+  grid-template-columns: minmax(0, 1fr) 86px;
   gap: 10px;
   align-items: center;
 }
 
-.detail-match-row h3 {
+.detail-match-row h4 {
   margin: 3px 0;
   font-size: 15px;
   line-height: 1.25;
 }
 
-.detail-match-row p {
+.detail-match-row p,
+.detail-match-row small {
+  display: block;
   margin: 0;
   color: var(--sh-muted);
   font-size: 12px;
@@ -681,14 +708,17 @@
 }
 
 @media (max-width: 860px) {
-  .tournaments-page,
   .score-page {
     padding: 10px;
   }
 
-  .score-top {
+  .score-header {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .score-toolbar {
+    grid-template-columns: 1fr;
   }
 
   .score-layout {
@@ -697,10 +727,6 @@
 
   .score-sidebar {
     position: static;
-  }
-
-  .score-filters {
-    flex-direction: column;
   }
 
   .feed-summary {
@@ -713,7 +739,7 @@
 }
 
 @media (max-width: 560px) {
-  .score-title h1 {
+  .score-header h1 {
     font-size: 25px;
   }
 
@@ -740,30 +766,10 @@
   }
 
   .match-teams {
-    grid-template-columns: 38px minmax(0, 1fr) 26px;
+    grid-template-columns: 48px minmax(0, 1fr) 32px;
     grid-template-areas:
-      "minute first firstScore"
-      "minute second secondScore";
-  }
-
-  .match-minute {
-    grid-area: minute;
-  }
-
-  .match-teams .team-name:nth-of-type(1) {
-    grid-area: first;
-  }
-
-  .match-teams .match-score:nth-of-type(1) {
-    grid-area: firstScore;
-  }
-
-  .match-teams .team-name:nth-of-type(2) {
-    grid-area: second;
-  }
-
-  .match-teams .match-score:nth-of-type(2) {
-    grid-area: secondScore;
+      "time first firstScore"
+      "time second secondScore";
   }
 
   .match-action {
