@@ -1,4 +1,10 @@
-export type PickerEntityType = "athlete" | "team" | "trainer" | "judge" | "organization" | "user";
+export type PickerEntityType =
+  | "athlete"
+  | "team"
+  | "trainer"
+  | "judge"
+  | "organization"
+  | "user";
 
 export type PickerEntity = {
   id: string;
@@ -7,6 +13,7 @@ export type PickerEntity = {
   photo?: string;
   type: PickerEntityType;
   raw?: unknown;
+  manual?: boolean;
 };
 
 export type PickerConfig = {

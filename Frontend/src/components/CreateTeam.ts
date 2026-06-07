@@ -2,7 +2,7 @@ import { AdaptiveEntityPicker } from "./AdaptiveEntityPicker";
 import type { PickerEntity } from "../api/entityPickerTypes";
 import { NotificationKarina } from "./Notification";
 import { commandApi } from "../api/commandApi";
-import "./adaptiveEntityPicker.css";
+import "./createTeam.css";
 
 type SelectedAthlete = {
   loginAthlets: string;
@@ -26,66 +26,97 @@ export class CreateTeamModal {
     this.container = element;
   }
 
-  /*
-    IMPORTANT COMPATIBILITY:
-    Existing files call:
-    new CreateTeamModal(...).show()
-
-    So show() must exist.
-  */
   show() {
     this.render();
   }
 
-  /*
-    Some newer files may call open().
-  */
   open() {
     this.render();
   }
 
   render() {
     this.container.innerHTML = `
-      <section class="create-team-page">
-        <h1>Створити команду</h1>
-
-        <form id="create-team-form" class="create-team-form">
-          <label>Назва команди</label>
-          <input name="NameTeam" required placeholder="Наприклад: SportHive Lions" />
-
-          <label>Вид спорту</label>
-          <select name="TypeSport" required>
-            <option value="Football">Football</option>
-            <option value="Basketball">Basketball</option>
-            <option value="Tennis">Tennis</option>
-            <option value="Boxing">Boxing</option>
-            <option value="Volleyball">Volleyball</option>
-            <option value="Chess">Chess</option>
-          </select>
-
-          <div class="event-picker-section">
-            <h2>Тренер</h2>
-            <p>Обери тренера, привʼязаного до організації.</p>
-            <div id="team-trainer-picker"></div>
+      <section class="team-create-page">
+        <header class="team-create-header">
+          <div>
+            <span class="team-create-kicker">SportHive · команда</span>
+            <h1>Створити команду</h1>
+            <p>Обери тренера організації, спортсменів і створи команду в одному місці.</p>
           </div>
+        </header>
 
-          <div class="event-picker-section">
-            <h2>Спортсмени</h2>
-            <p>Обери спортсменів через адаптивний пошук.</p>
-            <div id="team-athletes-picker"></div>
+        <form id="create-team-form" class="team-create-form">
+          <section class="team-card">
+            <h2>Основна інформація</h2>
+
+            <div class="team-form-grid">
+              <label>
+                Назва команди
+                <input name="NameTeam" required placeholder="Наприклад: SportHive Lions" />
+              </label>
+
+              <label>
+                Вид спорту
+                <select name="TypeSport" required>
+                  <option value="Football">Football</option>
+                  <option value="Basketball">Basketball</option>
+                  <option value="Tennis">Tennis</option>
+                  <option value="Boxing">Boxing</option>
+                  <option value="Volleyball">Volleyball</option>
+                  <option value="Chess">Chess</option>
+                  <option value="Hockey">Hockey</option>
+                  <option value="Baseball">Baseball</option>
+                </select>
+              </label>
+            </div>
+          </section>
+
+          <section class="team-card">
+            <div class="team-section-head">
+              <div>
+                <h2>Тренер</h2>
+                <p>Обери тренера, який привʼязаний до твоєї організації.</p>
+              </div>
+            </div>
+
+            <div id="team-trainer-picker" class="team-picker"></div>
+          </section>
+
+          <section class="team-card">
+            <div class="team-section-head">
+              <div>
+                <h2>Спортсмени</h2>
+                <p>Обери спортсменів через адаптивний пошук. Після вибору можна задати статус.</p>
+              </div>
+            </div>
+
+            <div id="team-athletes-picker" class="team-picker"></div>
             <div id="selected-athletes-statuses" class="selected-athletes-statuses"></div>
+          </section>
+
+          <section class="team-card">
+            <h2>Логотип команди</h2>
+
+            <label class="team-file-input">
+              <span>Завантажити фото</span>
+              <input name="Photo" type="file" accept="image/*" />
+            </label>
+          </section>
+
+          <div class="team-actions">
+            <button class="team-btn secondary" id="team-back-btn" type="button">Назад</button>
+            <button class="team-btn primary" type="submit">Створити команду</button>
           </div>
-
-          <label>Логотип команди</label>
-          <input name="Photo" type="file" accept="image/*" />
-
-          <button class="primary-btn" type="submit">Створити команду</button>
         </form>
       </section>
     `;
 
     this.mountPickers();
     this.bindSubmit();
+
+    document.getElementById("team-back-btn")?.addEventListener("click", () => {
+      window.history.back();
+    });
   }
 
   private mountPickers() {
@@ -117,6 +148,12 @@ export class CreateTeamModal {
             }
           });
 
+          for (const key of Array.from(this.selectedStatuses.keys())) {
+            if (!items.some(item => item.id === key)) {
+              this.selectedStatuses.delete(key);
+            }
+          }
+
           this.renderAthleteStatuses();
         },
       }).render();
@@ -134,17 +171,23 @@ export class CreateTeamModal {
     }
 
     root.innerHTML = `
-      <h3>Статус спортсменів</h3>
-      ${this.selectedAthletes.map(athlete => `
-        <div class="athlete-status-row">
-          <span>${this.escapeHtml(athlete.title)} <small>${this.escapeHtml(athlete.id)}</small></span>
-          <select data-athlete-status="${this.escapeAttr(athlete.id)}">
-            <option value="Active" ${this.selectedStatuses.get(athlete.id) === "Active" ? "selected" : ""}>Active</option>
-            <option value="Reserve" ${this.selectedStatuses.get(athlete.id) === "Reserve" ? "selected" : ""}>Reserve</option>
-            <option value="Injured" ${this.selectedStatuses.get(athlete.id) === "Injured" ? "selected" : ""}>Injured</option>
-          </select>
-        </div>
-      `).join("")}
+      <h3>Обрані спортсмени</h3>
+      <div class="athlete-status-list">
+        ${this.selectedAthletes.map(athlete => `
+          <div class="athlete-status-row">
+            <div>
+              <b>${this.escapeHtml(athlete.title)}</b>
+              <small>${this.escapeHtml(athlete.id)}${athlete.subtitle ? ` · ${this.escapeHtml(athlete.subtitle)}` : ""}</small>
+            </div>
+
+            <select data-athlete-status="${this.escapeAttr(athlete.id)}">
+              <option value="Active" ${this.selectedStatuses.get(athlete.id) === "Active" ? "selected" : ""}>Active</option>
+              <option value="Reserve" ${this.selectedStatuses.get(athlete.id) === "Reserve" ? "selected" : ""}>Reserve</option>
+              <option value="Injured" ${this.selectedStatuses.get(athlete.id) === "Injured" ? "selected" : ""}>Injured</option>
+            </select>
+          </div>
+        `).join("")}
+      </div>
     `;
 
     root.querySelectorAll<HTMLSelectElement>("[data-athlete-status]").forEach(select => {
@@ -165,7 +208,12 @@ export class CreateTeamModal {
       event.preventDefault();
 
       const formData = new FormData(form);
-      const nameTeam = String(formData.get("NameTeam") || "");
+      const nameTeam = String(formData.get("NameTeam") || "").trim();
+
+      if (!nameTeam) {
+        new NotificationKarina().show("Введи назву команди", "error");
+        return;
+      }
 
       if (!this.selectedTrainer) {
         new NotificationKarina().show("Обери тренера команди", "error");
@@ -183,6 +231,7 @@ export class CreateTeamModal {
         athleteStatus: this.selectedStatuses.get(athlete.id) || "Active",
       }));
 
+      formData.set("NameTeam", nameTeam);
       formData.set("LoginTrainer", this.selectedTrainer.id);
       formData.set("AthletsJson", JSON.stringify(athletes));
 
@@ -195,7 +244,7 @@ export class CreateTeamModal {
     });
   }
 
- private escapeHtml(value: unknown) {
+   private escapeHtml(value: unknown) {
     return String(value ?? "")
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
@@ -207,12 +256,6 @@ export class CreateTeamModal {
   private escapeAttr(value: unknown) { return this.escapeHtml(value).replace(/`/g, "&#096;"); }
 }
 
-/*
-  Compatibility exports:
-  Existing project files may import:
-  - CreateTeamModal
-  - CreateTeam
-  - default
-*/
+
 export class CreateTeam extends CreateTeamModal {}
 export default CreateTeamModal;

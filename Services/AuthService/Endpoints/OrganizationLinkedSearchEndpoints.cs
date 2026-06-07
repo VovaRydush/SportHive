@@ -10,40 +10,18 @@ namespace AuthService.Endpoints
         {
             var group = app.MapGroup("/organization-linked");
 
-            group.MapGet("/judges", async (AppDbContext db, string loginOrganization, string? query) =>
-            {
-                return Results.Ok(await QueryAsync(db, """
-                    SELECT
-                        j."Login" AS "login",
-                        CONCAT(j."FirsName", ' ', j."LastName") AS "fullName",
-                        'Judge' AS "role",
-                        up."ProfilePhoto" AS "profilePhoto"
-                    FROM "OrganizationJudge" oj
-                    JOIN "Judge" j ON j."Login" = oj."LoginJudge"
-                    LEFT JOIN "UserPhoto" up ON up."login" = j."Login"
-                    WHERE oj."LoginOrganization" = @org
-                      AND (
-                        @q = ''
-                        OR LOWER(j."Login") LIKE LOWER(@like)
-                        OR LOWER(j."FirsName") LIKE LOWER(@like)
-                        OR LOWER(j."LastName") LIKE LOWER(@like)
-                        OR LOWER(CONCAT(j."FirsName", ' ', j."LastName")) LIKE LOWER(@like)
-                      )
-                    ORDER BY j."LastName", j."FirsName"
-                    LIMIT 20
-                """, loginOrganization, query));
-            });
-
             group.MapGet("/trainers", async (AppDbContext db, string loginOrganization, string? query) =>
             {
                 return Results.Ok(await QueryAsync(db, """
                     SELECT
                         t."Login" AS "login",
                         CONCAT(t."FirsName", ' ', t."LastName") AS "fullName",
+                        u."mail" AS "mail",
                         'Trainer' AS "role",
                         up."ProfilePhoto" AS "profilePhoto"
                     FROM "OrganizationTrainer" ot
                     JOIN "Trainer" t ON t."Login" = ot."LoginTraine"
+                    JOIN "user" u ON u."login" = t."Login"
                     LEFT JOIN "UserPhoto" up ON up."login" = t."Login"
                     WHERE ot."LoginOrganization" = @org
                       AND (
@@ -52,10 +30,67 @@ namespace AuthService.Endpoints
                         OR LOWER(t."FirsName") LIKE LOWER(@like)
                         OR LOWER(t."LastName") LIKE LOWER(@like)
                         OR LOWER(CONCAT(t."FirsName", ' ', t."LastName")) LIKE LOWER(@like)
+                        OR LOWER(u."mail") LIKE LOWER(@like)
                       )
                     ORDER BY t."LastName", t."FirsName"
                     LIMIT 20
-                """, loginOrganization, query));
+                """, ("@org", loginOrganization), ("@q", query ?? ""), ("@like", $"%{query ?? ""}%")));
+            });
+
+            group.MapGet("/athletes", async (AppDbContext db, string loginOrganization, string? query) =>
+            {
+                return Results.Ok(await QueryAsync(db, """
+                    SELECT DISTINCT
+                        a."Login" AS "login",
+                        CONCAT(a."FirsName", ' ', a."LastName") AS "fullName",
+                        a."TypeSport" AS "typeSport",
+                        u."mail" AS "mail",
+                        'Athlete' AS "role",
+                        up."ProfilePhoto" AS "profilePhoto"
+                    FROM "OrganizationAthlete" oa
+                    JOIN "Athlete" a ON a."Login" = oa."LoginAthlete"
+                    JOIN "user" u ON u."login" = a."Login"
+                    LEFT JOIN "UserPhoto" up ON up."login" = a."Login"
+                    WHERE oa."LoginOrganization" = @org
+                      AND (
+                        @q = ''
+                        OR LOWER(a."Login") LIKE LOWER(@like)
+                        OR LOWER(a."FirsName") LIKE LOWER(@like)
+                        OR LOWER(a."LastName") LIKE LOWER(@like)
+                        OR LOWER(CONCAT(a."FirsName", ' ', a."LastName")) LIKE LOWER(@like)
+                        OR LOWER(a."TypeSport") LIKE LOWER(@like)
+                        OR LOWER(u."mail") LIKE LOWER(@like)
+                      )
+                    ORDER BY a."TypeSport", a."LastName", a."FirsName"
+                    LIMIT 20
+                """, ("@org", loginOrganization), ("@q", query ?? ""), ("@like", $"%{query ?? ""}%")));
+            });
+
+            group.MapGet("/judges", async (AppDbContext db, string loginOrganization, string? query) =>
+            {
+                return Results.Ok(await QueryAsync(db, """
+                    SELECT
+                        j."Login" AS "login",
+                        CONCAT(j."FirsName", ' ', j."LastName") AS "fullName",
+                        u."mail" AS "mail",
+                        'Judge' AS "role",
+                        up."ProfilePhoto" AS "profilePhoto"
+                    FROM "OrganizationJudge" oj
+                    JOIN "Judge" j ON j."Login" = oj."LoginJudge"
+                    JOIN "user" u ON u."login" = j."Login"
+                    LEFT JOIN "UserPhoto" up ON up."login" = j."Login"
+                    WHERE oj."LoginOrganization" = @org
+                      AND (
+                        @q = ''
+                        OR LOWER(j."Login") LIKE LOWER(@like)
+                        OR LOWER(j."FirsName") LIKE LOWER(@like)
+                        OR LOWER(j."LastName") LIKE LOWER(@like)
+                        OR LOWER(CONCAT(j."FirsName", ' ', j."LastName")) LIKE LOWER(@like)
+                        OR LOWER(u."mail") LIKE LOWER(@like)
+                      )
+                    ORDER BY j."LastName", j."FirsName"
+                    LIMIT 20
+                """, ("@org", loginOrganization), ("@q", query ?? ""), ("@like", $"%{query ?? ""}%")));
             });
 
             group.MapGet("/teams", async (AppDbContext db, string loginOrganization, string? query) =>
@@ -78,40 +113,14 @@ namespace AuthService.Endpoints
                       )
                     ORDER BY t."TeamName"
                     LIMIT 20
-                """, loginOrganization, query));
-            });
-
-            group.MapGet("/athletes", async (AppDbContext db, string loginOrganization, string? query) =>
-            {
-                return Results.Ok(await QueryAsync(db, """
-                    SELECT DISTINCT
-                        a."Login" AS "login",
-                        CONCAT(a."FirsName", ' ', a."LastName") AS "fullName",
-                        a."TypeSport" AS "typeSport",
-                        up."ProfilePhoto" AS "profilePhoto"
-                    FROM "OrganizationTeam" ot
-                    JOIN "TeamAthlete" ta ON ta."NameTeam" = ot."NameComand"
-                    JOIN "Athlete" a ON a."Login" = ta."IdAthlete"
-                    LEFT JOIN "UserPhoto" up ON up."login" = a."Login"
-                    WHERE ot."LoginOrganization" = @org
-                      AND (
-                        @q = ''
-                        OR LOWER(a."Login") LIKE LOWER(@like)
-                        OR LOWER(a."FirsName") LIKE LOWER(@like)
-                        OR LOWER(a."LastName") LIKE LOWER(@like)
-                        OR LOWER(CONCAT(a."FirsName", ' ', a."LastName")) LIKE LOWER(@like)
-                      )
-                    ORDER BY "fullName"
-                    LIMIT 20
-                """, loginOrganization, query));
+                """, ("@org", loginOrganization), ("@q", query ?? ""), ("@like", $"%{query ?? ""}%")));
             });
         }
 
         private static async Task<List<Dictionary<string, object?>>> QueryAsync(
             AppDbContext db,
             string sql,
-            string loginOrganization,
-            string? query)
+            params (string Name, object? Value)[] parameters)
         {
             var result = new List<Dictionary<string, object?>>();
             var connection = db.Database.GetDbConnection();
@@ -122,9 +131,13 @@ namespace AuthService.Endpoints
             await using var command = connection.CreateCommand();
             command.CommandText = sql;
 
-            Add(command, "@org", loginOrganization);
-            Add(command, "@q", query ?? "");
-            Add(command, "@like", $"%{query ?? ""}%");
+            foreach (var (name, value) in parameters)
+            {
+                var parameter = command.CreateParameter();
+                parameter.ParameterName = name;
+                parameter.Value = value ?? DBNull.Value;
+                command.Parameters.Add(parameter);
+            }
 
             await using var reader = await command.ExecuteReaderAsync();
 
@@ -139,14 +152,6 @@ namespace AuthService.Endpoints
             }
 
             return result;
-        }
-
-        private static void Add(IDbCommand command, string name, object? value)
-        {
-            var parameter = command.CreateParameter();
-            parameter.ParameterName = name;
-            parameter.Value = value ?? DBNull.Value;
-            command.Parameters.Add(parameter);
         }
     }
 }
