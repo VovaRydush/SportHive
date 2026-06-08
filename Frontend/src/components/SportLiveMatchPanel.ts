@@ -120,7 +120,7 @@ export class SportLiveMatchPanel {
         <div class="sport-grid">
           <section class="sport-card">
             <h2>Live подія</h2>
-            ${s.canEdit ? this.renderLiveForm(s) : `<div class="readonly-box">Тільки перегляд. Немає прав на live-дані.</div>`}
+            ${s.canEdit ? this.renderLiveForm(s) : `<div class="readonly-box">Тут можна переглядати live-дані.</div>`}
           </section>
 
           <section class="sport-card">
