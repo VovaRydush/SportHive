@@ -378,3 +378,18 @@
     max-height: 55vh;
   }
 }
+/* Event invitations 70% flow */
+
+.event-quorum-info {
+  margin-top: 14px;
+  border-left: 4px solid #111;
+  background: #f7f7f7;
+  padding: 12px;
+  color: #667085;
+  font-weight: 800;
+}
+
+.adaptive-empty.error {
+  color: #dc2626;
+}
+

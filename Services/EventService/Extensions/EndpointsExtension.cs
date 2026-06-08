@@ -13,6 +13,8 @@ namespace Extensions
             app.Stage3TournamentEndpoint();
             app.EventCatalogEndpoint();
             app.SportRulesEndpoint();
+            app.EventInvitationEndpoint();
+
         }
     }
 }
