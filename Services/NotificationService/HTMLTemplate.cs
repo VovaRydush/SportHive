@@ -7,7 +7,7 @@ namespace NotificationService
         public static string getHTMLPage(string code,string Subject)
 {
     // Ваш base64-зображення
-    string base64Image = "https://cdn.jsdelivr.net/gh/VovaRydush/photosporthive/image.png"; // вставте ваше Base64 тут
+    string base64Image = "https://github.com/VovaRydush/photosporthive/blob/main/image.png?raw=true"; // вставте ваше Base64 тут
 
     return $@"
 <!DOCTYPE html>
