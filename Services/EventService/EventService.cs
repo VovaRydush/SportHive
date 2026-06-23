@@ -11,6 +11,7 @@ using Extensions;
 using Microsoft.OpenApi.Models;
 using SportHive.Implementations.SportRules;
 using SportHive.Hubs;
+using SportHive.Implementations.MatchCompletion;
 using SportHive.Implementations.Background;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -48,10 +49,12 @@ builder.Services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer.Conn
 builder.Services.AddSingleton<IMongoDbService, MongoDbService>();
 builder.Services.AddSignalR();
 builder.Services.AddScoped<ISportRulesService, SportRulesService>();
+
 builder.Services.AddControllers().AddJsonOptions(options =>
 {
     options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
 });
+
 builder.Services.AddSingleton<IWebHostEnvironment>(builder.Environment);
 
 builder.Services.AddCors(options =>
@@ -99,7 +102,8 @@ builder.Services.AddScoped<IInitalSystemGrid, InitalSystemGrid>();
 builder.Services.AddScoped<IGetPointMatch, GetPointMatch>();
 builder.Services.AddScoped<IEventCatalogService, EventCatalogService>();
 builder.Services.AddScoped<IStage3TournamentService, Stage3TournamentService>();
-builder.Services.AddHostedService<MatchStatusBackgroundService>();
+builder.Services.AddScoped<IMatchCompletionService, MatchCompletionService>();
+builder.Services.AddHostedService<MatchCompletionBackgroundService>();
 
 var app = builder.Build();
 
@@ -115,7 +119,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapEventEndpoints();
-//app.MapMatchStatusEndpoints();
 app.MapHub<MatchLiveHub>("/hubs/match-live");
 
 app.Run();

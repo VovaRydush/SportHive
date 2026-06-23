@@ -1,15 +1,15 @@
-using DB.SportHive.Persistence;
+using SportHive.Services.Interfaces;
 
 namespace SportHive.Implementations.Background
 {
-    public sealed class MatchStatusBackgroundService : BackgroundService
+    public sealed class MatchCompletionBackgroundService : BackgroundService
     {
         private readonly IServiceScopeFactory _scopeFactory;
-        private readonly ILogger<MatchStatusBackgroundService> _logger;
+        private readonly ILogger<MatchCompletionBackgroundService> _logger;
 
-        public MatchStatusBackgroundService(
+        public MatchCompletionBackgroundService(
             IServiceScopeFactory scopeFactory,
-            ILogger<MatchStatusBackgroundService> logger)
+            ILogger<MatchCompletionBackgroundService> logger)
         {
             _scopeFactory = scopeFactory;
             _logger = logger;
@@ -22,18 +22,18 @@ namespace SportHive.Implementations.Background
                 try
                 {
                     using var scope = _scopeFactory.CreateScope();
-                    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-                    var changed = await MatchStatusNormalizer.NormalizeAsync(db, stoppingToken);
+                    var service = scope.ServiceProvider.GetRequiredService<IMatchCompletionService>();
+                    var changed = await service.NormalizeAllAsync(stoppingToken);
 
                     if (changed > 0)
-                        _logger.LogInformation("Match statuses normalized. Changed rows: {Changed}", changed);
+                        _logger.LogInformation("Match completion normalized. Changed rows: {Changed}", changed);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Match status normalization failed");
+                    _logger.LogError(ex, "Match completion normalization failed");
                 }
 
-                await Task.Delay(TimeSpan.FromSeconds(30), stoppingToken);
+                await Task.Delay(TimeSpan.FromSeconds(15), stoppingToken);
             }
         }
     }
