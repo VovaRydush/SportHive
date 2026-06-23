@@ -13,6 +13,7 @@ using SportHive.Implementations.SportRules;
 using SportHive.Hubs;
 using SportHive.Implementations.MatchCompletion;
 using SportHive.Implementations.Background;
+using SportHive.FinalFeatures;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -104,7 +105,7 @@ builder.Services.AddScoped<IEventCatalogService, EventCatalogService>();
 builder.Services.AddScoped<IStage3TournamentService, Stage3TournamentService>();
 builder.Services.AddScoped<IMatchCompletionService, MatchCompletionService>();
 builder.Services.AddHostedService<MatchCompletionBackgroundService>();
-
+builder.Services.AddSportHiveStatisticsAndManagement();
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -117,7 +118,7 @@ app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseCors("FrontendPolicy");
 app.UseAuthentication();
 app.UseAuthorization();
-
+app.MapSportHiveStatisticsAndManagement();
 app.MapEventEndpoints();
 app.MapHub<MatchLiveHub>("/hubs/match-live");
 
