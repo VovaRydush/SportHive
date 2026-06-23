@@ -125,7 +125,7 @@ export class SportLiveMatchPanel {
 
           <section class="sport-card">
             <h2>Фінальний результат</h2>
-            ${s.canEdit ? this.renderFinalForm(s) : `<div class="readonly-box">Тільки перегляд фінального результату.</div>`}
+            ${s.canEdit ? this.renderFinalForm(s) : `<div class="readonly-box">Перегляд фінального результату.</div>`}
           </section>
         </div>
 

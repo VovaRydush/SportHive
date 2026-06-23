@@ -196,7 +196,7 @@ namespace SportHive.Implementations.SportRules
             if (string.IsNullOrWhiteSpace(score))
             {
                 result.IsValid = false;
-                result.Errors.Add("Рахунок обов'язковий.");
+               // result.Errors.Add("Рахунок обов'язковий.");
                 return result;
             }
 

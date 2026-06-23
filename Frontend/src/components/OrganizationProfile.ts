@@ -1,428 +1,175 @@
-import { organizationApi, type OrgRole, type OrgSearchUser, type OrganizationProfileData } from "../api/organizationApi";
+import { organizationApi } from "../api/organizationApi";
+import { eventCatalogApi } from "../api/eventCatalogApi";
 import { NotificationKarina } from "./Notification";
 import { CreateTeamModal } from "./CreateTeam";
 import { TeamPageLook } from "./TeamPage";
 import { UserProfilePage } from "./UserProfile";
-import "./organizationProfile.css";
+import { calculateEventStats, formatFinishedCounter, normalizeEventForUi } from "../api/tournamentResultUtils";
+
+type AnyObj = Record<string, any>;
 
 export class OrganizationProfile {
   private container: HTMLElement;
-  private data?: OrganizationProfileData;
-  private selectedUser: OrgSearchUser | null = null;
-  private searchTimer?: number;
+  private data?: AnyObj;
+  private catalogEvents: AnyObj[] = [];
+  private selectedUser: AnyObj | null = null;
 
   constructor(containerId: string = "app") {
     const element = document.getElementById(containerId);
-
     if (!element) throw new Error(`Element with id '${containerId}' not found`);
-
     this.container = element;
   }
 
   async render() {
-    this.container.innerHTML = `
-      <section class="org-page">
-        <div class="org-loading">Завантаження профілю організації...</div>
-      </section>
-    `;
-
-    await this.load();
-  }
-
-  async show() {
-    await this.render();
-  }
-
-  private async load() {
-    const notify = new NotificationKarina();
-
+    this.container.innerHTML = `<section class="organization-profile"><div class="profile-loading">Завантаження профілю організації...</div></section>`;
     try {
-      this.data = await organizationApi.getProfile();
+      const [profile, events] = await Promise.all([
+        organizationApi.getProfile(),
+        eventCatalogApi.getEvents({}).catch(() => []),
+      ]);
+      this.data = profile as AnyObj;
+      this.catalogEvents = (events || []).map(event => normalizeEventForUi(event as AnyObj));
       this.renderPage();
     } catch (error) {
-      notify.show(error instanceof Error ? error.message : "Не вдалося завантажити організацію", "error");
-      this.container.innerHTML = `<section class="org-page"><div class="org-empty">Не вдалося завантажити організацію</div></section>`;
+      new NotificationKarina().show(error instanceof Error ? error.message : "Не вдалося завантажити організацію", "error");
     }
   }
 
   private renderPage() {
-    if (!this.data) return;
-
-    const org = this.data.organization;
-    const athleteCount = Object.values(this.data.athletesBySport || {}).reduce((sum, arr) => sum + arr.length, 0);
+    const d = this.data || {};
+    const organization = d.organization || d.profile || d;
+    const teams = this.list(d.teams || d.organizationTeams);
+    const judges = this.list(d.judges || d.organizationJudges);
+    const trainers = this.list(d.trainers || d.organizationTrainers);
+    const athletes = this.list(d.athletes || d.organizationAthletes);
+    const invitations = this.list(d.invitations || d.organizationInvitations);
+    const events = this.resolveOrganizationEvents(d);
 
     this.container.innerHTML = `
-      <section class="org-page">
+      <section class="organization-profile">
         <header class="org-hero">
-          <div class="org-avatar">
-            ${org.profilePhoto ? `<img src="${this.escapeAttr(org.profilePhoto)}" alt="" />` : `<span>SportHive</span>`}
-            <b>ОРГАНІЗАЦІЯ</b>
-          </div>
-
-          <div class="org-main">
-            <h1>${this.escapeHtml(org.nameOrganization || "Моя організація")}</h1>
-            <div class="org-meta">
-              <span>🌍 ${this.escapeHtml(org.country || "-")}</span>
-              <span>Логін: ${this.escapeHtml(org.login)}</span>
-              <span>Тип: ${this.escapeHtml(org.typeOrganization || "-")}</span>
-            </div>
-
-            <div class="org-about">
-              <b>Про організацію</b>
-              <p>${this.escapeHtml(org.description || "Опис організації поки не заповнений.")}</p>
+          <div>
+            <span class="profile-kicker">SportHive · Організація</span>
+            <h1>${this.escape(organization.nameOrganization || organization.NameOrganization || organization.login || organization.Login || "Організація")}</h1>
+            <p>${this.escape(organization.description || organization.Description || "Опис відсутній")}</p>
+            <div class="profile-meta">
+              <span>Логін: ${this.escape(organization.login || organization.Login || "-")}</span>
+              <span>Країна: ${this.escape(organization.country || organization.Country || "-")}</span>
+              <span>Тип: ${this.escape(organization.typeOrganozation || organization.TypeOrganozation || organization.typeOrganization || "-")}</span>
             </div>
           </div>
-
-          <div class="org-actions">
-            <button id="create-team-btn" class="org-btn dark" type="button">+ Створити команду</button>
-          </div>
+          <div class="org-actions"><button id="create-team-btn" class="profile-btn primary" type="button">Створити команду</button></div>
         </header>
 
-        <section class="org-stats">
-          <div><b>${this.data.teams.length}</b><span>Команди</span></div>
-          <div><b>${this.data.judges.length}</b><span>Судді</span></div>
-          <div><b>${this.data.trainers.length}</b><span>Тренери</span></div>
-          <div><b>${athleteCount}</b><span>Спортсмени</span></div>
+        <section class="profile-stats">
+          <div><b>${teams.length}</b><span>Команд</span></div>
+          <div><b>${athletes.length}</b><span>Спортсменів</span></div>
+          <div><b>${trainers.length}</b><span>Тренерів</span></div>
+          <div><b>${judges.length}</b><span>Суддів</span></div>
         </section>
 
-        <section class="org-panel">
-          <div class="org-panel-head">
-            <div>
-              <h2>Додати учасника в організацію</h2>
-              <p>Запрошення прийде користувачу на пошту. Після прийняття організація отримає email-повідомлення.</p>
-            </div>
-          </div>
-
-          <div class="invite-grid">
-            <label>
-              Кого додати
-              <select id="invite-role">
-                <option value="Trainer">Тренера</option>
-                <option value="Judge">Суддю</option>
-                <option value="Athlete">Спортсмена</option>
-              </select>
-            </label>
-
-            <label class="invite-search-wrap">
-              Пошук і вибір
-              <input id="invite-search" placeholder="Знайти за ПІБ, login або поштою..." autocomplete="off" />
-              <div id="invite-results" class="invite-results" hidden></div>
-            </label>
-
-            <button id="send-invite-btn" class="org-btn dark" type="button">Надіслати запрошення</button>
-          </div>
-
-          <div id="selected-invite-user" class="selected-invite-user muted">
-            Користувача ще не вибрано
-          </div>
+        <section class="profile-grid">
+          <div class="profile-panel"><h2>Команди</h2>${this.renderTeams(teams)}</div>
+          <div class="profile-panel"><h2>Судді</h2>${this.renderUsers(judges, "Judge")}</div>
         </section>
 
-        <section class="org-section">
-          <div class="section-title">
-            <h2>Наші команди</h2>
-          </div>
-          ${this.renderTeams()}
+        <section class="profile-grid">
+          <div class="profile-panel"><h2>Тренери</h2>${this.renderUsers(trainers, "Trainer")}</div>
+          <div class="profile-panel"><h2>Спортсмени</h2>${this.renderUsers(athletes, "Athlete")}</div>
         </section>
 
-        <section class="org-grid-two">
-          <div class="org-section">
-            <div class="section-title">
-              <h2>Судді</h2>
-            </div>
-            ${this.renderMembers(this.data.judges, "Judge", "Суддів поки немає")}
-          </div>
-
-          <div class="org-section">
-            <div class="section-title">
-              <h2>Тренери</h2>
-            </div>
-            ${this.renderMembers(this.data.trainers, "Trainer", "Тренерів поки немає")}
-          </div>
-        </section>
-
-        <section class="org-section">
-          <div class="section-title">
-            <h2>Атлети організації</h2>
-          </div>
-          ${this.renderAthletesBySport()}
-        </section>
-
-        <section class="org-section">
-          <div class="section-title">
-            <h2>Запрошення</h2>
-          </div>
-          ${this.renderInvitations()}
-        </section>
-
-        <section class="org-section">
-          <div class="section-title">
-            <h2>Останні події</h2>
-          </div>
-          ${this.renderEvents()}
-        </section>
+        <section class="profile-panel"><h2>Останні події</h2>${this.renderEvents(events)}</section>
+        <section class="profile-panel"><h2>Запрошення</h2>${this.renderInvitations(invitations)}</section>
       </section>
     `;
-
     this.bind();
   }
 
   private bind() {
-    document.getElementById("create-team-btn")?.addEventListener("click", () => {
-      new CreateTeamModal("app").show();
-    });
-
-    this.container.querySelectorAll<HTMLButtonElement>("[data-team-name]").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const name = btn.dataset.teamName;
-        if (name) new TeamPageLook("app", name).render();
-      });
-    });
-
-    this.container.querySelectorAll<HTMLButtonElement>("[data-profile-login]").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const login = btn.dataset.profileLogin;
-        const role = btn.dataset.profileRole as "Athlete" | "Trainer" | "Judge";
-
-        if (login && role) new UserProfilePage("app", login, role).render();
-      });
-    });
-
-    const role = document.getElementById("invite-role") as HTMLSelectElement | null;
-    const search = document.getElementById("invite-search") as HTMLInputElement | null;
-
-    role?.addEventListener("change", () => {
-      this.selectedUser = null;
-      this.renderSelectedUser();
-      if (search) search.value = "";
-      this.hideResults();
-    });
-
-    search?.addEventListener("input", () => {
-      window.clearTimeout(this.searchTimer);
-      this.searchTimer = window.setTimeout(() => this.searchUsers(), 250);
-    });
-
-    document.getElementById("send-invite-btn")?.addEventListener("click", () => this.sendInvite());
+    document.getElementById("create-team-btn")?.addEventListener("click", () => new CreateTeamModal("app").show());
+    this.container.querySelectorAll<HTMLButtonElement>("[data-team-name]").forEach(button => button.addEventListener("click", () => {
+      const name = button.dataset.teamName;
+      if (name) new TeamPageLook("app", name).render();
+    }));
+    this.container.querySelectorAll<HTMLButtonElement>("[data-profile-login]").forEach(button => button.addEventListener("click", () => {
+      const login = button.dataset.profileLogin;
+      const role = button.dataset.profileRole as "Athlete" | "Trainer" | "Judge";
+      if (login && role) new UserProfilePage("app", login, role).render();
+    }));
   }
 
-  private async searchUsers() {
-    const role = (document.getElementById("invite-role") as HTMLSelectElement | null)?.value as OrgRole;
-    const input = document.getElementById("invite-search") as HTMLInputElement | null;
-    const root = document.getElementById("invite-results");
+  private resolveOrganizationEvents(data: AnyObj) {
+    const rawRecent = this.list(data.recentEvents || data.events || data.organizationEvents);
+    const byKey = new Map<string, AnyObj>();
 
-    if (!input || !root) return;
-
-    const query = input.value.trim();
-
-    if (query.length < 2) {
-      this.hideResults();
-      return;
+    for (const event of this.catalogEvents) {
+      const canManage = Boolean(event.canManageEvent || event.accessLevel === "Manage");
+      const matchesRecent = rawRecent.some(recent => this.eventKey(recent) === this.eventKey(event) || this.sameEventNameDate(recent, event));
+      if (canManage || matchesRecent) byKey.set(this.eventKey(event), normalizeEventForUi(event));
     }
 
-    root.hidden = false;
-    root.innerHTML = `<div class="invite-empty">Пошук...</div>`;
-
-    try {
-      const users = await organizationApi.searchUsers(role, query);
-
-      if (!users.length) {
-        root.innerHTML = `<div class="invite-empty">Користувачів не знайдено або вони вже додані/запрошені</div>`;
-        return;
-      }
-
-      root.innerHTML = users.map(u => `
-        <button class="invite-result" data-login="${this.escapeAttr(u.login)}" type="button">
-          <span class="invite-avatar">${this.escapeHtml((u.fullName || u.login)[0] || "?")}</span>
-          <span>
-            <b>${this.escapeHtml(u.fullName || u.login)}</b>
-            <small>${this.escapeHtml(u.mail || "")}${u.typeSport ? ` · ${this.escapeHtml(u.typeSport)}` : ""}</small>
-          </span>
-        </button>
-      `).join("");
-
-      root.querySelectorAll<HTMLButtonElement>(".invite-result").forEach(btn => {
-        btn.addEventListener("click", () => {
-          const user = users.find(x => x.login === btn.dataset.login);
-          if (!user) return;
-
-          this.selectedUser = user;
-          input.value = "";
-          this.hideResults();
-          this.renderSelectedUser();
-        });
-      });
-    } catch (error) {
-      root.innerHTML = `<div class="invite-empty error">${this.escapeHtml(error instanceof Error ? error.message : "Помилка пошуку")}</div>`;
-    }
-  }
-
-  private async sendInvite() {
-    const notify = new NotificationKarina();
-
-    if (!this.selectedUser) {
-      notify.show("Спочатку обери користувача", "info");
-      return;
+    for (const recent of rawRecent) {
+      const matched = this.catalogEvents.find(event => this.sameEventNameDate(recent, event));
+      byKey.set(this.eventKey(recent), normalizeEventForUi(matched || recent));
     }
 
-    try {
-      await organizationApi.sendInvitation(this.selectedUser.login, this.selectedUser.role);
-      notify.show("Запрошення надіслано на пошту", "success");
-      this.selectedUser = null;
-      this.renderSelectedUser();
-      await this.load();
-    } catch (error) {
-      notify.show(error instanceof Error ? error.message : "Не вдалося надіслати запрошення", "error");
-    }
+    return Array.from(byKey.values()).sort((a, b) => new Date(b.dataStart || b.DataStart || 0).getTime() - new Date(a.dataStart || a.DataStart || 0).getTime()).slice(0, 8);
   }
 
-  private renderSelectedUser() {
-    const root = document.getElementById("selected-invite-user");
-    if (!root) return;
-
-    if (!this.selectedUser) {
-      root.innerHTML = "Користувача ще не вибрано";
-      root.classList.add("muted");
-      return;
-    }
-
-    root.classList.remove("muted");
-    root.innerHTML = `
-      <span class="org-chip">
-        <b>${this.escapeHtml(this.selectedUser.fullName || this.selectedUser.login)}</b>
-        <small>${this.escapeHtml(this.selectedUser.role)} · ${this.escapeHtml(this.selectedUser.mail || this.selectedUser.login)}</small>
-        <button id="clear-selected-user" type="button">×</button>
-      </span>
-    `;
-
-    document.getElementById("clear-selected-user")?.addEventListener("click", () => {
-      this.selectedUser = null;
-      this.renderSelectedUser();
-    });
+  private renderTeams(teams: AnyObj[]) {
+    if (!teams.length) return `<div class="profile-empty">Команд поки немає</div>`;
+    return `<div class="profile-list">${teams.map(team => {
+      const name = team.teamName || team.nameTeam || team.TeamName || team.NameTeam || team.nameComand || team.NameComand || "-";
+      return `<button class="profile-list-item clickable" type="button" data-team-name="${this.attr(name)}"><b>${this.escape(name)}</b><span>${this.escape(team.typeSport || team.TypeSport || "")}</span><small>Тренер: ${this.escape(team.loginTrainer || team.LoginTrainer || team.trainerLogin || "-")}</small></button>`;
+    }).join("")}</div>`;
   }
 
-  private hideResults() {
-    const root = document.getElementById("invite-results");
-    if (!root) return;
-    root.hidden = true;
-    root.innerHTML = "";
+  private renderUsers(users: AnyObj[], role: "Athlete" | "Trainer" | "Judge") {
+    if (!users.length) return `<div class="profile-empty">Поки немає</div>`;
+    return `<div class="profile-list">${users.map(user => {
+      const login = user.login || user.Login || user.loginAthlete || user.loginTrainer || user.loginJudge || "";
+      const name = user.fullName || user.FullName || `${user.firsName || user.FirsName || ""} ${user.lastName || user.LastName || ""}`.trim() || login || "-";
+      return `<button class="profile-list-item clickable" type="button" data-profile-login="${this.attr(login)}" data-profile-role="${role}"><b>${this.escape(name)}</b><span>${this.escape(login)}</span><small>${this.escape(user.typeSport || user.TypeSport || "")}</small></button>`;
+    }).join("")}</div>`;
   }
 
-  private renderTeams() {
-    if (!this.data?.teams.length) return `<div class="org-empty">Команд поки немає</div>`;
-
-    return `
-      <div class="teams-grid">
-        ${this.data.teams.map(t => `
-          <button class="team-card clickable-card" type="button" data-team-name="${this.escapeAttr(t.teamName)}">
-            <div class="team-cover">${this.escapeHtml(t.teamName[0] || "T")}</div>
-            <h3>${this.escapeHtml(t.teamName)}</h3>
-            <p>Вид спорту: ${this.escapeHtml(t.typeSport || "-")}</p>
-            <p>Тренер: ${this.escapeHtml(t.loginTrainer || "-")}</p>
-            <p>Спортсменів: ${t.athletesCount}</p>
-            <small>Переглянути команду →</small>
-          </button>
-        `).join("")}
-      </div>
-    `;
+  private renderEvents(events: AnyObj[]) {
+    if (!events.length) return `<div class="profile-empty">Подій поки немає</div>`;
+    return `<div class="profile-event-list">${events.map(eventInput => {
+      const event = normalizeEventForUi(eventInput);
+      const stats = calculateEventStats(event);
+      const name = event.nameEvent || event.NameEvent || "-";
+      const sport = event.typeSport || event.TypeSport || "-";
+      const date = this.date(event.dataStart || event.DataStart);
+      return `<article class="profile-event-card"><b>${this.escape(name)}</b><span>${this.escape(sport)} · ${stats.totalMatches}</span><small>${date} · ${formatFinishedCounter(event)} матчів завершено</small></article>`;
+    }).join("")}</div>`;
   }
 
-  private renderMembers(items: any[], role: "Trainer" | "Judge", empty: string) {
-    if (!items.length) return `<div class="org-empty">${this.escapeHtml(empty)}</div>`;
-
-    return `
-      <div class="member-list">
-        ${items.map(m => `
-          <button class="member-card clickable-card" type="button" data-profile-login="${this.escapeAttr(m.login)}" data-profile-role="${role}">
-            <b>${this.escapeHtml(m.fullName || m.login)}</b>
-            <span>${this.escapeHtml(m.login)}</span>
-            ${m.mail ? `<small>${this.escapeHtml(m.mail)}</small>` : ""}
-            <em>Переглянути профіль →</em>
-          </button>
-        `).join("")}
-      </div>
-    `;
+  private renderInvitations(invitations: AnyObj[]) {
+    if (!invitations.length) return `<div class="profile-empty">Запрошень поки немає</div>`;
+    return `<div class="profile-list">${invitations.map(invite => `<article class="profile-list-item"><b>${this.escape(invite.targetLogin || invite.login || invite.email || invite.Email || "Запрошення")}</b><span>${this.escape(invite.role || invite.Role || invite.status || invite.Status || "")}</span><small>${this.date(invite.createdAt || invite.CreatedAt || invite.deadlineAt || invite.DeadlineAt)}</small></article>`).join("")}</div>`;
   }
 
-  private renderAthletesBySport() {
-    const groups = this.data?.athletesBySport || {};
-    const sports = Object.keys(groups).sort();
+  private list(value: unknown): AnyObj[] { return Array.isArray(value) ? value as AnyObj[] : []; }
 
-    if (!sports.length) return `<div class="org-empty">Атлетів поки немає</div>`;
-
-    return `
-      <div class="sport-athlete-groups">
-        ${sports.map(sport => `
-          <section class="sport-group">
-            <h3>${this.escapeHtml(sport)} <span>${groups[sport].length}</span></h3>
-            <div class="member-list">
-              ${groups[sport].map(a => `
-                <button class="member-card clickable-card" type="button" data-profile-login="${this.escapeAttr(a.login)}" data-profile-role="Athlete">
-                  <b>${this.escapeHtml(a.fullName || a.login)}</b>
-                  <span>${this.escapeHtml(a.login)}</span>
-                  ${a.mail ? `<small>${this.escapeHtml(a.mail)}</small>` : ""}
-                  <em>Переглянути профіль →</em>
-                </button>
-              `).join("")}
-            </div>
-          </section>
-        `).join("")}
-      </div>
-    `;
+  private eventKey(event: AnyObj) {
+    const id = event.idEvent || event.IdEvent;
+    if (id) return `id:${id}`;
+    return `${String(event.nameEvent || event.NameEvent || "").toLowerCase()}|${this.date(event.dataStart || event.DataStart)}`;
   }
 
-  private renderInvitations() {
-    const invitations = this.data?.invitations || [];
-
-    if (!invitations.length) return `<div class="org-empty">Запрошень поки немає</div>`;
-
-    return `
-      <div class="invite-list">
-        ${invitations.map(i => `
-          <article class="invite-card ${this.escapeAttr(i.status.toLowerCase())}">
-            <b>${this.escapeHtml(i.targetLogin)}</b>
-            <span>${this.escapeHtml(i.targetRole)} · ${this.escapeHtml(i.targetEmail)}</span>
-            <small>${this.escapeHtml(i.status)} · ${this.formatDate(i.createdAt)}</small>
-          </article>
-        `).join("")}
-      </div>
-    `;
+  private sameEventNameDate(a: AnyObj, b: AnyObj) {
+    const nameA = String(a.nameEvent || a.NameEvent || "").trim().toLowerCase();
+    const nameB = String(b.nameEvent || b.NameEvent || "").trim().toLowerCase();
+    return Boolean(nameA && nameB && nameA === nameB && this.date(a.dataStart || a.DataStart) === this.date(b.dataStart || b.DataStart));
   }
 
-  private renderEvents() {
-    const events = this.data?.recentEvents || [];
-
-    if (!events.length) return `<div class="org-empty">Подій поки немає</div>`;
-
-    return `
-      <div class="event-list">
-        ${events.map(e => `
-          <article class="org-event-card">
-            <b>${this.escapeHtml(e.nameEvent)}</b>
-            <span>${this.escapeHtml(e.typeSport)} · ${this.escapeHtml(e.systems)}</span>
-            <small>${this.formatDate(e.dataStart)} · ${e.finishedMatches}/${e.totalMatches} матчів завершено</small>
-          </article>
-        `).join("")}
-      </div>
-    `;
-  }
-
-  private formatDate(value: string) {
-    const date = new Date(value);
+  private date(value: unknown) {
+    if (!value) return "-";
+    const date = new Date(String(value));
     return Number.isNaN(date.getTime()) ? "-" : date.toLocaleDateString("uk-UA");
   }
 
-   private escapeHtml(value: unknown) {
-    return String(value ?? "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-  }
-
-  private escapeAttr(value: unknown) {
-    return this.escapeHtml(value).replace(/`/g, "&#096;");
-  }
+  private escape(value: unknown) { return String(value ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); }
+  private attr(value: unknown) { return this.escape(value).replace(/`/g, "&#096;"); }
 }
-
-export default OrganizationProfile;
