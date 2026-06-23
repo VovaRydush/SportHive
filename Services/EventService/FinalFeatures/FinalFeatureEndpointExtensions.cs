@@ -102,6 +102,7 @@ public static class FinalFeatureEndpointExtensions
             Season = request.Query["season"].FirstOrDefault(),
             Sport = request.Query["sport"].FirstOrDefault(),
             System = request.Query["system"].FirstOrDefault(),
+            Country = request.Query["country"].FirstOrDefault(),
             Level = request.Query["level"].FirstOrDefault(),
             SortBy = request.Query["sortBy"].FirstOrDefault(),
             Direction = request.Query["direction"].FirstOrDefault()

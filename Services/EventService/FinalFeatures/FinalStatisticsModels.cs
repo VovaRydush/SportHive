@@ -5,6 +5,7 @@ public sealed class StatisticFilter
     public string? Season { get; set; }
     public string? Sport { get; set; }
     public string? System { get; set; }
+    public string? Country { get; set; }
     public string? Level { get; set; }
     public string? SortBy { get; set; }
     public string? Direction { get; set; }
@@ -20,6 +21,7 @@ public sealed class StatisticSummaryDto
     public int Participants { get; set; }
     public int Teams { get; set; }
     public int Organizations { get; set; }
+    public int Countries { get; set; }
 }
 
 public sealed class LeaderboardRowDto
@@ -28,6 +30,7 @@ public sealed class LeaderboardRowDto
     public string Name { get; set; } = "";
     public string Type { get; set; } = "";
     public string? Sport { get; set; }
+    public string? Country { get; set; }
     public string? OrganizationLogin { get; set; }
     public string? OrganizationName { get; set; }
     public int Played { get; set; }
@@ -48,6 +51,7 @@ public sealed class StatisticsDashboardDto
     public StatisticSummaryDto Summary { get; set; } = new();
     public List<string> Seasons { get; set; } = new();
     public List<string> Sports { get; set; } = new();
+    public List<string> Countries { get; set; } = new();
     public List<LeaderboardRowDto> AthleteLeaders { get; set; } = new();
     public List<LeaderboardRowDto> TeamLeaders { get; set; } = new();
     public List<LeaderboardRowDto> OrganizationLeaders { get; set; } = new();

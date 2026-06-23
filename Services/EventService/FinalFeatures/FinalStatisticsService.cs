@@ -34,12 +34,20 @@ public sealed class FinalStatisticsService : IFinalStatisticsService
     private StatisticsDashboardDto BuildDashboard(List<MatchFact> matches, StatisticFilter filter)
     {
         var finished = matches.Where(x => x.Status == 2).ToList();
+        var countries = matches
+            .SelectMany(x => new[] { x.FirstOrgCountry, x.SecondOrgCountry })
+            .Where(x => !string.IsNullOrWhiteSpace(x))
+            .Select(x => x!)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(x => x)
+            .ToList();
 
         return new StatisticsDashboardDto
         {
             Filter = filter,
             Seasons = matches.Select(x => x.Season).Where(x => !string.IsNullOrWhiteSpace(x)).Distinct().OrderByDescending(x => x).ToList(),
             Sports = matches.Select(x => x.Sport).Where(x => !string.IsNullOrWhiteSpace(x)).Distinct().OrderBy(x => x).ToList(),
+            Countries = countries,
             Summary = new StatisticSummaryDto
             {
                 Events = matches.Select(x => x.EventId).Where(x => x > 0).Distinct().Count(),
@@ -49,7 +57,8 @@ public sealed class FinalStatisticsService : IFinalStatisticsService
                 UpcomingMatches = matches.Count(x => x.Status == 0),
                 Participants = matches.SelectMany(x => new[] { x.FirstId, x.SecondId }).Where(x => !string.IsNullOrWhiteSpace(x)).Distinct().Count(),
                 Teams = matches.Where(x => x.MatchType == "team").SelectMany(x => new[] { x.FirstId, x.SecondId }).Where(x => !string.IsNullOrWhiteSpace(x)).Distinct().Count(),
-                Organizations = matches.SelectMany(x => new[] { x.FirstOrgLogin, x.SecondOrgLogin }).Where(x => !string.IsNullOrWhiteSpace(x)).Distinct().Count()
+                Organizations = matches.SelectMany(x => new[] { x.FirstOrgLogin, x.SecondOrgLogin }).Where(x => !string.IsNullOrWhiteSpace(x)).Distinct().Count(),
+                Countries = countries.Count
             },
             AthleteLeaders = BuildParticipantLeaders(finished.Where(x => x.MatchType == "individual"), "Athlete", filter),
             TeamLeaders = BuildParticipantLeaders(finished.Where(x => x.MatchType == "team"), "Team", filter),
@@ -71,7 +80,11 @@ public sealed class FinalStatisticsService : IFinalStatisticsService
                     x.System,
                     x.Season,
                     x.DateMatch,
-                    Judge = x.JudgeLogin
+                    Judge = x.JudgeLogin,
+                    FirstOrganization = x.FirstOrgName,
+                    SecondOrganization = x.SecondOrgName,
+                    FirstCountry = x.FirstOrgCountry,
+                    SecondCountry = x.SecondOrgCountry
                 })
                 .Cast<object>()
                 .ToList()
@@ -84,8 +97,9 @@ public sealed class FinalStatisticsService : IFinalStatisticsService
 
         foreach (var match in matches)
         {
-            var first = EnsureRow(map, match.FirstId, match.FirstName, type, match.Sport, match.FirstOrgLogin, match.FirstOrgName);
-            var second = EnsureRow(map, match.SecondId, match.SecondName, type, match.Sport, match.SecondOrgLogin, match.SecondOrgName);
+            var first = EnsureRow(map, match.FirstId, match.FirstName, type, match.Sport, match.FirstOrgCountry, match.FirstOrgLogin, match.FirstOrgName);
+            var second = EnsureRow(map, match.SecondId, match.SecondName, type, match.Sport, match.SecondOrgCountry, match.SecondOrgLogin, match.SecondOrgName);
+
             ApplyResult(first, second, match);
         }
 
@@ -101,8 +115,9 @@ public sealed class FinalStatisticsService : IFinalStatisticsService
             if (string.IsNullOrWhiteSpace(match.FirstOrgLogin) || string.IsNullOrWhiteSpace(match.SecondOrgLogin))
                 continue;
 
-            var first = EnsureRow(map, match.FirstOrgLogin, match.FirstOrgName ?? match.FirstOrgLogin, "Organization", match.Sport, match.FirstOrgLogin, match.FirstOrgName);
-            var second = EnsureRow(map, match.SecondOrgLogin, match.SecondOrgName ?? match.SecondOrgLogin, "Organization", match.Sport, match.SecondOrgLogin, match.SecondOrgName);
+            var first = EnsureRow(map, match.FirstOrgLogin, match.FirstOrgName ?? match.FirstOrgLogin, "Organization", match.Sport, match.FirstOrgCountry, match.FirstOrgLogin, match.FirstOrgName);
+            var second = EnsureRow(map, match.SecondOrgLogin, match.SecondOrgName ?? match.SecondOrgLogin, "Organization", match.Sport, match.SecondOrgCountry, match.SecondOrgLogin, match.SecondOrgName);
+
             ApplyResult(first, second, match);
         }
 
@@ -120,6 +135,8 @@ public sealed class FinalStatisticsService : IFinalStatisticsService
                 Name = g.Key,
                 Type = "Judge",
                 Sport = g.FirstOrDefault()?.Sport,
+                Country = g.FirstOrDefault(x => !string.IsNullOrWhiteSpace(x.FirstOrgCountry))?.FirstOrgCountry
+                    ?? g.FirstOrDefault(x => !string.IsNullOrWhiteSpace(x.SecondOrgCountry))?.SecondOrgCountry,
                 Played = g.Count(),
                 Finished = g.Count(x => x.Status == 2),
                 Points = g.Count(x => x.Status == 2)
@@ -128,7 +145,15 @@ public sealed class FinalStatisticsService : IFinalStatisticsService
         return SortRows(rows, filter).Take(100).ToList();
     }
 
-    private static LeaderboardRowDto EnsureRow(Dictionary<string, LeaderboardRowDto> map, string id, string? name, string type, string? sport, string? orgLogin, string? orgName)
+    private static LeaderboardRowDto EnsureRow(
+        Dictionary<string, LeaderboardRowDto> map,
+        string id,
+        string? name,
+        string type,
+        string? sport,
+        string? country,
+        string? orgLogin,
+        string? orgName)
     {
         id = string.IsNullOrWhiteSpace(id) ? (name ?? "") : id;
         name = string.IsNullOrWhiteSpace(name) ? id : name;
@@ -141,6 +166,7 @@ public sealed class FinalStatisticsService : IFinalStatisticsService
                 Name = name ?? id,
                 Type = type,
                 Sport = sport,
+                Country = country,
                 OrganizationLogin = orgLogin,
                 OrganizationName = orgName
             };
@@ -229,6 +255,7 @@ public sealed class FinalStatisticsService : IFinalStatisticsService
             "winrate" => r => r.WinRate,
             "scorediff" => r => r.ScoreDiff,
             "scorefor" => r => r.ScoreFor,
+            "country" => r => r.Country ?? "",
             "name" => r => r.Name,
             _ => r => r.Points
         };
@@ -262,8 +289,10 @@ public sealed class FinalStatisticsService : IFinalStatisticsService
                 CONCAT(a2."FirsName", ' ', a2."LastName") AS second_name,
                 o1."Login" AS first_org_login,
                 o1."NameOrganization" AS first_org_name,
+                o1."Country" AS first_org_country,
                 o2."Login" AS second_org_login,
                 o2."NameOrganization" AS second_org_name,
+                o2."Country" AS second_org_country,
                 im."loginJudge" AS judge_login,
                 im."DataMatch" AS date_match,
                 im."AddInformation" AS add_information,
@@ -279,6 +308,7 @@ public sealed class FinalStatisticsService : IFinalStatisticsService
             WHERE (@season IS NULL OR EXTRACT(YEAR FROM e."DataStart")::text = @season)
               AND (@sport IS NULL OR e."TypeSport" = @sport)
               AND (@system IS NULL OR e."systems" = @system)
+              AND (@country IS NULL OR o1."Country" = @country OR o2."Country" = @country)
               AND (@org IS NULL OR o1."Login" = @org OR o2."Login" = @org)
         """, filter, organizationLogin, ct);
 
@@ -301,8 +331,10 @@ public sealed class FinalStatisticsService : IFinalStatisticsService
                 tm."NameSecondTeam" AS second_name,
                 o1."Login" AS first_org_login,
                 o1."NameOrganization" AS first_org_name,
+                o1."Country" AS first_org_country,
                 o2."Login" AS second_org_login,
                 o2."NameOrganization" AS second_org_name,
+                o2."Country" AS second_org_country,
                 tm."loginJudge" AS judge_login,
                 tm."DataMatch" AS date_match,
                 tm."AddInformation" AS add_information,
@@ -316,6 +348,7 @@ public sealed class FinalStatisticsService : IFinalStatisticsService
             WHERE (@season IS NULL OR EXTRACT(YEAR FROM e."DataStart")::text = @season)
               AND (@sport IS NULL OR e."TypeSport" = @sport)
               AND (@system IS NULL OR e."systems" = @system)
+              AND (@country IS NULL OR o1."Country" = @country OR o2."Country" = @country)
               AND (@org IS NULL OR o1."Login" = @org OR o2."Login" = @org)
         """, filter, organizationLogin, ct);
 
@@ -336,6 +369,7 @@ public sealed class FinalStatisticsService : IFinalStatisticsService
         AddTextParameter(command, "@season", NormalizeFilter(filter.Season));
         AddTextParameter(command, "@sport", NormalizeFilter(filter.Sport));
         AddTextParameter(command, "@system", NormalizeFilter(filter.System));
+        AddTextParameter(command, "@country", NormalizeFilter(filter.Country));
         AddTextParameter(command, "@org", NormalizeFilter(organizationLogin));
 
         await using var reader = await command.ExecuteReaderAsync(ct);
@@ -401,8 +435,10 @@ public sealed class FinalStatisticsService : IFinalStatisticsService
             SecondName = Convert.ToString(row.GetValueOrDefault("second_name")) ?? "",
             FirstOrgLogin = Convert.ToString(row.GetValueOrDefault("first_org_login")),
             FirstOrgName = Convert.ToString(row.GetValueOrDefault("first_org_name")),
+            FirstOrgCountry = Convert.ToString(row.GetValueOrDefault("first_org_country")),
             SecondOrgLogin = Convert.ToString(row.GetValueOrDefault("second_org_login")),
             SecondOrgName = Convert.ToString(row.GetValueOrDefault("second_org_name")),
+            SecondOrgCountry = Convert.ToString(row.GetValueOrDefault("second_org_country")),
             JudgeLogin = Convert.ToString(row.GetValueOrDefault("judge_login")),
             DateMatch = ConvertDate(row.GetValueOrDefault("date_match")),
             AddInformation = addInfo,
@@ -459,8 +495,10 @@ public sealed class FinalStatisticsService : IFinalStatisticsService
         public string? SecondName { get; set; }
         public string? FirstOrgLogin { get; set; }
         public string? FirstOrgName { get; set; }
+        public string? FirstOrgCountry { get; set; }
         public string? SecondOrgLogin { get; set; }
         public string? SecondOrgName { get; set; }
+        public string? SecondOrgCountry { get; set; }
         public string? JudgeLogin { get; set; }
         public DateTimeOffset? DateMatch { get; set; }
         public string AddInformation { get; set; } = "";

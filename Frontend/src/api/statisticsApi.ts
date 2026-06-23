@@ -2,6 +2,7 @@ export type StatisticsFilter = {
   season?: string;
   sport?: string;
   system?: string;
+  country?: string;
   level?: string;
   sortBy?: string;
   direction?: string;
@@ -12,6 +13,7 @@ export type LeaderboardRowDto = {
   name: string;
   type: string;
   sport?: string;
+  country?: string;
   organizationLogin?: string;
   organizationName?: string;
   played: number;
@@ -37,9 +39,11 @@ export type StatisticsDashboardDto = {
     participants: number;
     teams: number;
     organizations: number;
+    countries: number;
   };
   seasons: string[];
   sports: string[];
+  countries: string[];
   athleteLeaders: LeaderboardRowDto[];
   teamLeaders: LeaderboardRowDto[];
   organizationLeaders: LeaderboardRowDto[];

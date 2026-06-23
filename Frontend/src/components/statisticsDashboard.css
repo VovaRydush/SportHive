@@ -40,12 +40,22 @@
   margin-bottom: 14px;
 }
 
+.stats-org-picker {
+  border: 2px solid #111;
+  background: #fff;
+  padding: 14px;
+  margin-bottom: 14px;
+  box-shadow: 5px 5px 0 rgba(0,0,0,.14);
+}
+
+.stats-org-picker label,
 .stats-filters label {
   display: grid;
   gap: 6px;
   font-weight: 900;
 }
 
+.stats-org-picker select,
 .stats-filters select,
 .stats-filters button {
   height: 44px;
@@ -93,6 +103,7 @@
   display: flex;
   gap: 8px;
   margin-bottom: 12px;
+  flex-wrap: wrap;
 }
 
 .stats-tabs button {

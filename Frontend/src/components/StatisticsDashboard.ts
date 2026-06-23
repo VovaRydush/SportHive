@@ -1,18 +1,21 @@
 import { statisticsApi, type LeaderboardRowDto, type StatisticsDashboardDto, type StatisticsFilter } from "../api/statisticsApi";
+import { userProfileApi, type ProfileOrganization } from "../api/userProfileApi";
 import "./statisticsDashboard.css";
 
-type Scope = "global" | "organization";
+type Scope = "global" | "organization" | "member";
 type Tab = "athletes" | "teams" | "organizations" | "judges";
 
 export class StatisticsDashboard {
   private container: HTMLElement;
   private scope: Scope;
   private organizationLogin?: string;
+  private memberOrganizations: ProfileOrganization[] = [];
   private data?: StatisticsDashboardDto;
   private activeTab: Tab = "athletes";
   private filter: StatisticsFilter = {
     season: "all",
     sport: "all",
+    country: "all",
     system: "all",
     sortBy: "points",
     direction: "desc",
@@ -29,13 +32,33 @@ export class StatisticsDashboard {
 
   async render() {
     this.container.innerHTML = `<section class="stats-page"><div class="stats-card">Завантаження статистики...</div></section>`;
-    await this.load();
+
+    try {
+      if (this.scope === "member") {
+        const profile = await userProfileApi.getMe();
+        this.memberOrganizations = profile.organizations || [];
+
+        if (!this.organizationLogin && this.memberOrganizations.length) {
+          this.organizationLogin = this.memberOrganizations[0].loginOrganization;
+        }
+      }
+
+      await this.load();
+    } catch (error) {
+      this.container.innerHTML = `
+        <section class="stats-page">
+          <div class="stats-card stats-empty">${this.escape(error instanceof Error ? error.message : "Не вдалося завантажити статистику")}</div>
+        </section>
+      `;
+    }
   }
 
   private async load() {
-    this.data = this.scope === "organization" && this.organizationLogin
-      ? await statisticsApi.getOrganization(this.organizationLogin, this.filter)
-      : await statisticsApi.getGlobal(this.filter);
+    if ((this.scope === "organization" || this.scope === "member") && this.organizationLogin) {
+      this.data = await statisticsApi.getOrganization(this.organizationLogin, this.filter);
+    } else {
+      this.data = await statisticsApi.getGlobal(this.filter);
+    }
 
     this.paint();
   }
@@ -50,9 +73,11 @@ export class StatisticsDashboard {
       <section class="stats-page">
         <header class="stats-hero">
           <span class="stats-kicker">SportHive Analytics</span>
-          <h1>${this.scope === "organization" ? "Статистика організації" : "Глобальна статистика"}</h1>
-          <p>Лідери, сезони, спорт, системи відбору, організації, команди, судді та спортсмени.</p>
+          <h1>${this.title()}</h1>
+          <p>Лідери, сезони, країни, спорт, системи відбору, організації, команди, судді та спортсмени.</p>
         </header>
+
+        ${this.renderOrganizationPicker()}
 
         <section class="stats-filters">
           <label>
@@ -60,6 +85,14 @@ export class StatisticsDashboard {
             <select id="stats-season">
               <option value="all">Усі сезони</option>
               ${d.seasons.map(x => `<option value="${this.attr(x)}" ${this.filter.season === x ? "selected" : ""}>${this.escape(x)}</option>`).join("")}
+            </select>
+          </label>
+
+          <label>
+            Країна
+            <select id="stats-country">
+              <option value="all">Усі країни</option>
+              ${(d.countries || []).map(x => `<option value="${this.attr(x)}" ${this.filter.country === x ? "selected" : ""}>${this.escape(x)}</option>`).join("")}
             </select>
           </label>
 
@@ -79,18 +112,17 @@ export class StatisticsDashboard {
               <option value="winrate" ${this.filter.sortBy === "winrate" ? "selected" : ""}>Win Rate</option>
               <option value="played" ${this.filter.sortBy === "played" ? "selected" : ""}>Матчі</option>
               <option value="scoreDiff" ${this.filter.sortBy === "scoreDiff" ? "selected" : ""}>Різниця</option>
+              <option value="country" ${this.filter.sortBy === "country" ? "selected" : ""}>Країна</option>
               <option value="name" ${this.filter.sortBy === "name" ? "selected" : ""}>Назва</option>
             </select>
           </label>
-
-          <button id="stats-refresh" type="button">Оновити</button>
         </section>
 
         <section class="stats-summary">
           <div><b>${d.summary.events}</b><span>Заходів</span></div>
           <div><b>${d.summary.matches}</b><span>Матчів</span></div>
           <div><b>${d.summary.finishedMatches}</b><span>Завершено</span></div>
-          <div><b>${d.summary.participants}</b><span>Учасників</span></div>
+          <div><b>${d.summary.countries || 0}</b><span>Країн</span></div>
         </section>
 
         <nav class="stats-tabs">
@@ -109,11 +141,48 @@ export class StatisticsDashboard {
     this.bind();
   }
 
+  private title() {
+    if (this.scope === "member") return "Статистика моїх організацій";
+    if (this.scope === "organization") return "Статистика організації";
+    return "Глобальна статистика";
+  }
+
+  private renderOrganizationPicker() {
+    if (this.scope !== "member") return "";
+
+    if (!this.memberOrganizations.length) {
+      return `<div class="stats-card stats-empty">У тебе поки немає організацій для перегляду статистики.</div>`;
+    }
+
+    return `
+      <section class="stats-org-picker">
+        <label>
+          Організація
+          <select id="stats-member-org">
+            ${this.memberOrganizations.map(org => `
+              <option value="${this.attr(org.loginOrganization)}" ${this.organizationLogin === org.loginOrganization ? "selected" : ""}>
+                ${this.escape(org.nameOrganization || org.loginOrganization)}${org.country ? ` · ${this.escape(org.country)}` : ""}
+              </option>
+            `).join("")}
+          </select>
+        </label>
+      </section>
+    `;
+  }
+
   private bind() {
-    document.getElementById("stats-refresh")?.addEventListener("click", () => this.load());
+    document.getElementById("stats-member-org")?.addEventListener("change", e => {
+      this.organizationLogin = (e.target as HTMLSelectElement).value;
+      this.load();
+    });
 
     document.getElementById("stats-season")?.addEventListener("change", e => {
       this.filter.season = (e.target as HTMLSelectElement).value;
+      this.load();
+    });
+
+    document.getElementById("stats-country")?.addEventListener("change", e => {
+      this.filter.country = (e.target as HTMLSelectElement).value;
       this.load();
     });
 
@@ -154,13 +223,12 @@ export class StatisticsDashboard {
               <th>#</th>
               <th>Учасник</th>
               <th>Тип</th>
+              <th>Країна</th>
               <th>Спорт</th>
               <th>PL</th>
               <th>W</th>
               <th>D</th>
               <th>L</th>
-              <th>SF</th>
-              <th>SA</th>
               <th>+/-</th>
               <th>Win%</th>
               <th>Pts</th>
@@ -175,13 +243,12 @@ export class StatisticsDashboard {
                   ${row.organizationName ? `<small>${this.escape(row.organizationName)}</small>` : ""}
                 </td>
                 <td>${this.escape(row.type)}</td>
+                <td>${this.escape(row.country || "-")}</td>
                 <td>${this.escape(row.sport || "-")}</td>
                 <td>${row.played}</td>
                 <td>${row.wins}</td>
                 <td>${row.draws}</td>
                 <td>${row.losses}</td>
-                <td>${row.scoreFor}</td>
-                <td>${row.scoreAgainst}</td>
                 <td>${row.scoreDiff}</td>
                 <td>${row.winRate}%</td>
                 <td><b>${row.points}</b></td>

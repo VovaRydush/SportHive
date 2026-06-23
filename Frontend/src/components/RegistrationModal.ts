@@ -1,6 +1,7 @@
 import { organizations, trainers, users } from "./db";
 import { NotificationKarina } from "./Notification";
 import { authApi } from "../api/authApi";
+import { renderCountryOptions } from "../api/countries";
 import "./reg.css";
 
 export class RegistrationModal {
@@ -21,8 +22,7 @@ export class RegistrationModal {
   }
 
   private notify(message: string, type: "success" | "error" | "info" = "info") {
-    const notification = new NotificationKarina();
-    notification.show(message, type);
+    new NotificationKarina().show(message, type);
   }
 
   private renderStep1() {
@@ -32,27 +32,25 @@ export class RegistrationModal {
       <div class="modal-content">
         <h2>Реєстрація</h2>
 
-        <div class="modal-form">
-          <label for="reg-email">Email:</label>
-          <input type="email" id="reg-email" required />
+        <label>Email:</label>
+        <input id="reg-email" type="email" />
 
-          <label for="reg-login">Логін:</label>
-          <input type="text" id="reg-login" required />
+        <label>Логін:</label>
+        <input id="reg-login" type="text" />
 
-          <label for="reg-password">Пароль:</label>
-          <input type="password" id="reg-password" required />
+        <label>Пароль:</label>
+        <input id="reg-password" type="password" />
 
-          <label for="reg-role">Оберіть роль:</label>
-          <select id="reg-role" required>
-            <option value="">Оберіть роль</option>
-            <option value="Organization">Організація</option>
-            <option value="Trainer">Тренер</option>
-            <option value="Athlete">Спортсмен</option>
-            <option value="Judge">Суддя</option>
-          </select>
+        <label>Оберіть роль:</label>
+        <select id="reg-role">
+          <option value="">Оберіть роль</option>
+          <option value="Organization">Організація</option>
+          <option value="Trainer">Тренер</option>
+          <option value="Athlete">Спортсмен</option>
+          <option value="Judge">Суддя</option>
+        </select>
 
-          <button id="next-step">Далі</button>
-        </div>
+        <button id="next-step">Далі</button>
       </div>
     `;
 
@@ -72,12 +70,7 @@ export class RegistrationModal {
         button.disabled = true;
         button.textContent = "Реєстрація...";
 
-        await authApi.register({
-          email,
-          login,
-          password,
-          role,
-        });
+        await authApi.register({ email, login, password, role });
 
         this.userEmail = email;
         this.userLogin = login;
@@ -92,7 +85,6 @@ export class RegistrationModal {
         this.renderStep2();
       } catch (error) {
         this.notify(error instanceof Error ? error.message : "Помилка реєстрації", "error");
-
         const button = document.getElementById("next-step") as HTMLButtonElement | null;
         if (button) {
           button.disabled = false;
@@ -108,15 +100,12 @@ export class RegistrationModal {
     this.container.innerHTML = `
       <div class="modal-content">
         <h2>Підтвердження Email</h2>
+        <p>Ми надіслали код підтвердження на вашу пошту</p>
 
-        <div class="modal-form">
-          <p>Ми надіслали код підтвердження на вашу пошту</p>
+        <label>Код:</label>
+        <input id="confirm-code" />
 
-          <label for="confirm-code">Код:</label>
-          <input type="text" id="confirm-code" required />
-
-          <button id="verify-code">Підтвердити</button>
-        </div>
+        <button id="verify-code">Підтвердити</button>
       </div>
     `;
 
@@ -142,7 +131,6 @@ export class RegistrationModal {
         this.renderProfileForm();
       } catch (error) {
         this.notify(error instanceof Error ? error.message : "Помилка підтвердження коду", "error");
-
         const button = document.getElementById("verify-code") as HTMLButtonElement | null;
         if (button) {
           button.disabled = false;
@@ -155,30 +143,27 @@ export class RegistrationModal {
   private renderProfileForm() {
     this.clear();
 
-    const isPerson =
-      this.userRole === "Athlete" ||
-      this.userRole === "Trainer" ||
-      this.userRole === "Judge";
+    const isPerson = this.userRole === "Athlete" || this.userRole === "Trainer" || this.userRole === "Judge";
 
     const personFields = `
-      <label for="first-name">Ім'я:</label>
-      <input type="text" id="first-name" required />
+      <label>Ім'я:</label>
+      <input id="first-name" />
 
-      <label for="last-name">Прізвище:</label>
-      <input type="text" id="last-name" required />
+      <label>Прізвище:</label>
+      <input id="last-name" />
 
-      <label for="birth-date">Дата народження:</label>
-      <input type="date" id="birth-date" required />
+      <label>Дата народження:</label>
+      <input id="birth-date" type="date" />
 
-      <label for="user-photo">Фото профілю:</label>
-      <input type="file" id="user-photo" accept="image/*" />
+      <label>Фото профілю:</label>
+      <input id="user-photo" type="file" accept="image/*" />
 
-      <label for="sport-type">Оберіть вид спорту:</label>
-      <select id="sport-type" required>
+      <label>Оберіть вид спорту:</label>
+      <select id="sport-type">
         <option value="">Оберіть вид спорту</option>
         <option value="Boxing">Бокс</option>
         <option value="Wrestling">Боротьба</option>
-        <option value="TableTennis">Настільний теніс</option>
+        <option value="Table Tennis">Настільний теніс</option>
         <option value="Tennis">Теніс</option>
         <option value="Badminton">Бадмінтон</option>
         <option value="Checkers">Шашки</option>
@@ -192,30 +177,30 @@ export class RegistrationModal {
     `;
 
     const organizationFields = `
-      <label for="org-name">Назва організації:</label>
-      <input type="text" id="org-name" required />
+      <label>Назва організації:</label>
+      <input id="org-name" />
 
-      <label for="org-type">Тип організації:</label>
-      <input type="text" id="org-type" required />
+      <label>Тип організації:</label>
+      <input id="org-type" placeholder="Клуб / Школа / Федерація" />
 
-      <label for="org-country">Країна:</label>
-      <input type="text" id="org-country" required />
+      <label>Країна:</label>
+      <select id="org-country">
+        <option value="">Оберіть країну</option>
+        ${renderCountryOptions("Ukraine")}
+      </select>
 
-      <label for="org-photo">Фото організації:</label>
-      <input type="file" id="org-photo" accept="image/*" />
+      <label>Фото організації:</label>
+      <input id="org-photo" type="file" accept="image/*" />
 
-      <label for="org-desc">Опис:</label>
+      <label>Опис:</label>
       <textarea id="org-desc"></textarea>
     `;
 
     this.container.innerHTML = `
       <div class="modal-content">
         <h2>Заповніть профіль (${this.userRole})</h2>
-
-        <div class="modal-form">
-          ${isPerson ? personFields : organizationFields}
-          <button id="submit-profile">Завершити</button>
-        </div>
+        ${isPerson ? personFields : organizationFields}
+        <button id="submit-profile">Завершити</button>
       </div>
     `;
 
@@ -251,15 +236,6 @@ export class RegistrationModal {
       button.disabled = true;
       button.textContent = "Збереження...";
 
-      console.log("PROFILE PAYLOAD:", {
-        fistName: firstName,
-        lastName,
-        login: savedLogin,
-        dateBirhsday: new Date(birthDate).toISOString(),
-        typeSport: sportType,
-        hasPhoto: Boolean(profilePhoto),
-      });
-
       await authApi.completeProfile({
         fistName: firstName,
         lastName,
@@ -273,9 +249,7 @@ export class RegistrationModal {
 
       if (profilePhoto) {
         const reader = new FileReader();
-        reader.onload = () => {
-          localStorage.setItem("userPhoto", String(reader.result || ""));
-        };
+        reader.onload = () => localStorage.setItem("userPhoto", String(reader.result || ""));
         reader.readAsDataURL(profilePhoto);
       }
 
@@ -315,8 +289,6 @@ export class RegistrationModal {
       window.location.reload();
     } catch (error) {
       this.notify(error instanceof Error ? error.message : "Помилка при збереженні профілю", "error");
-      console.error("Помилка при відправці профілю:", error);
-
       const button = document.getElementById("submit-profile") as HTMLButtonElement | null;
       if (button) {
         button.disabled = false;
@@ -328,7 +300,7 @@ export class RegistrationModal {
   private async submitOrganizationProfile() {
     const name = (document.getElementById("org-name") as HTMLInputElement).value.trim();
     const type = (document.getElementById("org-type") as HTMLInputElement).value.trim();
-    const country = (document.getElementById("org-country") as HTMLInputElement).value.trim();
+    const country = (document.getElementById("org-country") as HTMLSelectElement).value;
     const description = (document.getElementById("org-desc") as HTMLTextAreaElement).value.trim();
     const photo = (document.getElementById("org-photo") as HTMLInputElement).files?.[0] || null;
     const email = this.userEmail || localStorage.getItem("email") || "";
@@ -371,8 +343,6 @@ export class RegistrationModal {
       window.location.reload();
     } catch (error) {
       this.notify(error instanceof Error ? error.message : "Помилка при збереженні організації", "error");
-      console.error("Помилка при відправці організації:", error);
-
       const button = document.getElementById("submit-profile") as HTMLButtonElement | null;
       if (button) {
         button.disabled = false;

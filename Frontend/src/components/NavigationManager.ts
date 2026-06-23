@@ -34,7 +34,6 @@ export class NavigationManager {
 
   private renderGuestNav() {
     this.navElement!.innerHTML = `
-      <button class="nav-btn" id="homePagest">Головна</button>
       <button class="nav-btn" id="tournaments-btn">Турніри</button>
       <button class="nav-btn" id="statistics-btn">Статистика</button>
       <button class="nav-btn" id="login-btn">Увійти</button>
@@ -50,7 +49,6 @@ export class NavigationManager {
 
   private renderUserNav(role: string | null) {
     let content = `
-
       <button class="nav-btn" id="tournaments-btn">Турніри</button>
       <button class="nav-btn" id="statistics-btn">Статистика</button>
     `;
@@ -65,13 +63,17 @@ export class NavigationManager {
         break;
       case 'Trainer':
         content += `
+          <button class="nav-btn" id="member-org-statistics-btn">Статистика моїх організацій</button>
           <button class="nav-btn" id="team-btn">Створити команду</button>
           <button class="nav-btn" id="profi-btn">Мій кабінет</button>
         `;
         break;
       case 'Athlete':
       case 'Judge':
-        content += `<button class="nav-btn" id="profile-btn">Профіль</button>`;
+        content += `
+          <button class="nav-btn" id="member-org-statistics-btn">Статистика моїх організацій</button>
+          <button class="nav-btn" id="profile-btn">Профіль</button>
+        `;
         break;
       default:
         content += `<button class="nav-btn">N/A</button>`;
@@ -88,6 +90,7 @@ export class NavigationManager {
     document.getElementById('tournaments-btn')?.addEventListener('click', () => new TournamentsPage('app').render());
     document.getElementById('statistics-btn')?.addEventListener('click', () => new StatisticsDashboard('app', 'global').render());
     document.getElementById('org-statistics-btn')?.addEventListener('click', () => new StatisticsDashboard('app', 'organization', login).render());
+    document.getElementById('member-org-statistics-btn')?.addEventListener('click', () => new StatisticsDashboard('app', 'member').render());
     document.getElementById('judge-btn')?.addEventListener('click', () => new JudgeModal().show('1','5'));
     document.getElementById('team-btn')?.addEventListener('click', () => new CreateTeamModal().show());
     document.getElementById('profile-btn')?.addEventListener('click', () => new UserProfile('app', login).render());
