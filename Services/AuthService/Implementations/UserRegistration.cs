@@ -1,11 +1,9 @@
-using System.Net.Mail;
 using System.Text.Json;
 using DB.SportHive.Domain;
 using DB.SportHive.Persistence;
 using Microsoft.EntityFrameworkCore;
 using SportHive.Exceptions;
 using SportHive.Services.Interfaces;
-
 
 namespace SportHive.Implementations
 {
@@ -17,7 +15,14 @@ namespace SportHive.Implementations
         private readonly ISaveDataDb _saveDataDb;
         private readonly IPhotoProcessing _photoprocessing;
         private readonly ICompliteUserProfile _userProfile;
-        public UserRegistration(ICompliteUserProfile userProfile,ISaveDataDb saveDataDb, AppDbContext context, IRedisService database, IEmailService emailService, IPhotoProcessing photo)
+
+        public UserRegistration(
+            ICompliteUserProfile userProfile,
+            ISaveDataDb saveDataDb,
+            AppDbContext context,
+            IRedisService database,
+            IEmailService emailService,
+            IPhotoProcessing photo)
         {
             _userProfile = userProfile;
             _saveDataDb = saveDataDb;
@@ -26,148 +31,187 @@ namespace SportHive.Implementations
             _redis = database;
             _context = context;
         }
+
         public async Task ComplitePrifile(RoleInfoDto entity)
         {
             entity.dateBirhsday = DateTime.SpecifyKind(entity.dateBirhsday, DateTimeKind.Utc);
 
             var user = await _context.Users
-                                    .AsNoTracking()
-                                    .Where(u => u.login == entity.Login)
-                                    .Select(u => new { u.login, u.Role })
-                                    .FirstOrDefaultAsync();
+                .AsNoTracking()
+                .Where(u => u.login == entity.Login)
+                .Select(u => new { u.login, u.Role })
+                .FirstOrDefaultAsync();
 
             if (user == null)
                 throw new NotFoundException("Not Found User");
 
-            string photoPath = null;
-            if (entity.ProfilePhoto != null)
-            {
-                photoPath = await _photoprocessing.SavePhotoAsync(entity.ProfilePhoto);
-            }
+            string? photoPath = null;
 
-            var jsonObJuserPhoto = JsonSerializer.Serialize(new UserPhoto
-            {
-                login = user.login,
-                ProfilePhoto = photoPath
-            });
-            _ = _saveDataDb.SaveDataToDb(jsonObJuserPhoto, "user-photo");
+            if (entity.ProfilePhoto != null)
+                photoPath = await _photoprocessing.SavePhotoAsync(entity.ProfilePhoto);
+
+            await UpsertUserPhoto(user.login, photoPath);
+
             switch (user.Role)
             {
                 case "Athlete":
-                    var jsonAthlet = JsonSerializer.Serialize(new Athlete
+                    if (!await _context.Set<Athlete>().AnyAsync(x => x.login == user.login))
                     {
-                        login = user.login,
-                        FirsName = entity.FistName,
-                        LastName = entity.LastName,
-                        DataBirth = entity.dateBirhsday,
-                        TypeSport = entity.TypeSport
-                    });
-                    _ = _saveDataDb.SaveDataToDb(jsonAthlet, "user-athlete");
+                        await _context.Set<Athlete>().AddAsync(new Athlete
+                        {
+                            login = user.login,
+                            FirsName = entity.FistName,
+                            LastName = entity.LastName,
+                            DataBirth = entity.dateBirhsday,
+                            TypeSport = entity.TypeSport
+                        });
+                    }
                     break;
 
                 case "Trainer":
-                    var jsonTrainer = JsonSerializer.Serialize(new Trainer
+                    if (!await _context.Set<Trainer>().AnyAsync(x => x.login == user.login))
                     {
-                        login = user.login,
-                        FirsName = entity.FistName,
-                        LastName = entity.LastName,
-                    });
-                    _ = _saveDataDb.SaveDataToDb(jsonTrainer, "user-trainer");
+                        await _context.Set<Trainer>().AddAsync(new Trainer
+                        {
+                            login = user.login,
+                            FirsName = entity.FistName,
+                            LastName = entity.LastName
+                        });
+                    }
                     break;
 
                 case "Judge":
-                    var jsonJudge = JsonSerializer.Serialize(new Judge
+                    if (!await _context.Set<Judge>().AnyAsync(x => x.login == user.login))
                     {
-                        login = user.login,
-                        FirsName = entity.FistName,
-                        LastName = entity.LastName,
-                    });
-                    _ = _saveDataDb.SaveDataToDb(jsonJudge, "user-judge");
+                        await _context.Set<Judge>().AddAsync(new Judge
+                        {
+                            login = user.login,
+                            FirsName = entity.FistName,
+                            LastName = entity.LastName
+                        });
+                    }
                     break;
 
                 default:
                     throw new NotFoundException("Unknown role");
             }
-            await _userProfile.CreateProfileInMongoAsync(entity.FistName+" "+entity.LastName,entity.Login,entity.TypeSport,entity.dateBirhsday);
+
+            await _context.SaveChangesAsync();
+
+            await _userProfile.CreateProfileInMongoAsync(
+                entity.FistName + " " + entity.LastName,
+                entity.Login,
+                entity.TypeSport,
+                entity.dateBirhsday);
         }
 
         public async Task ComplitePrifileOrganization(OrganizationInfoDto entity)
         {
             var user = await _context.Users
-                                     .AsNoTracking()
-                                     .Where(u => u.Email == entity.Email)
-                                     .Select(u => new { u.login })
-                                     .FirstOrDefaultAsync();
+                .Where(u => u.Email == entity.Email || u.login == entity.Email)
+                .Select(u => new { u.login, u.Email, u.Role })
+                .FirstOrDefaultAsync();
+
             if (user == null)
                 throw new NotFoundException("User not found");
 
-            string photoPath = null;
-            if (entity.ProfilePhoto != null)
-            {
-                photoPath = await _photoprocessing.SavePhotoAsync(entity.ProfilePhoto);
-            }
-            var jsonObJuserPhoto = JsonSerializer.Serialize(new UserPhoto
-            {
-                login = user.login,
-                ProfilePhoto = photoPath
-            });
-            _ = _saveDataDb.SaveDataToDb(jsonObJuserPhoto, "user-photo");
+            if (user.Role != "Organization")
+                throw new Exception("Поточний користувач не є організацією.");
 
-            var jsonOrganization = JsonSerializer.Serialize(new Organization
+            string? photoPath = null;
+
+            if (entity.ProfilePhoto != null)
+                photoPath = await _photoprocessing.SavePhotoAsync(entity.ProfilePhoto);
+
+            await UpsertUserPhoto(user.login, photoPath);
+
+            var organization = await _context.Set<Organization>()
+                .FirstOrDefaultAsync(o => o.login == user.login);
+
+            if (organization == null)
             {
-                login = user.login,
-                TypeOrganozation = entity.TypeOrganozation,
-                NameOrganization = entity.NameOrganization,
-                Country = entity.Country,
-                Description = entity.Description
-            });
-            _ = _saveDataDb.SaveDataToDb(jsonOrganization, "user-organization");
+                organization = new Organization
+                {
+                    login = user.login,
+                    TypeOrganozation = entity.TypeOrganozation,
+                    NameOrganization = entity.NameOrganization,
+                    Country = entity.Country,
+                    Description = entity.Description
+                };
+
+                await _context.Set<Organization>().AddAsync(organization);
+            }
+            else
+            {
+                organization.TypeOrganozation = entity.TypeOrganozation;
+                organization.NameOrganization = entity.NameOrganization;
+                organization.Country = entity.Country;
+                organization.Description = entity.Description;
+            }
+
+            await _context.SaveChangesAsync();
         }
 
         public async Task LinkOrganizationJudge(OrganizationJudgeDto entity)
         {
             var organization = await _context.Users
-                                                .AsNoTracking()
-                                                .Where(e => e.login == entity.LoginOrganization)
-                                                .Select(e => new { e.login })
-                                                .FirstOrDefaultAsync();
+                .AsNoTracking()
+                .Where(e => e.login == entity.LoginOrganization)
+                .Select(e => new { e.login })
+                .FirstOrDefaultAsync();
 
-            var Entity = await _context.Users
-                                        .AsNoTracking()
-                                        .Where(e => e.login == entity.LoginEntyty)
-                                        .Select(e => new {e.login})
-                                        .FirstOrDefaultAsync();
+            var user = await _context.Users
+                .AsNoTracking()
+                .Where(e => e.login == entity.LoginEntyty)
+                .Select(e => new { e.login })
+                .FirstOrDefaultAsync();
+
+            if (organization == null || user == null)
+                throw new NotFoundException("User or organization not found");
 
             if (entity.Role == "Judge")
             {
-                var organizationJudge = new OrganizationJudge
+                var exists = await _context.OrginizationJudges
+                    .AnyAsync(x => x.LoginOrganization == organization.login && x.LoginJudge == user.login);
+
+                if (!exists)
                 {
-                    LoginOrganization = organization.login,
-                    LoginJudge = Entity.login
-                };
-                _context.OrginizationJudges.Add(organizationJudge);
+                    _context.OrginizationJudges.Add(new OrganizationJudge
+                    {
+                        LoginOrganization = organization.login,
+                        LoginJudge = user.login
+                    });
+                }
             }
+
             if (entity.Role == "Trainer")
             {
-                var organizationTrainer = new OrganizationTrainer
+                var exists = await _context.OrganizationTrainers
+                    .AnyAsync(x => x.LoginOrganization == organization.login && x.LoginTraine == user.login);
+
+                if (!exists)
                 {
-                    LoginOrganization = organization.login,
-                    LoginTraine = Entity.login
-                };
-                _context.OrganizationTrainers.Add(organizationTrainer);
+                    _context.OrganizationTrainers.Add(new OrganizationTrainer
+                    {
+                        LoginOrganization = organization.login,
+                        LoginTraine = user.login
+                    });
+                }
             }
+
             await _context.SaveChangesAsync();
         }
 
         public async Task Registration(UserInfoDto entity)
         {
             var existingUser = await _context.Users
-                                    .AsNoTracking()
-                                    .Where(u => u.Email == entity.Email || u.login == entity.Login)
-                                    .Select(u => new { u.login })
-                                    .FirstOrDefaultAsync();
+                .AsNoTracking()
+                .Where(u => u.Email == entity.Email || u.login == entity.Login)
+                .Select(u => new { u.login })
+                .FirstOrDefaultAsync();
 
-            if (existingUser != null) throw new Exception("Користувач з таким email або логіном вже існує.");
+            if (existingUser != null)
+                throw new Exception("Користувач з таким email або логіном вже існує.");
 
             var user = new User
             {
@@ -179,37 +223,78 @@ namespace SportHive.Implementations
                 refreshToken = Guid.NewGuid().ToString()
             };
 
-            var jsonObj = JsonSerializer.Serialize(user);
+            await _context.Users.AddAsync(user);
 
-            _ = _saveDataDb.SaveDataToDb(jsonObj, "user_regist");
+            if (entity.Role == "Organization")
+            {
+                var organizationExists = await _context.Set<Organization>()
+                    .AnyAsync(o => o.login == entity.Login);
 
-            _ = _emailService.SendEmail(new EmailMessageDto
+                if (!organizationExists)
+                {
+                    await _context.Set<Organization>().AddAsync(new Organization
+                    {
+                        login = entity.Login,
+                        NameOrganization = entity.Login,
+                        TypeOrganozation = "Organization",
+                        Description = "Профіль організації ще не заповнено.",
+                        Country = ""
+                    });
+                }
+            }
+
+            await _context.SaveChangesAsync();
+
+            await _emailService.SendEmail(new EmailMessageDto
             {
                 From = "vadimrudis7@gmail.com",
                 To = entity.Email,
                 Subject = "Підтвердження email",
-                Body = "Ваш код: ",
+                Body = null
             });
-
         }
 
         public async Task VeryfyEmail(UserVerificationDto info)
         {
-            string veryfyCode = await _redis.GetEntity(info.Email);
+            var veryfyCode = await _redis.GetEntity(info.Email);
+
             if (info.Code == veryfyCode)
             {
-                var Email = await _context.Users.FirstOrDefaultAsync(u => u.Email == info.Email);
-                if (Email != null)
+                var email = await _context.Users.FirstOrDefaultAsync(u => u.Email == info.Email);
+
+                if (email != null)
                 {
                     await _redis.DeleteVerifacionCode(info.Email);
-                    Email.isEmailConfirmed = true;
+                    email.isEmailConfirmed = true;
                     await _context.SaveChangesAsync();
                 }
-
             }
-            else throw new NotFoundException("Код не правельний!");
+            else
+            {
+                throw new NotFoundException("Код не правельний!");
+            }
         }
 
-    }
+        private async Task UpsertUserPhoto(string login, string? photoPath)
+        {
+            if (string.IsNullOrWhiteSpace(photoPath))
+                return;
 
+            var userPhoto = await _context.Set<UserPhoto>()
+                .FirstOrDefaultAsync(x => x.login == login);
+
+            if (userPhoto == null)
+            {
+                await _context.Set<UserPhoto>().AddAsync(new UserPhoto
+                {
+                    login = login,
+                    ProfilePhoto = photoPath
+                });
+            }
+            else
+            {
+                userPhoto.ProfilePhoto = photoPath;
+            }
+        }
+    }
 }

@@ -40,7 +40,7 @@ export async function apiRequest<T = any>(endpoint: string, options: ApiOptions 
   const baseUrl = options.baseUrl || AUTH_API_URL;
   const token = getToken();
   const isFormData = options.body instanceof FormData;
-  const { baseUrl: ignoredBaseUrl, auth, headers, ...fetchOptions } = options;
+  const { baseUrl: _, auth, headers, ...fetchOptions } = options;
 
   const response = await fetch(`${baseUrl}${endpoint}`, {
     ...fetchOptions,

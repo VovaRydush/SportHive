@@ -11,6 +11,7 @@ using Extensions;
 using Microsoft.OpenApi.Models;
 using SportHive.Implementations.SportRules;
 using SportHive.Hubs;
+using SportHive.Implementations.Background;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -94,23 +95,27 @@ builder.Services.AddScoped<UserProfileFactory>();
 builder.Services.AddScoped<EnumWork>();
 builder.Services.AddScoped<ISetResultMatch, SetResultMatch>();
 builder.Services.AddScoped<IMatchsGenerator, MatchsGenerator>();
-builder.Services.AddScoped<IStage3TournamentService, Stage3TournamentService>();
 builder.Services.AddScoped<IInitalSystemGrid, InitalSystemGrid>();
 builder.Services.AddScoped<IGetPointMatch, GetPointMatch>();
 builder.Services.AddScoped<IEventCatalogService, EventCatalogService>();
+builder.Services.AddScoped<IStage3TournamentService, Stage3TournamentService>();
+builder.Services.AddHostedService<MatchStatusBackgroundService>();
 
 var app = builder.Build();
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseCors("FrontendPolicy");
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapEventEndpoints();
+//app.MapMatchStatusEndpoints();
 app.MapHub<MatchLiveHub>("/hubs/match-live");
 
 app.Run();

@@ -1,4 +1,3 @@
-using System.Net.Mail;
 using DB.SportHive.Domain;
 using DB.SportHive.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -12,7 +11,10 @@ namespace SportHive.Implementations
         private readonly IEmailService _emailService;
         private readonly IRedisService _redisService;
 
-        public ProfileManipulete(AppDbContext dbContext, IEmailService emailService, IRedisService redisService)
+        public ProfileManipulete(
+            AppDbContext dbContext,
+            IEmailService emailService,
+            IRedisService redisService)
         {
             _redisService = redisService;
             _dbcontext = dbContext;
@@ -31,9 +33,9 @@ namespace SportHive.Implementations
             await _emailService.SendEmail(new EmailMessageDto
             {
                 From = "vadimrudis7@gmail.com",
-                To = Email, 
+                To = Email,
                 Subject = "Відновлення паролю",
-                Body = "Ваш код: "
+                Body = null
             });
         }
     }

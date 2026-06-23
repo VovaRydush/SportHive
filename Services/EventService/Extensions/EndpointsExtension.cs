@@ -14,6 +14,7 @@ namespace Extensions
             app.EventCatalogEndpoint();
             app.SportRulesEndpoint();
             app.EventInvitationEndpoint();
+             app.MatchStatusMaintenanceEndpoint();
 
         }
     }

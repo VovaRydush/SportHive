@@ -1,7 +1,9 @@
 using AuthService.Endpoints;
 
-namespace AuthService.Extensions{
-    public static class EndpointExtensions{
+namespace AuthService.Extensions
+{
+    public static class EndpointExtensions
+    {
         public static void MapAuthEndpoints(this IEndpointRouteBuilder app)
         {
             app.UserRegisterEndpoint();
@@ -10,10 +12,7 @@ namespace AuthService.Extensions{
             app.UserProfileEndpoint();
             app.OrganizationLinkedSearchEndpoint();
             app.OrganizationInvitationEndpoint();
-            app.UserProfileEndpoint();
             app.AuthPhotoEndpoint();
-            
-
         }
     }
 }

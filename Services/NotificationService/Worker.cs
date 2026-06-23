@@ -1,18 +1,18 @@
 namespace NotificationService;
 
 using Confluent.Kafka;
-using DB.SportHive.Domain;
 using StackExchange.Redis;
 using System.Net;
 using System.Net.Mail;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 
 public class ConsumerEmail : BackgroundService
 {
     private readonly ILogger<ConsumerEmail> _logger;
     private readonly IDatabase _database;
-    private readonly ConsumerConfig config;
-    private readonly IConsumer<Null, string> consumer;
+    private readonly ConsumerConfig _config;
+    private readonly IConsumer<Ignore, string> _consumer;
     private readonly IConfiguration _configuration;
 
     public ConsumerEmail(
@@ -24,7 +24,7 @@ public class ConsumerEmail : BackgroundService
         _logger = logger;
         _configuration = configuration;
 
-        config = new ConsumerConfig
+        _config = new ConsumerConfig
         {
             BootstrapServers = _configuration["Kafka:BootstrapServers"] ?? "localhost:9093",
             GroupId = "email-consumer",
@@ -32,8 +32,8 @@ public class ConsumerEmail : BackgroundService
             EnableAutoCommit = false
         };
 
-        consumer = new ConsumerBuilder<Null, string>(config).Build();
-        consumer.Subscribe("user_email");
+        _consumer = new ConsumerBuilder<Ignore, string>(_config).Build();
+        _consumer.Subscribe("user_email");
     }
 
     public async Task SendEmail(EnhancedEmailMessageDto message)
@@ -55,27 +55,8 @@ public class ConsumerEmail : BackgroundService
                 Port = smtpPort
             };
 
-            var subject = string.IsNullOrWhiteSpace(message.Subject)
-                ? "SportHive"
-                : message.Subject;
-
-            string body;
-
-            if (!string.IsNullOrWhiteSpace(message.Body))
-            {
-                body = message.IsBodyHtml
-                    ? message.Body
-                    : ToHtml(message.Body);
-            }
-            else
-            {
-                // Backward compatibility with old registration/recovery emails:
-                // old AuthService sends only To/From/Subject, so we generate confirmation code as before.
-                var random = new Random();
-                var code = random.Next(100000, 1000000).ToString();
-                _ = _database.StringSetAsync(message.To, code, TimeSpan.FromMinutes(10));
-                body = HTMLTemplate.getHTMLPage(code, subject);
-            }
+            var subject = string.IsNullOrWhiteSpace(message.Subject) ? "SportHive" : message.Subject;
+            var body = await BuildBodyAsync(message, subject);
 
             var mail = new MailMessage
             {
@@ -86,11 +67,10 @@ public class ConsumerEmail : BackgroundService
             };
 
             foreach (var recipient in message.To.Split(',', StringSplitOptions.RemoveEmptyEntries))
-            {
                 mail.To.Add(recipient.Trim());
-            }
 
             await smtp.SendMailAsync(mail);
+
             _logger.LogInformation("Email sent to {Email} with subject {Subject}", message.To, subject);
         }
         catch (Exception ex)
@@ -105,7 +85,7 @@ public class ConsumerEmail : BackgroundService
         {
             while (!stoppingToken.IsCancellationRequested)
             {
-                var cr = consumer.Consume(stoppingToken);
+                var cr = _consumer.Consume(stoppingToken);
 
                 try
                 {
@@ -116,12 +96,12 @@ public class ConsumerEmail : BackgroundService
                     if (message is null || string.IsNullOrWhiteSpace(message.To))
                     {
                         _logger.LogWarning("Invalid email message from Kafka: {Message}", cr.Message.Value);
-                        consumer.Commit(cr);
+                        _consumer.Commit(cr);
                         continue;
                     }
 
                     await SendEmail(message);
-                    consumer.Commit(cr);
+                    _consumer.Commit(cr);
                 }
                 catch (Exception ex)
                 {
@@ -135,15 +115,72 @@ public class ConsumerEmail : BackgroundService
         }
         finally
         {
-            consumer.Close();
+            _consumer.Close();
         }
+    }
+
+    private async Task<string> BuildBodyAsync(EnhancedEmailMessageDto message, string subject)
+    {
+        if (NeedsGeneratedCode(message, subject))
+        {
+            var code = ResolveCode(message.Code);
+            await _database.StringSetAsync(message.To, code, TimeSpan.FromMinutes(10));
+            return HTMLTemplate.getHTMLPage(code, subject);
+        }
+
+        if (!string.IsNullOrWhiteSpace(message.Body))
+            return message.IsBodyHtml ? message.Body : ToHtml(message.Body);
+
+        return ToHtml("SportHive notification");
+    }
+
+    private static bool NeedsGeneratedCode(EnhancedEmailMessageDto message, string subject)
+    {
+        if (IsVerificationSubject(subject) && string.IsNullOrWhiteSpace(message.Body))
+            return true;
+
+        if (IsVerificationSubject(subject) && IsEmptyCodeBody(message.Body))
+            return true;
+
+        if (!string.IsNullOrWhiteSpace(message.Kind) &&
+            (message.Kind.Contains("verification", StringComparison.OrdinalIgnoreCase) ||
+             message.Kind.Contains("recovery", StringComparison.OrdinalIgnoreCase)))
+            return true;
+
+        return false;
+    }
+
+    private static bool IsVerificationSubject(string subject)
+    {
+        return subject.Contains("Підтвердження", StringComparison.OrdinalIgnoreCase) ||
+               subject.Contains("Відновлення", StringComparison.OrdinalIgnoreCase) ||
+               subject.Contains("verification", StringComparison.OrdinalIgnoreCase) ||
+               subject.Contains("recovery", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool IsEmptyCodeBody(string? body)
+    {
+        if (string.IsNullOrWhiteSpace(body))
+            return true;
+
+        var text = WebUtility.HtmlDecode(Regex.Replace(body, "<.*?>", string.Empty)).Trim();
+
+        return text.Equals("Ваш код:", StringComparison.OrdinalIgnoreCase) ||
+               text.Equals("Ваш код", StringComparison.OrdinalIgnoreCase) ||
+               text.EndsWith("Ваш код:", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static string ResolveCode(string? code)
+    {
+        if (!string.IsNullOrWhiteSpace(code) && Regex.IsMatch(code, @"^\d{6}$"))
+            return code;
+
+        return Random.Shared.Next(100000, 1000000).ToString();
     }
 
     private static string ToHtml(string text)
     {
-        return "<div style=\"font-family:Arial,sans-serif;line-height:1.5\">" +
-               WebUtility.HtmlEncode(text).Replace("\n", "<br/>") +
-               "</div>";
+        return "<p>" + WebUtility.HtmlEncode(text).Replace("\n", "<br>") + "</p>";
     }
 }
 
@@ -155,4 +192,5 @@ public sealed class EnhancedEmailMessageDto
     public string? Body { get; set; }
     public bool IsBodyHtml { get; set; } = true;
     public string? Kind { get; set; }
+    public string? Code { get; set; }
 }

@@ -1,6 +1,7 @@
 import { resolvePhotoUrl, initials } from "../api/media";
 import { userProfileApi, type ProfileMatch, type ProfileTeam, type UserProfileData } from "../api/userProfileApi";
 import type { UserRole } from "../api/authToken";
+import { extractScore, formatMatchDateTime, getEffectiveMatchStatus, statusUa } from "../api/matchStatus";
 import { TeamPageLook } from "./TeamPage";
 import "./userProfile.css";
 
@@ -39,7 +40,9 @@ export class UserProfilePage {
       this.container.innerHTML = `
         <section class="user-profile-page">
           <button id="profile-back" class="profile-btn secondary" type="button">← Назад</button>
-          <div class="profile-empty">${this.escape(error instanceof Error ? error.message : "Не вдалося завантажити профіль")}</div>
+          <div class="profile-empty">
+            ${this.escape(error instanceof Error ? error.message : "Не вдалося завантажити профіль")}
+          </div>
         </section>
       `;
       document.getElementById("profile-back")?.addEventListener("click", () => window.history.back());
@@ -55,7 +58,9 @@ export class UserProfilePage {
 
     const data = this.data;
     const image = resolvePhotoUrl(data.profilePhoto, "auth");
-    const allMatches = this.allMatches();
+    const allMatches = this.normalizeMatches(this.allMatches());
+    const finishedMatches = allMatches.filter(match => getEffectiveMatchStatus(match) === "Finished");
+    const activeMatches = allMatches.filter(match => getEffectiveMatchStatus(match) !== "Finished");
 
     this.container.innerHTML = `
       <section class="user-profile-page">
@@ -84,10 +89,10 @@ export class UserProfilePage {
         </header>
 
         <section class="profile-stats">
-          <div><b>${data.stats.totalMatches}</b><span>Матчів</span></div>
-          <div><b>${data.stats.finishedMatches}</b><span>Завершено</span></div>
-          <div><b>${data.stats.wins}</b><span>Перемог</span></div>
-          <div><b>${data.stats.teamsCount}</b><span>Команд</span></div>
+          <div><b>${allMatches.length}</b><span>Матчів</span></div>
+          <div><b>${finishedMatches.length}</b><span>Завершено</span></div>
+          <div><b>${this.countWins(finishedMatches, data.login, data.fullName)}</b><span>Перемог</span></div>
+          <div><b>${data.teams.length}</b><span>Команд</span></div>
         </section>
 
         <section class="profile-grid">
@@ -104,18 +109,18 @@ export class UserProfilePage {
 
         <section class="profile-panel">
           <h2>${data.role === "Judge" ? "Матчі судді" : "Матчі"}</h2>
-          ${this.renderMatches(data.role === "Judge" && data.judgedMatches.length ? data.judgedMatches : allMatches)}
+          ${this.renderMatches(allMatches)}
         </section>
 
         <section class="profile-grid">
           <div class="profile-panel">
-            <h2>Очікуються</h2>
-            ${this.renderMatches(data.upcomingMatches)}
+            <h2>Очікуються / Live</h2>
+            ${this.renderMatches(activeMatches)}
           </div>
 
           <div class="profile-panel">
             <h2>Завершені</h2>
-            ${this.renderMatches(data.finishedMatches)}
+            ${this.renderMatches(finishedMatches)}
           </div>
         </section>
       </section>
@@ -142,6 +147,41 @@ export class UserProfilePage {
     });
 
     return Array.from(map.values());
+  }
+
+  private normalizeMatches(matches: ProfileMatch[]) {
+    return matches.map(match => ({
+      ...match,
+      score: extractScore(match) || match.score || "",
+      statusMatch: this.statusNumber(match),
+    }));
+  }
+
+  private statusNumber(match: ProfileMatch) {
+    const status = getEffectiveMatchStatus(match);
+
+    if (status === "Finished") return 2;
+    if (status === "Live") return 1;
+    return 0;
+  }
+
+  private countWins(matches: ProfileMatch[], login: string, fullName: string) {
+    let wins = 0;
+
+    for (const match of matches) {
+      const score = extractScore(match) || match.score || "";
+      const parts = score.split(":").map(Number);
+
+      if (parts.length !== 2 || parts.some(Number.isNaN) || parts[0] === parts[1]) continue;
+
+      const first = String(match.firstSide || "");
+      const second = String(match.secondSide || "");
+      const isFirst = first === login || first === fullName;
+
+      if ((isFirst && parts[0] > parts[1]) || (!isFirst && second.length > 0 && parts[1] > parts[0])) wins++;
+    }
+
+    return wins;
   }
 
   private renderTeams(teams: ProfileTeam[]) {
@@ -187,21 +227,26 @@ export class UserProfilePage {
 
     return `
       <div class="profile-match-list">
-        ${list.map(match => `
-          <article class="profile-match">
-            <div class="match-row">
-              <span>${this.escape(match.nameEvent || "Матч")}</span>
-              <strong class="${this.statusClass(match.statusMatch)}">${this.status(match.statusMatch)}</strong>
-            </div>
-            <b>${this.escape(match.firstSide || "-")} vs ${this.escape(match.secondSide || "-")}</b>
-            <small>
-              ${match.dataMatch ? this.date(match.dataMatch) : "-"}
-              · ${match.score ? `Score: ${this.escape(match.score)}` : "score -"}
-              · R${match.tour || "-"}
-              ${match.group ? ` · Group ${match.group}` : ""}
-            </small>
-          </article>
-        `).join("")}
+        ${list.map(match => {
+          const status = getEffectiveMatchStatus(match);
+          const score = extractScore(match) || match.score || "vs";
+
+          return `
+            <article class="profile-match">
+              <div class="match-row">
+                <span>${this.escape(match.nameEvent || "Матч")}</span>
+                <strong class="status ${status.toLowerCase()}">${statusUa(status)}</strong>
+              </div>
+              <b>${this.escape(match.firstSide || "-")} vs ${this.escape(match.secondSide || "-")}</b>
+              <small>
+                ${formatMatchDateTime(match)}
+                · Score: ${this.escape(score)}
+                · R${match.tour || "-"}
+                ${match.group ? ` · Group ${match.group}` : ""}
+              </small>
+            </article>
+          `;
+        }).join("")}
       </div>
     `;
   }
@@ -211,18 +256,6 @@ export class UserProfilePage {
     if (role === "Trainer") return "Тренер";
     if (role === "Judge") return "Суддя";
     return "Спортсмен";
-  }
-
-  private status(status?: number) {
-    if (status === 2) return "Finished";
-    if (status === 1) return "Live";
-    return "Upcoming";
-  }
-
-  private statusClass(status?: number) {
-    if (status === 2) return "status finished";
-    if (status === 1) return "status live";
-    return "status upcoming";
   }
 
   private date(value: string) {

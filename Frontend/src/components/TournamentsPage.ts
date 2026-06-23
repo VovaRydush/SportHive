@@ -1,16 +1,26 @@
 import { eventCatalogApi } from "../api/eventCatalogApi";
-import type { EventCatalogItemDto, EventMatchCatalogDto, EventStandingDto } from "../api/eventCatalogTypes";
 import { NotificationKarina } from "./Notification";
 import { SportLiveMatchPanel } from "./SportLiveMatchPanel";
+import {
+  canEnterMatchData,
+  extractScore,
+  formatMatchDateTime,
+  formatMatchTime,
+  getEffectiveMatchStatus,
+  readinessLabel,
+  statusLabel,
+} from "../api/matchStatus";
 import "./tournamentsPage.css";
 
+type CatalogEvent = Record<string, any>;
+type CatalogMatch = Record<string, any>;
 type StatusFilter = "all" | "Live" | "Finished" | "Upcoming";
 type DetailTab = "matches" | "table" | "bracket";
 
 export class TournamentsPage {
   private container: HTMLElement;
-  private events: EventCatalogItemDto[] = [];
-  private selectedEvent?: EventCatalogItemDto;
+  private events: CatalogEvent[] = [];
+  private selectedEvent?: CatalogEvent;
   private selectedSport = "all";
   private statusFilter: StatusFilter = "all";
   private selectedSystem = "all";
@@ -25,15 +35,17 @@ export class TournamentsPage {
 
   async render() {
     this.container.innerHTML = `
-      <section class="score-page">
+      <section class="score-page tournaments-page">
         <header class="score-header">
           <div>
-            <span class="score-kicker">SportHive</span>
-            <h1>Матч-центр</h1>
+            <span class="score-kicker">SportHive · Match Center</span>
+            <h1>Турніри</h1>
+            <p>Переглядай заходи, матчі, статуси, таблиці та сітки в одному місці.</p>
           </div>
+          <button id="score-refresh-top" class="score-btn score-btn-dark" type="button">Оновити</button>
         </header>
 
-        <nav id="sports-strip" class="sports-strip"></nav>
+        <div id="sports-strip" class="sports-strip"></div>
 
         <div class="score-toolbar">
           <div class="score-statusbar">
@@ -42,43 +54,49 @@ export class TournamentsPage {
             <button class="status-pill" data-status="Upcoming" type="button">Очікують</button>
             <button class="status-pill" data-status="Finished" type="button">Завершені</button>
           </div>
-
           <input id="event-search" class="score-search" placeholder="Пошук заходу, команди, спортсмена..." />
         </div>
 
         <div class="score-layout">
           <aside class="score-sidebar">
-            <div class="score-card">
-              <div class="card-head"><h3>Види спорту</h3></div>
+            <section class="score-card">
+              <div class="card-head">
+                <h3>Види спорту</h3>
+              </div>
               <div id="sports-list" class="sidebar-list"></div>
-            </div>
+            </section>
 
-            <div class="score-card">
-              <div class="card-head"><h3>Система</h3></div>
+            <section class="score-card">
+              <div class="card-head">
+                <h3>Система</h3>
+              </div>
               <select id="system-filter" class="score-select">
                 <option value="all">Усі системи</option>
-                <option value="RoundRobin">Round Robin</option>
-                <option value="GroupStage">Group Stage</option>
+                <option value="RoundRobin">RoundRobin</option>
+                <option value="GroupStage">GroupStage</option>
                 <option value="PlayOff">PlayOff</option>
-                <option value="OlympicSystem">Olympic</option>
-                <option value="KnockoutSystem">Knockout</option>
-                <option value="SwissSystem">Swiss</option>
-                <option value="DoubleElimination">Double Elimination</option>
-                <option value="QualificationByStandards">Qualification</option>
+                <option value="OlympicSystem">OlympicSystem</option>
+                <option value="Knockout">Knockout</option>
+                <option value="SwissSystem">SwissSystem</option>
+                <option value="DoubleElimination">DoubleElimination</option>
+                <option value="Qualification">Qualification</option>
               </select>
-            </div>
+            </section>
           </aside>
 
           <main class="score-feed">
             <div id="feed-summary" class="feed-summary"></div>
             <div id="events-feed" class="events-feed">
-              <div class="score-card muted-card">Завантаження...</div>
+              <div class="muted-card">Завантаження турнірів...</div>
             </div>
           </main>
 
           <aside id="event-detail" class="score-detail">
-            <div class="score-card muted-card">
-              Обери захід. Тут буде детальна інформація, матчі, таблиця та сітка.
+            <div class="detail-card">
+              <div class="empty-state">
+                <h3>Обери захід</h3>
+                <p>Тут буде детальна інформація, матчі, таблиця та сітка.</p>
+              </div>
             </div>
           </aside>
         </div>
@@ -90,7 +108,7 @@ export class TournamentsPage {
   }
 
   private bindBaseEvents() {
-    document.getElementById("score-refresh")?.addEventListener("click", () => this.loadEvents(true));
+    document.getElementById("score-refresh-top")?.addEventListener("click", () => this.loadEvents(true));
 
     const search = document.getElementById("event-search") as HTMLInputElement | null;
     let timer: number | undefined;
@@ -103,7 +121,7 @@ export class TournamentsPage {
       }, 200);
     });
 
-    document.querySelectorAll<HTMLButtonElement>(".status-pill").forEach(button => {
+    document.querySelectorAll<HTMLElement>(".status-pill").forEach(button => {
       button.addEventListener("click", () => {
         document.querySelectorAll(".status-pill").forEach(x => x.classList.remove("active"));
         button.classList.add("active");
@@ -122,19 +140,59 @@ export class TournamentsPage {
   private async loadEvents(keepSelected = false) {
     try {
       const previousId = this.selectedEvent?.idEvent;
-      this.events = await eventCatalogApi.getEvents({});
+      const events = await eventCatalogApi.getEvents({});
+      this.events = (events || []).map(event => this.normalizeEvent(event as CatalogEvent));
 
       if (keepSelected && previousId) {
-        const stillExists = this.events.find(event => event.idEvent === previousId);
-        if (stillExists) this.selectedEvent = await eventCatalogApi.getEvent(previousId);
+        const stillExists = this.events.find(event => Number(event.idEvent) === Number(previousId));
+        if (stillExists) this.selectedEvent = this.normalizeEvent(await eventCatalogApi.getEvent(previousId) as CatalogEvent);
       }
 
       this.renderAll();
+
       if (this.selectedEvent) this.renderDetail(this.selectedEvent);
     } catch (error) {
-      console.error(error);
-      new NotificationKarina().show(error instanceof Error ? error.message : "Не вдалося завантажити турніри", "error");
+      const message = error instanceof Error ? error.message : "Не вдалося завантажити турніри";
+      document.getElementById("events-feed")!.innerHTML = `<div class="error-card">${this.escapeHtml(message)}</div>`;
+      new NotificationKarina().show(message, "error");
     }
+  }
+
+  private normalizeEvent(event: CatalogEvent): CatalogEvent {
+    const matches = (event.matches || []).map((match: CatalogMatch) => this.normalizeMatch(match));
+    const totalMatches = matches.length;
+    const finishedMatches = matches.filter((match: CatalogMatch) => match.status === "Finished").length;
+    const liveMatches = matches.filter((match: CatalogMatch) => match.status === "Live").length;
+    const upcomingMatches = matches.filter((match: CatalogMatch) => match.status === "Upcoming").length;
+
+    let status = "Upcoming";
+    if (totalMatches > 0 && finishedMatches === totalMatches) status = "Finished";
+    else if (liveMatches > 0) status = "Live";
+
+    return {
+      ...event,
+      matches,
+      bracket: (event.bracket || []).map((round: CatalogEvent) => ({
+        ...round,
+        matches: (round.matches || []).map((match: CatalogMatch) => this.normalizeMatch(match)),
+      })),
+      status,
+      totalMatches,
+      finishedMatches,
+      liveMatches,
+      upcomingMatches,
+    };
+  }
+
+  private normalizeMatch(match: CatalogMatch): CatalogMatch {
+    const status = getEffectiveMatchStatus(match);
+    const score = extractScore(match) || match.score || "";
+
+    return {
+      ...match,
+      status,
+      score,
+    };
   }
 
   private renderAll() {
@@ -146,10 +204,12 @@ export class TournamentsPage {
 
   private getSports() {
     const map = new Map<string, number>();
+
     this.events.forEach(event => {
       const sport = event.typeSport || "Інше";
       map.set(sport, (map.get(sport) || 0) + 1);
     });
+
     return Array.from(map.entries()).sort((a, b) => a[0].localeCompare(b[0]));
   }
 
@@ -160,17 +220,15 @@ export class TournamentsPage {
     const sports = this.getSports();
 
     root.innerHTML = `
-      <button class="sport-chip ${this.selectedSport === "all" ? "active" : ""}" data-sport="all" type="button">
-        <span>🏆</span> Усі
-      </button>
+      <button class="sport-chip ${this.selectedSport === "all" ? "active" : ""}" data-sport="all" type="button">🏆 Усі</button>
       ${sports.map(([sport]) => `
         <button class="sport-chip ${this.selectedSport === sport ? "active" : ""}" data-sport="${this.escapeAttr(sport)}" type="button">
-          <span>${this.sportIcon(sport)}</span> ${this.escapeHtml(sport)}
+          ${this.sportIcon(sport)} ${this.escapeHtml(sport)}
         </button>
       `).join("")}
     `;
 
-    root.querySelectorAll<HTMLButtonElement>(".sport-chip").forEach(button => {
+    root.querySelectorAll<HTMLElement>(".sport-chip").forEach(button => {
       button.addEventListener("click", () => {
         this.selectedSport = button.dataset.sport || "all";
         this.renderAll();
@@ -186,18 +244,18 @@ export class TournamentsPage {
 
     root.innerHTML = `
       <button class="sidebar-item ${this.selectedSport === "all" ? "active" : ""}" data-sport="all" type="button">
-        <span><b>🏆</b> Усі види</span>
+        <span>🏆 Усі види</span>
         <strong>${this.events.length}</strong>
       </button>
       ${sports.map(([sport, count]) => `
         <button class="sidebar-item ${this.selectedSport === sport ? "active" : ""}" data-sport="${this.escapeAttr(sport)}" type="button">
-          <span><b>${this.sportIcon(sport)}</b> ${this.escapeHtml(sport)}</span>
+          <span>${this.sportIcon(sport)} ${this.escapeHtml(sport)}</span>
           <strong>${count}</strong>
         </button>
       `).join("")}
     `;
 
-    root.querySelectorAll<HTMLButtonElement>(".sidebar-item").forEach(button => {
+    root.querySelectorAll<HTMLElement>(".sidebar-item").forEach(button => {
       button.addEventListener("click", () => {
         this.selectedSport = button.dataset.sport || "all";
         this.renderAll();
@@ -213,9 +271,8 @@ export class TournamentsPage {
 
       if (this.searchText) {
         const matches = event.matches
-          ?.map(match => `${match.firstParticipant} ${match.secondParticipant} ${match.score || ""} ${match.winner || ""}`)
+          ?.map((match: CatalogMatch) => `${match.firstParticipant} ${match.secondParticipant} ${match.score || ""} ${match.winner || ""}`)
           .join(" ") || "";
-
         const text = `${event.nameEvent} ${event.description || ""} ${event.typeSport} ${event.system} ${matches}`.toLowerCase();
         if (!text.includes(this.searchText)) return false;
       }
@@ -249,7 +306,7 @@ export class TournamentsPage {
 
     if (!events.length) {
       root.innerHTML = `
-        <div class="score-card empty-state">
+        <div class="empty-state">
           <h3>Нічого не знайдено</h3>
           <p>Зміни спорт, статус, систему або пошук.</p>
         </div>
@@ -264,19 +321,19 @@ export class TournamentsPage {
         <header class="competition-header">
           <div>
             <span class="competition-country">${this.sportIcon(sport)} ${this.escapeHtml(sport)}</span>
-            <h2>${this.escapeHtml(sportEvents.length === 1 ? sportEvents[0].nameEvent : `${sportEvents.length} заходів`)}</h2>
+            <h2>${this.escapeHtml(sport)}</h2>
           </div>
-          <span class="competition-count">${sportEvents.reduce((sum, e) => sum + (e.totalMatches || 0), 0)} матчів</span>
+          <span class="competition-count">${sportEvents.reduce((sum, event) => sum + (event.totalMatches || 0), 0)} матчів</span>
         </header>
         ${sportEvents.map(event => this.renderEventBlock(event)).join("")}
       </section>
     `).join("");
 
-    root.querySelectorAll<HTMLButtonElement>(".open-event-detail").forEach(button => {
+    root.querySelectorAll<HTMLElement>(".event-main-line").forEach(button => {
       button.addEventListener("click", () => this.openEvent(Number(button.dataset.id)));
     });
 
-    root.querySelectorAll<HTMLButtonElement>(".open-match-live").forEach(button => {
+    root.querySelectorAll<HTMLElement>(".match-teams, .match-action").forEach(button => {
       button.addEventListener("click", event => {
         event.stopPropagation();
         const id = Number(button.dataset.id);
@@ -285,73 +342,78 @@ export class TournamentsPage {
         this.openLiveMatch(type, id);
       });
     });
+
+    root.querySelectorAll<HTMLElement>(".show-all-matches").forEach(button => {
+      button.addEventListener("click", event => {
+        event.stopPropagation();
+        this.openEvent(Number(button.dataset.id));
+      });
+    });
   }
 
-  private renderEventBlock(event: EventCatalogItemDto) {
+  private renderEventBlock(event: CatalogEvent) {
     const matches = this.pickVisibleMatches(event.matches || []);
+    const selectedClass = Number(this.selectedEvent?.idEvent) === Number(event.idEvent) ? "selected" : "";
 
     return `
-      <article class="event-block ${this.selectedEvent?.idEvent === event.idEvent ? "selected" : ""}">
-        <button class="event-main-line open-event-detail" data-id="${event.idEvent}" type="button">
-          <div class="event-name-line">
-            <span class="event-status ${event.status.toLowerCase()}">${this.statusLabel(event.status)}</span>
+      <article class="event-block ${selectedClass}">
+        <button class="event-main-line" data-id="${event.idEvent}" type="button">
+          <span class="event-name-line">
+            <span class="event-status ${String(event.status).toLowerCase()}">${statusLabel(event.status)}</span>
             <strong>${this.escapeHtml(event.nameEvent)}</strong>
-          </div>
-          <div class="event-right">
-            <span>${this.escapeHtml(event.system)}</span>
-            <b>${event.finishedMatches}/${event.totalMatches}</b>
-          </div>
+          </span>
+          <span class="event-right">
+            <span>${this.escapeHtml(event.system || "-")}</span>
+            <b>${event.finishedMatches || 0}/${event.totalMatches || 0}</b>
+          </span>
         </button>
 
         <div class="event-match-preview">
-          ${
-            matches.length
-              ? matches.map(match => this.renderMatchLine(match)).join("")
-              : `<div class="match-line disabled"><span>Матчів поки немає</span></div>`
-          }
-          ${(event.matches?.length || 0) > matches.length ? `
-            <button class="show-all-matches open-event-detail" data-id="${event.idEvent}" type="button">
-              Показати всі матчі (${event.matches.length})
-            </button>
-          ` : ""}
+          ${matches.length ? matches.map(match => this.renderMatchLine(match)).join("") : `
+            <div class="match-line disabled">Матчів поки немає</div>
+          `}
         </div>
+
+        ${(event.matches?.length || 0) > matches.length ? `
+          <button class="show-all-matches" data-id="${event.idEvent}" type="button">Показати всі матчі (${event.matches.length})</button>
+        ` : ""}
       </article>
     `;
   }
 
-  private renderMatchLine(match: EventMatchCatalogDto) {
-    const firstScore = this.scorePart(match.score, 0);
-    const secondScore = this.scorePart(match.score, 1);
-    const canEnter = this.canEnterMatchData(match);
-    const actionText = canEnter ? "Внести" : "Деталі";
+  private renderMatchLine(match: CatalogMatch) {
+    const status = getEffectiveMatchStatus(match);
+    const score = extractScore(match) || match.score || "";
+    const firstScore = this.scorePart(score, 0);
+    const secondScore = this.scorePart(score, 1);
+    const actionText = canEnterMatchData(match) ? "Внести" : "Деталі";
 
     return `
-      <div class="match-line ${match.status.toLowerCase()}">
-        <button class="match-teams open-match-live" data-type="${match.matchType}" data-id="${match.matchId}" type="button">
-          <span class="match-time ${match.status.toLowerCase()}">${this.matchTimeLabel(match)}</span>
-          <span class="team-name first">${this.escapeHtml(match.firstParticipant)}</span>
-          <strong class="match-score first-score">${this.escapeHtml(firstScore)}</strong>
-          <span class="team-name second">${this.escapeHtml(match.secondParticipant)}</span>
-          <strong class="match-score second-score">${this.escapeHtml(secondScore)}</strong>
+      <div class="match-line ${status.toLowerCase()}">
+        <button class="match-teams" data-type="${this.escapeAttr(match.matchType)}" data-id="${match.matchId}" type="button">
+          <span class="match-time ${status.toLowerCase()}">${formatMatchTime(match)}</span>
+          <span class="team-name first">${this.escapeHtml(match.firstParticipant || "-")}</span>
+          <span class="match-score first-score">${this.escapeHtml(firstScore)}</span>
+          <span class="team-name second">${this.escapeHtml(match.secondParticipant || "-")}</span>
+          <span class="match-score second-score">${this.escapeHtml(secondScore)}</span>
         </button>
-        <button class="match-action open-match-live" data-type="${match.matchType}" data-id="${match.matchId}" type="button">
-          ${actionText}
-        </button>
+        <button class="match-action" data-type="${this.escapeAttr(match.matchType)}" data-id="${match.matchId}" type="button">${actionText}</button>
       </div>
     `;
   }
 
-  private pickVisibleMatches(matches: EventMatchCatalogDto[]) {
+  private pickVisibleMatches(matches: CatalogMatch[]) {
     const sorted = matches.slice().sort((a, b) => {
       const rank = (status: string) => status === "Live" ? 0 : status === "Upcoming" ? 1 : 2;
-      return rank(a.status) - rank(b.status) || a.tour - b.tour || a.matchId - b.matchId;
+      return rank(a.status) - rank(b.status) || Number(a.tour || 0) - Number(b.tour || 0) || Number(a.matchId || 0) - Number(b.matchId || 0);
     });
+
     return sorted.slice(0, 5);
   }
 
   private async openEvent(idEvent: number) {
     try {
-      this.selectedEvent = await eventCatalogApi.getEvent(idEvent);
+      this.selectedEvent = this.normalizeEvent(await eventCatalogApi.getEvent(idEvent) as CatalogEvent);
       this.activeTab = "matches";
       this.renderDetail(this.selectedEvent);
       this.renderFeed();
@@ -360,19 +422,19 @@ export class TournamentsPage {
     }
   }
 
-  private renderDetail(event: EventCatalogItemDto) {
+  private renderDetail(event: CatalogEvent) {
     const root = document.getElementById("event-detail");
     if (!root) return;
 
     root.innerHTML = `
-      <div class="detail-card">
+      <section class="detail-card">
         <div class="detail-hero">
-          <span class="event-status ${event.status.toLowerCase()}">${this.statusLabel(event.status)}</span>
+          <span class="event-status ${String(event.status).toLowerCase()}">${statusLabel(event.status)}</span>
           <h2>${this.escapeHtml(event.nameEvent)}</h2>
           <p>${this.escapeHtml(event.description || "Опис відсутній")}</p>
           <div class="detail-meta">
-            <span>${this.sportIcon(event.typeSport)} ${this.escapeHtml(event.typeSport)}</span>
-            <span>${this.escapeHtml(event.system)}</span>
+            <span>${this.sportIcon(event.typeSport)} ${this.escapeHtml(event.typeSport || "-")}</span>
+            <span>${this.escapeHtml(event.system || "-")}</span>
             <span>${this.formatDate(event.dataStart)}</span>
           </div>
         </div>
@@ -383,20 +445,18 @@ export class TournamentsPage {
           <button class="detail-tab ${this.activeTab === "bracket" ? "active" : ""}" data-tab="bracket" type="button">Сітка</button>
         </div>
 
-        <div class="detail-content">
-          ${this.renderDetailContent(event)}
-        </div>
-      </div>
+        <div class="detail-content">${this.renderDetailContent(event)}</div>
+      </section>
     `;
 
-    root.querySelectorAll<HTMLButtonElement>(".detail-tab").forEach(button => {
+    root.querySelectorAll<HTMLElement>(".detail-tab").forEach(button => {
       button.addEventListener("click", () => {
         this.activeTab = (button.dataset.tab as DetailTab) || "matches";
         this.renderDetail(event);
       });
     });
 
-    root.querySelectorAll<HTMLButtonElement>(".open-match-live").forEach(button => {
+    root.querySelectorAll<HTMLElement>(".match-action, .bracket-match").forEach(button => {
       button.addEventListener("click", () => {
         const id = Number(button.dataset.id);
         const type = button.dataset.type || "team";
@@ -406,13 +466,13 @@ export class TournamentsPage {
     });
   }
 
-  private renderDetailContent(event: EventCatalogItemDto) {
+  private renderDetailContent(event: CatalogEvent) {
     if (this.activeTab === "table") return this.renderStanding(event.standings || []);
     if (this.activeTab === "bracket") return this.renderBracket(event);
     return this.renderAllMatches(event.matches || []);
   }
 
-  private renderAllMatches(matches: EventMatchCatalogDto[]) {
+  private renderAllMatches(matches: CatalogMatch[]) {
     if (!matches.length) return `<div class="empty-state compact">Матчів поки немає</div>`;
 
     const byRound = this.groupMatchesByRound(matches);
@@ -421,35 +481,39 @@ export class TournamentsPage {
       <section class="detail-round">
         <h3>${this.escapeHtml(round)}</h3>
         <div class="detail-match-list">
-          ${roundMatches.map(match => `
-            <div class="detail-match-row">
-              <div>
-                <span class="match-round">${match.matchType}${match.group ? ` · Group ${match.group}` : ""}</span>
-                <h4>${this.escapeHtml(match.firstParticipant)} — ${this.escapeHtml(match.secondParticipant)}</h4>
-                <p>${this.matchDateTimeLabel(match)} · Суддя: ${this.escapeHtml(match.loginJudge || "-")}</p>
-                <small>${this.readinessLabel(match)}</small>
-              </div>
-              <div class="detail-score">
-                <b>${this.escapeHtml(match.score || "vs")}</b>
-                <button class="score-btn open-match-live" data-type="${match.matchType}" data-id="${match.matchId}" type="button">
-                  ${this.canEnterMatchData(match) ? "Внести" : "Перегляд"}
-                </button>
-              </div>
-            </div>
-          `).join("")}
+          ${roundMatches.map(match => {
+            const score = extractScore(match) || match.score || "vs";
+            const status = getEffectiveMatchStatus(match);
+
+            return `
+              <article class="detail-match-row ${status.toLowerCase()}">
+                <div>
+                  <span class="match-round">${this.escapeHtml(match.matchType || "match")}${match.group ? ` · Group ${match.group}` : ""}</span>
+                  <h4>${this.escapeHtml(match.firstParticipant || "-")} — ${this.escapeHtml(match.secondParticipant || "-")}</h4>
+                  <p>${formatMatchDateTime(match)} · Суддя: ${this.escapeHtml(match.loginJudge || "-")}</p>
+                  <small>${readinessLabel(match)}</small>
+                </div>
+                <div class="detail-score">
+                  <b>${this.escapeHtml(score)}</b>
+                  <button class="match-action" data-type="${this.escapeAttr(match.matchType)}" data-id="${match.matchId}" type="button">
+                    ${canEnterMatchData(match) ? "Внести" : "Перегляд"}
+                  </button>
+                </div>
+              </article>
+            `;
+          }).join("")}
         </div>
       </section>
     `).join("");
   }
 
-  private renderStanding(rows: EventStandingDto[]) {
+  private renderStanding(rows: CatalogEvent[]) {
     if (!rows.length) return `<div class="empty-state compact">Таблиця буде після завершених матчів</div>`;
 
     const sorted = rows.slice().sort((a, b) =>
-      b.points - a.points ||
-      b.scoreDiff - a.scoreDiff ||
-      b.scoreFor - a.scoreFor ||
-      a.participant.localeCompare(b.participant)
+      Number(b.points || 0) - Number(a.points || 0) ||
+      Number(b.scoreDiff || 0) - Number(a.scoreDiff || 0) ||
+      String(a.participant || "").localeCompare(String(b.participant || ""))
     );
 
     return `
@@ -464,15 +528,15 @@ export class TournamentsPage {
             ${sorted.map((row, index) => `
               <tr>
                 <td>${index + 1}</td>
-                <td class="participant-cell">${this.escapeHtml(row.participant)}</td>
-                <td>${row.played}</td>
-                <td>${row.wins}</td>
-                <td>${row.draws}</td>
-                <td>${row.losses}</td>
-                <td>${row.scoreFor}</td>
-                <td>${row.scoreAgainst}</td>
-                <td>${row.scoreDiff}</td>
-                <td><b>${row.points}</b></td>
+                <td class="participant-cell">${this.escapeHtml(row.participant || "-")}</td>
+                <td>${row.played || 0}</td>
+                <td>${row.wins || 0}</td>
+                <td>${row.draws || 0}</td>
+                <td>${row.losses || 0}</td>
+                <td>${row.scoreFor || 0}</td>
+                <td>${row.scoreAgainst || 0}</td>
+                <td>${row.scoreDiff || 0}</td>
+                <td><b>${row.points || 0}</b></td>
               </tr>
             `).join("")}
           </tbody>
@@ -481,38 +545,41 @@ export class TournamentsPage {
     `;
   }
 
-  private renderBracket(event: EventCatalogItemDto) {
+  private renderBracket(event: CatalogEvent) {
     if (!event.bracket?.length) return `<div class="empty-state compact">Сітка ще не сформована</div>`;
 
     return `
       <div class="compact-bracket">
-        ${event.bracket.map(round => `
+        ${event.bracket.map((round: CatalogEvent) => `
           <section class="round-card">
             <header>
-              <strong>Round ${round.tour}</strong>
-              <span>${round.group ? `Group ${round.group}` : round.bracketCode}</span>
+              <b>Round ${round.tour}</b>
+              <span>${round.group ? `Group ${round.group}` : round.bracketCode || ""}</span>
             </header>
-            ${round.matches.map(match => `
-              <button class="bracket-match open-match-live" data-type="${match.matchType}" data-id="${match.matchId}" type="button">
-                <span>${this.escapeHtml(match.firstParticipant)}</span>
-                <b>${this.escapeHtml(match.score || "vs")}</b>
-                <span>${this.escapeHtml(match.secondParticipant)}</span>
-              </button>
-            `).join("")}
+            ${(round.matches || []).map((match: CatalogMatch) => {
+              const score = extractScore(match) || match.score || "vs";
+              return `
+                <button class="bracket-match" data-type="${this.escapeAttr(match.matchType)}" data-id="${match.matchId}" type="button">
+                  <span>${this.escapeHtml(match.firstParticipant || "-")}</span>
+                  <b>${this.escapeHtml(score)}</b>
+                  <span>${this.escapeHtml(match.secondParticipant || "-")}</span>
+                </button>
+              `;
+            }).join("")}
           </section>
         `).join("")}
       </div>
     `;
   }
 
-  private groupMatchesByRound(matches: EventMatchCatalogDto[]) {
-    const map = new Map<string, EventMatchCatalogDto[]>();
+  private groupMatchesByRound(matches: CatalogMatch[]) {
+    const map = new Map<string, CatalogMatch[]>();
 
     matches
       .slice()
-      .sort((a, b) => a.tour - b.tour || (a.group || 0) - (b.group || 0) || a.matchId - b.matchId)
+      .sort((a, b) => Number(a.tour || 0) - Number(b.tour || 0) || Number(a.group || 0) - Number(b.group || 0) || Number(a.matchId || 0) - Number(b.matchId || 0))
       .forEach(match => {
-        const key = `Round ${match.tour}${match.group ? ` · Group ${match.group}` : ""}`;
+        const key = `Round ${match.tour || "-"}${match.group ? ` · Group ${match.group}` : ""}`;
         const list = map.get(key) || [];
         list.push(match);
         map.set(key, list);
@@ -521,8 +588,8 @@ export class TournamentsPage {
     return map;
   }
 
-  private groupBySport(events: EventCatalogItemDto[]) {
-    const map = new Map<string, EventCatalogItemDto[]>();
+  private groupBySport(events: CatalogEvent[]) {
+    const map = new Map<string, CatalogEvent[]>();
 
     events.forEach(event => {
       const sport = event.typeSport || "Інше";
@@ -534,73 +601,11 @@ export class TournamentsPage {
     return map;
   }
 
-  private canEnterMatchData(match: EventMatchCatalogDto) {
-    if (!match.canEdit) return false;
-    if (match.status === "Finished") return false;
-    if (match.status === "Live") return true;
-
-    const date = this.getMatchDate(match);
-    if (!date) return false;
-
-    return date.getTime() <= Date.now();
-  }
-
-  private readinessLabel(match: EventMatchCatalogDto) {
-    if (match.status === "Finished") return "Матч завершений. Доступний перегляд результату.";
-    if (this.canEnterMatchData(match)) return "Час матчу настав. Суддя може вносити live-дані та результат.";
-    return "Матч ще очікується. Доступна тільки загальна інформація.";
-  }
-
-  private matchTimeLabel(match: EventMatchCatalogDto) {
-    if (match.status === "Live") return "LIVE";
-    if (match.status === "Finished") return "FT";
-
-    const date = this.getMatchDate(match);
-    if (!date) return `R${match.tour}`;
-
-    return date.toLocaleTimeString("uk-UA", { hour: "2-digit", minute: "2-digit" });
-  }
-
-  private matchDateTimeLabel(match: EventMatchCatalogDto) {
-    const date = this.getMatchDate(match);
-    if (!date) return "Дата/час не вказані";
-
-    return date.toLocaleString("uk-UA", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  }
-
-  private getMatchDate(match: EventMatchCatalogDto) {
-    if (!match.dataMatch) return null;
-
-    const datePart = String(match.dataMatch).split("T")[0];
-    const timeRaw = String(match.timeMatch || "00:00:00");
-    const timePart = timeRaw.includes(".") ? timeRaw.split(".")[0] : timeRaw;
-    const date = new Date(`${datePart}T${timePart}`);
-
-    if (Number.isNaN(date.getTime())) {
-      const fallback = new Date(String(match.dataMatch));
-      return Number.isNaN(fallback.getTime()) ? null : fallback;
-    }
-
-    return date;
-  }
-
   private scorePart(score: string | null | undefined, index: 0 | 1) {
     if (!score) return "-";
-    const parts = score.replace(/ /g, "").split(/[:\\-]/);
+    const clean = extractScore({ score }) || score;
+    const parts = clean.replace(/ /g, "").split(/[:\-]/);
     return parts[index] || "-";
-  }
-
-  private statusLabel(status: string) {
-    if (status === "Live") return "LIVE";
-    if (status === "Finished") return "FT";
-    if (status === "Upcoming") return "NS";
-    return status || "-";
   }
 
   private sportIcon(sport: string) {
@@ -608,12 +613,12 @@ export class TournamentsPage {
     if (key.includes("football") || key.includes("фут")) return "⚽";
     if (key.includes("basket") || key.includes("бас")) return "🏀";
     if (key.includes("tennis") || key.includes("тен")) return "🎾";
-    if (key.includes("hockey") || key.includes("хок")) return "🏒";
     if (key.includes("volley") || key.includes("вол")) return "🏐";
     if (key.includes("box") || key.includes("бокс")) return "🥊";
     if (key.includes("chess") || key.includes("шах")) return "♟️";
-    if (key.includes("check")) return "🔲";
-    if (key.includes("base")) return "⚾";
+    if (key.includes("wrest")) return "🤼";
+    if (key.includes("swim")) return "🏊";
+    if (key.includes("athletics")) return "🏃";
     return "🏆";
   }
 
@@ -625,21 +630,16 @@ export class TournamentsPage {
     if (!value) return "-";
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) return "-";
-
-    return date.toLocaleDateString("uk-UA", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    });
+    return date.toLocaleDateString("uk-UA", { day: "2-digit", month: "2-digit", year: "numeric" });
   }
 
   private escapeHtml(value: unknown) {
     return String(value ?? "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
   }
 
   private escapeAttr(value: unknown) {
