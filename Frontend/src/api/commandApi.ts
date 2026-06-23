@@ -23,9 +23,7 @@ function firstFormFile(formData: FormData, keys: string[]): File | null {
   for (const key of keys) {
     const value = formData.get(key);
 
-    if (value instanceof File) {
-      return value;
-    }
+    if (value instanceof File) return value;
   }
 
   return null;
@@ -37,7 +35,7 @@ function appendIfExists(formData: FormData, key: string, value: unknown) {
   }
 }
 
-function normalizeTeamInput(data: TeamModelDto | FormData): TeamModelDto & { loginOrganization?: string } {
+function normalizeTeamInput(data: TeamModelDto | FormData): TeamModelDto {
   if (!(data instanceof FormData)) {
     const anyData = data as any;
 
@@ -76,14 +74,12 @@ function createTeamFormData(data: TeamModelDto | FormData) {
   appendIfExists(formData, "TypeSport", normalized.typeSport);
   appendIfExists(formData, "LoginOrganization", normalized.loginOrganization);
 
-  if (normalized.photo) {
-    formData.append("Photo", normalized.photo);
-  }
+  if (normalized.photo) formData.append("Photo", normalized.photo);
 
   const athletesJson =
     normalized.athletsJson ??
     JSON.stringify(
-      (normalized.athlets ?? []).map((athlete) => ({
+      (normalized.athlets ?? []).map(athlete => ({
         nameTeam: athlete.nameTeam ?? normalized.nameTeam ?? "",
         loginAthlets: athlete.loginAthlets ?? "",
         athleteStatus: athlete.athleteStatus ?? "Active",
@@ -186,7 +182,7 @@ export const commandApi = {
     );
   },
 
-  getTeamsByTrainer(loginTrainer: string) {
+   getTeamsByTrainer(loginTrainer: string) {
     return apiRequest<TeamInfoDto[]>(
       `/team/by-trainer/${encodeURIComponent(loginTrainer)}`,
       {
@@ -198,6 +194,22 @@ export const commandApi = {
 
   getPhotoUrl(filePath?: string | null) {
     if (!filePath) return "";
-    return `${COMMAND_API_URL}/photo/${encodeURIComponent(filePath)}`;
+
+    const raw = String(filePath).trim();
+
+    if (
+      raw.startsWith("http://") ||
+      raw.startsWith("https://") ||
+      raw.startsWith("data:") ||
+      raw.startsWith("blob:")
+    ) {
+      return raw;
+    }
+
+    if (raw.length > 80 && /^[A-Za-z0-9+/=_-]+$/.test(raw) && !raw.includes("/") && !raw.includes("\\")) {
+      return `data:image/jpeg;base64,${raw}`;
+    }
+
+    return `${COMMAND_API_URL}/photo?path=${encodeURIComponent(raw.replace(/\\/g, "/"))}`;
   },
 };

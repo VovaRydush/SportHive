@@ -1,24 +1,36 @@
-.team-view-page,
 .user-profile-page {
-  max-width: 1100px;
+  max-width: 1120px;
   margin: 28px auto 60px;
   padding: 0 18px;
   color: #111;
   font-family: "Montserrat", Arial, sans-serif;
 }
 
-.team-view-hero,
+.profile-top-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.profile-own-badge {
+  border: 2px solid #111;
+  background: #fff;
+  padding: 8px 12px;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
 .profile-hero {
   display: grid;
-  grid-template-columns: 170px 1fr;
+  grid-template-columns: 170px minmax(0, 1fr);
   gap: 22px;
   align-items: start;
   border-bottom: 2px solid #111;
   padding-bottom: 22px;
-  margin-top: 18px;
 }
 
-.team-view-logo,
 .profile-avatar {
   width: 160px;
   height: 160px;
@@ -30,20 +42,17 @@
   box-shadow: 5px 5px 0 rgba(0,0,0,.18);
 }
 
-.team-view-logo img,
 .profile-avatar img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.team-view-logo span,
 .profile-avatar span {
   font-size: 48px;
   font-weight: 950;
 }
 
-.team-view-logo b,
 .profile-avatar b {
   position: absolute;
   right: 0;
@@ -52,9 +61,9 @@
   color: #fff;
   padding: 5px 10px;
   font-size: 11px;
+  text-transform: uppercase;
 }
 
-.team-kicker,
 .profile-kicker {
   display: inline-block;
   border: 2px solid #111;
@@ -64,14 +73,13 @@
   margin-bottom: 10px;
 }
 
-.team-view-main h1,
 .profile-main h1 {
   margin: 0 0 10px;
   font-size: 42px;
   text-transform: uppercase;
+  line-height: 1;
 }
 
-.team-meta,
 .profile-meta {
   display: flex;
   flex-wrap: wrap;
@@ -80,16 +88,6 @@
   font-weight: 800;
 }
 
-.link-like {
-  border: 0;
-  background: transparent;
-  color: #111;
-  font-weight: 950;
-  cursor: pointer;
-  text-decoration: underline;
-}
-
-.team-view-stats,
 .profile-stats {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -97,33 +95,29 @@
   margin: 24px 0;
 }
 
-.team-view-stats div,
 .profile-stats div {
   border: 2px solid #111;
   padding: 16px;
   background: #fff;
+  box-shadow: 4px 4px 0 rgba(0,0,0,.12);
 }
 
-.team-view-stats b,
 .profile-stats b {
   display: block;
   font-size: 30px;
 }
 
-.team-view-stats span,
 .profile-stats span {
   color: #667085;
   font-weight: 800;
 }
 
-.team-view-grid,
 .profile-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 18px;
 }
 
-.team-view-panel,
 .profile-panel {
   border: 2px solid #111;
   padding: 18px;
@@ -132,7 +126,6 @@
   box-shadow: 5px 5px 0 rgba(0,0,0,.14);
 }
 
-.team-view-panel h2,
 .profile-panel h2 {
   margin: 0 0 14px;
   border-bottom: 2px solid #111;
@@ -140,55 +133,41 @@
   text-transform: uppercase;
 }
 
-.team-list,
 .profile-list,
-.team-match-list,
 .profile-match-list {
   display: grid;
   gap: 10px;
 }
 
-.team-list-item,
 .profile-list-item,
-.team-match-card,
 .profile-match {
   border: 1px solid #ddd;
   background: #fafafa;
   padding: 12px;
   text-align: left;
   width: 100%;
+  font: inherit;
 }
 
-.clickable {
+.profile-list-item.clickable {
   cursor: pointer;
 }
 
-.clickable:hover,
-.clickable-card:hover {
+.profile-list-item.clickable:hover {
   background: #f0f0f0;
 }
 
-.team-list-item b,
-.team-list-item span,
-.team-list-item small,
 .profile-list-item b,
 .profile-list-item span,
 .profile-list-item small,
-.team-match-card b,
-.team-match-card span,
-.team-match-card small,
 .profile-match b,
 .profile-match span,
 .profile-match small {
   display: block;
 }
 
-.team-list-item span,
-.team-list-item small,
 .profile-list-item span,
 .profile-list-item small,
-.team-match-card span,
-.team-match-card small,
 .profile-match span,
 .profile-match small {
   color: #667085;
@@ -196,9 +175,36 @@
   margin-top: 3px;
 }
 
-.team-empty,
+.match-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+
+.status {
+  border: 1px solid #111;
+  padding: 3px 7px;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.status.finished {
+  background: #16a34a;
+  color: #fff;
+}
+
+.status.live {
+  background: #fff3cd;
+  color: #111;
+}
+
+.status.upcoming {
+  background: #f2f2f2;
+  color: #111;
+}
+
 .profile-empty,
-.team-loading,
 .profile-loading {
   border-left: 3px solid #111;
   background: #f7f7f7;
@@ -207,7 +213,6 @@
   padding: 16px;
 }
 
-.team-view-btn,
 .profile-btn {
   border: 2px solid #111;
   padding: 10px 14px;
@@ -216,22 +221,28 @@
   box-shadow: 4px 4px 0 rgba(0,0,0,.16);
 }
 
-.team-view-btn.secondary,
 .profile-btn.secondary {
   background: #fff;
   color: #111;
 }
 
 @media (max-width: 760px) {
-  .team-view-hero,
   .profile-hero,
-  .team-view-grid,
   .profile-grid {
     grid-template-columns: 1fr;
   }
 
-  .team-view-stats,
   .profile-stats {
     grid-template-columns: 1fr 1fr;
+  }
+
+  .profile-main h1 {
+    font-size: 32px;
+  }
+}
+
+@media (max-width: 520px) {
+  .profile-stats {
+    grid-template-columns: 1fr;
   }
 }

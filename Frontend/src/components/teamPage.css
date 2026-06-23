@@ -1,5 +1,4 @@
-.team-view-page,
-.user-profile-page {
+.team-view-page {
   max-width: 1100px;
   margin: 28px auto 60px;
   padding: 0 18px;
@@ -7,10 +6,9 @@
   font-family: "Montserrat", Arial, sans-serif;
 }
 
-.team-view-hero,
-.profile-hero {
+.team-view-hero {
   display: grid;
-  grid-template-columns: 170px 1fr;
+  grid-template-columns: 170px minmax(0, 1fr);
   gap: 22px;
   align-items: start;
   border-bottom: 2px solid #111;
@@ -18,8 +16,7 @@
   margin-top: 18px;
 }
 
-.team-view-logo,
-.profile-avatar {
+.team-view-logo {
   width: 160px;
   height: 160px;
   border: 2px solid #111;
@@ -30,21 +27,18 @@
   box-shadow: 5px 5px 0 rgba(0,0,0,.18);
 }
 
-.team-view-logo img,
-.profile-avatar img {
+.team-view-logo img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.team-view-logo span,
-.profile-avatar span {
+.team-view-logo span {
   font-size: 48px;
   font-weight: 950;
 }
 
-.team-view-logo b,
-.profile-avatar b {
+.team-view-logo b {
   position: absolute;
   right: 0;
   bottom: 0;
@@ -54,8 +48,7 @@
   font-size: 11px;
 }
 
-.team-kicker,
-.profile-kicker {
+.team-kicker {
   display: inline-block;
   border: 2px solid #111;
   padding: 5px 9px;
@@ -64,15 +57,13 @@
   margin-bottom: 10px;
 }
 
-.team-view-main h1,
-.profile-main h1 {
+.team-view-main h1 {
   margin: 0 0 10px;
   font-size: 42px;
   text-transform: uppercase;
 }
 
-.team-meta,
-.profile-meta {
+.team-meta {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
@@ -89,42 +80,36 @@
   text-decoration: underline;
 }
 
-.team-view-stats,
-.profile-stats {
+.team-view-stats {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 14px;
   margin: 24px 0;
 }
 
-.team-view-stats div,
-.profile-stats div {
+.team-view-stats div {
   border: 2px solid #111;
   padding: 16px;
   background: #fff;
 }
 
-.team-view-stats b,
-.profile-stats b {
+.team-view-stats b {
   display: block;
   font-size: 30px;
 }
 
-.team-view-stats span,
-.profile-stats span {
+.team-view-stats span {
   color: #667085;
   font-weight: 800;
 }
 
-.team-view-grid,
-.profile-grid {
+.team-view-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 18px;
 }
 
-.team-view-panel,
-.profile-panel {
+.team-view-panel {
   border: 2px solid #111;
   padding: 18px;
   background: #fff;
@@ -132,8 +117,7 @@
   box-shadow: 5px 5px 0 rgba(0,0,0,.14);
 }
 
-.team-view-panel h2,
-.profile-panel h2 {
+.team-view-panel h2 {
   margin: 0 0 14px;
   border-bottom: 2px solid #111;
   padding-bottom: 8px;
@@ -141,65 +125,66 @@
 }
 
 .team-list,
-.profile-list,
-.team-match-list,
-.profile-match-list {
+.team-match-list {
   display: grid;
   gap: 10px;
 }
 
 .team-list-item,
-.profile-list-item,
-.team-match-card,
-.profile-match {
+.team-match-card {
   border: 1px solid #ddd;
   background: #fafafa;
   padding: 12px;
   text-align: left;
   width: 100%;
+  font: inherit;
 }
 
 .clickable {
   cursor: pointer;
 }
 
-.clickable:hover,
-.clickable-card:hover {
+.clickable:hover {
   background: #f0f0f0;
 }
 
 .team-list-item b,
 .team-list-item span,
 .team-list-item small,
-.profile-list-item b,
-.profile-list-item span,
-.profile-list-item small,
 .team-match-card b,
 .team-match-card span,
-.team-match-card small,
-.profile-match b,
-.profile-match span,
-.profile-match small {
+.team-match-card small {
   display: block;
 }
 
 .team-list-item span,
 .team-list-item small,
-.profile-list-item span,
-.profile-list-item small,
 .team-match-card span,
-.team-match-card small,
-.profile-match span,
-.profile-match small {
+.team-match-card small {
   color: #667085;
   font-weight: 700;
   margin-top: 3px;
 }
 
+.mini-avatar {
+  width: 38px;
+  height: 38px;
+  border: 2px solid #111;
+  background: #eee;
+  display: inline-grid !important;
+  place-items: center;
+  font-weight: 950;
+  margin-bottom: 6px;
+}
+
+.mini-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 .team-empty,
-.profile-empty,
-.team-loading,
-.profile-loading {
+.team-loading {
   border-left: 3px solid #111;
   background: #f7f7f7;
   color: #667085;
@@ -207,8 +192,7 @@
   padding: 16px;
 }
 
-.team-view-btn,
-.profile-btn {
+.team-view-btn {
   border: 2px solid #111;
   padding: 10px 14px;
   font-weight: 900;
@@ -216,22 +200,18 @@
   box-shadow: 4px 4px 0 rgba(0,0,0,.16);
 }
 
-.team-view-btn.secondary,
-.profile-btn.secondary {
+.team-view-btn.secondary {
   background: #fff;
   color: #111;
 }
 
 @media (max-width: 760px) {
   .team-view-hero,
-  .profile-hero,
-  .team-view-grid,
-  .profile-grid {
+  .team-view-grid {
     grid-template-columns: 1fr;
   }
 
-  .team-view-stats,
-  .profile-stats {
+  .team-view-stats {
     grid-template-columns: 1fr 1fr;
   }
 }

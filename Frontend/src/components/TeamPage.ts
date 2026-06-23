@@ -1,5 +1,6 @@
 import { commandApi } from "../api/commandApi";
 import type { AthleteTeamInfo, TeamInfoDto, TeamMatchInfo } from "../api/commandTypes";
+import { resolvePhotoUrl, initials } from "../api/media";
 import { UserProfilePage } from "./UserProfile";
 import "./teamPage.css";
 
@@ -11,9 +12,7 @@ export class TeamPageLook {
   constructor(containerId: string, nameTeam: string) {
     const element = document.getElementById(containerId);
 
-    if (!element) {
-      throw new Error(`Element with id '${containerId}' not found`);
-    }
+    if (!element) throw new Error(`Element with id '${containerId}' not found`);
 
     this.container = element;
     this.teamName = nameTeam;
@@ -33,7 +32,7 @@ export class TeamPageLook {
       this.container.innerHTML = `
         <section class="team-view-page">
           <button id="team-back" class="team-view-btn secondary" type="button">← Назад</button>
-          <div class="team-empty">${this.escapeHtml(error instanceof Error ? error.message : "Не вдалося завантажити команду")}</div>
+          <div class="team-empty">${this.escape(error instanceof Error ? error.message : "Не вдалося завантажити команду")}</div>
         </section>
       `;
       document.getElementById("team-back")?.addEventListener("click", () => window.history.back());
@@ -52,10 +51,12 @@ export class TeamPageLook {
       this.pick(team, ["trainerLastName", "TrainerLastName"]),
     ].filter(Boolean).join(" ") || trainerLogin || "-";
 
+    const teamPhoto = this.pick(team, ["photoTeam", "PhotoTeam", "teamPhoto", "TeamPhoto"]);
     const athletes = this.array<AthleteTeamInfo>(team.athletes ?? team.Athletes);
-    const orgs = this.array<any>(team.organizations ?? team.Organizations);
+    const organizations = this.array<any>(team.organizations ?? team.Organizations);
     const matches = this.array<TeamMatchInfo>(team.matches ?? team.Matches);
     const stats = team.stats ?? this.buildStats(matches, name);
+    const image = resolvePhotoUrl(teamPhoto, "command");
 
     this.container.innerHTML = `
       <section class="team-view-page">
@@ -63,20 +64,17 @@ export class TeamPageLook {
 
         <header class="team-view-hero">
           <div class="team-view-logo">
-            ${this.pick(team, ["photoTeam", "PhotoTeam"])
-              ? `<img src="${this.escapeAttr(commandApi.getPhotoUrl(this.pick(team, ["photoTeam", "PhotoTeam"])))}" alt="" />`
-              : `<span>${this.escapeHtml(name[0] || "T")}</span>`}
+            ${image ? `<img src="${this.attr(image)}" alt="${this.attr(name)}" />` : `<span>${this.escape(initials(name))}</span>`}
             <b>КОМАНДА</b>
           </div>
 
           <div class="team-view-main">
             <span class="team-kicker">SportHive · команда</span>
-            <h1>${this.escapeHtml(name)}</h1>
-
+            <h1>${this.escape(name)}</h1>
             <div class="team-meta">
-              <span>🏅 ${this.escapeHtml(sport || "-")}</span>
-              <button class="link-like" type="button" data-user-login="${this.escapeAttr(trainerLogin)}" data-user-role="Trainer">
-                Тренер: ${this.escapeHtml(trainerName)}
+              <span>🏅 ${this.escape(sport || "-")}</span>
+              <button class="link-like" type="button" data-user-login="${this.attr(trainerLogin)}" data-user-role="Trainer">
+                Тренер: ${this.escape(trainerName)}
               </button>
               <span>Спортсменів: ${athletes.length}</span>
             </div>
@@ -98,7 +96,7 @@ export class TeamPageLook {
 
           <div class="team-view-panel">
             <h2>Організації</h2>
-            ${this.renderOrganizations(orgs)}
+            ${this.renderOrganizations(organizations)}
           </div>
         </section>
 
@@ -111,10 +109,10 @@ export class TeamPageLook {
 
     document.getElementById("team-back")?.addEventListener("click", () => window.history.back());
 
-    this.container.querySelectorAll<HTMLButtonElement>("[data-user-login]").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const login = btn.dataset.userLogin || "";
-        const role = (btn.dataset.userRole || "Athlete") as "Athlete" | "Trainer" | "Judge";
+    this.container.querySelectorAll<HTMLButtonElement>("[data-user-login]").forEach(button => {
+      button.addEventListener("click", () => {
+        const login = button.dataset.userLogin || "";
+        const role = (button.dataset.userRole || "Athlete") as "Athlete" | "Trainer" | "Judge";
 
         if (login) new UserProfilePage("app", login, role).render();
       });
@@ -126,18 +124,20 @@ export class TeamPageLook {
 
     return `
       <div class="team-list">
-        ${athletes.map(a => {
-          const login = this.pick(a, ["login", "Login"]);
+        ${athletes.map(athlete => {
+          const login = this.pick(athlete, ["login", "Login"]);
           const fullName =
-            this.pick(a, ["fullName", "FullName"]) ||
-            [this.pick(a, ["firsName", "FirsName"]), this.pick(a, ["lastName", "LastName"])].filter(Boolean).join(" ") ||
+            this.pick(athlete, ["fullName", "FullName"]) ||
+            [this.pick(athlete, ["firsName", "FirsName"]), this.pick(athlete, ["lastName", "LastName"])].filter(Boolean).join(" ") ||
             login;
+          const photo = resolvePhotoUrl(this.pick(athlete, ["photo", "Photo", "profilePhoto", "ProfilePhoto"]), "auth");
 
           return `
-            <button class="team-list-item clickable" type="button" data-user-login="${this.escapeAttr(login)}" data-user-role="Athlete">
-              <b>${this.escapeHtml(fullName || login)}</b>
-              <span>${this.escapeHtml(login)}</span>
-              <small>${this.escapeHtml(this.pick(a, ["athleteStatus", "AthleteStatus"]) || "Active")}</small>
+            <button class="team-list-item clickable" type="button" data-user-login="${this.attr(login)}" data-user-role="Athlete">
+              <span class="mini-avatar">${photo ? `<img src="${this.attr(photo)}" alt="" />` : this.escape(initials(fullName || login))}</span>
+              <b>${this.escape(fullName || login)}</b>
+              <span>${this.escape(login)}</span>
+              <small>${this.escape(this.pick(athlete, ["athleteStatus", "AthleteStatus"]) || "Active")}</small>
             </button>
           `;
         }).join("")}
@@ -145,16 +145,16 @@ export class TeamPageLook {
     `;
   }
 
-  private renderOrganizations(orgs: any[]) {
-    if (!orgs.length) return `<div class="team-empty">Організацій поки немає</div>`;
+  private renderOrganizations(organizations: any[]) {
+    if (!organizations.length) return `<div class="team-empty">Організацій поки немає</div>`;
 
     return `
       <div class="team-list">
-        ${orgs.map(org => `
+        ${organizations.map(organization => `
           <article class="team-list-item">
-            <b>${this.escapeHtml(this.pick(org, ["nameOrganization", "NameOrganization"]) || this.pick(org, ["loginOrganization", "LoginOrganization"]))}</b>
-            <span>${this.escapeHtml(this.pick(org, ["loginOrganization", "LoginOrganization"]))}</span>
-            <small>${this.escapeHtml(this.pick(org, ["country", "Country"]) || "")}</small>
+            <b>${this.escape(this.pick(organization, ["nameOrganization", "NameOrganization"]) || this.pick(organization, ["loginOrganization", "LoginOrganization"]))}</b>
+            <span>${this.escape(this.pick(organization, ["loginOrganization", "LoginOrganization"]))}</span>
+            <small>${this.escape(this.pick(organization, ["country", "Country"]) || "")}</small>
           </article>
         `).join("")}
       </div>
@@ -166,15 +166,15 @@ export class TeamPageLook {
 
     return `
       <div class="team-match-list">
-        ${matches.map(m => `
+        ${matches.map(match => `
           <article class="team-match-card">
-            <span>${this.escapeHtml(m.nameEvent || "Матч")}</span>
-            <b>${this.escapeHtml(m.firstTeam || "-")} vs ${this.escapeHtml(m.secondTeam || "-")}</b>
+            <span>${this.escape(match.nameEvent || "Матч")}</span>
+            <b>${this.escape(match.firstTeam || "-")} vs ${this.escape(match.secondTeam || "-")}</b>
             <small>
-              ${m.dataMatch ? this.date(m.dataMatch) : "-"}
-              · ${this.escapeHtml(m.score || "score -")}
-              · ${this.status(m.statusMatch)}
-              · R${m.tour ?? "-"}
+              ${match.dataMatch ? this.date(match.dataMatch) : "-"}
+              · ${this.escape(match.score || "score -")}
+              · ${this.status(match.statusMatch)}
+              · R${match.tour ?? "-"}
             </small>
           </article>
         `).join("")}
@@ -188,14 +188,16 @@ export class TeamPageLook {
     let draws = 0;
     let finishedMatches = 0;
 
-    for (const m of matches) {
-      if (m.statusMatch !== 2) continue;
+    for (const match of matches) {
+      if (match.statusMatch !== 2) continue;
+
       finishedMatches++;
 
-      const parts = String(m.score || "").split(":").map(x => Number(x));
+      const parts = String(match.score || "").split(":").map(item => Number(item));
+
       if (parts.length !== 2 || parts.some(Number.isNaN)) continue;
 
-      const isFirst = m.firstTeam === teamName;
+      const isFirst = match.firstTeam === teamName;
 
       if (parts[0] === parts[1]) draws++;
       else if ((isFirst && parts[0] > parts[1]) || (!isFirst && parts[1] > parts[0])) wins++;
@@ -235,16 +237,16 @@ export class TeamPageLook {
     return Number.isNaN(date.getTime()) ? "-" : date.toLocaleDateString("uk-UA");
   }
 
-   private escapeHtml(value: unknown) {
+  private escape(value: unknown) {
     return String(value ?? "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
   }
 
-  private escapeAttr(value: unknown) {
-    return this.escapeHtml(value).replace(/`/g, "&#096;");
+  private attr(value: unknown) {
+    return this.escape(value).replace(/`/g, "&#096;");
   }
 }

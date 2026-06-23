@@ -30,9 +30,7 @@ export class TournamentsPage {
           <div>
             <span class="score-kicker">SportHive</span>
             <h1>Матч-центр</h1>
-            <p>Турніри згруповані по видах спорту. Матчі показані компактно: час, статус, учасники, рахунок і дія.</p>
           </div>
-          <button id="score-refresh" class="score-btn score-btn-dark" type="button">Оновити</button>
         </header>
 
         <nav id="sports-strip" class="sports-strip"></nav>

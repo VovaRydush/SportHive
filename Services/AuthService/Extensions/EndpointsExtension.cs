@@ -10,6 +10,9 @@ namespace AuthService.Extensions{
             app.UserProfileEndpoint();
             app.OrganizationLinkedSearchEndpoint();
             app.OrganizationInvitationEndpoint();
+            app.UserProfileEndpoint();
+            app.AuthPhotoEndpoint();
+            
 
         }
     }

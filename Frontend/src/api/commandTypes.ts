@@ -11,6 +11,7 @@ export type TeamModelDto = {
   photo?: File | null;
   athletsJson?: string;
   athlets?: TeamAthleteDto[];
+  loginOrganization?: string;
 };
 
 export type OrganizationTeamDto = {
@@ -24,23 +25,15 @@ export type NewSatatusAthlete = {
   newStatus?: string;
 };
 
-export type SearchAthleteResult = {
-  login: string;
-  fullName: string;
-  sport?: string;
-  photo?: string;
-  raw?: any;
-};
-
 export type AthleteTeamInfo = {
+  login?: string;
+  Login?: string;
   firsName?: string;
   FirsName?: string;
   lastName?: string;
   LastName?: string;
   fullName?: string;
   FullName?: string;
-  login?: string;
-  Login?: string;
   typeSport?: string;
   TypeSport?: string;
   athleteStatus?: string;
@@ -56,8 +49,8 @@ export type OrganizationTeamInfo = {
   NameOrganization?: string;
   country?: string;
   Country?: string;
-  typeOrganozation?: string;
-  TypeOrganozation?: string;
+  typeOrganization?: string;
+  TypeOrganization?: string;
 };
 
 export type TeamMatchInfo = {
@@ -70,40 +63,37 @@ export type TeamMatchInfo = {
   statusMatch?: number;
   tour?: number;
   group?: number;
-  dataMatch?: string;
-  timeMatch?: string;
+  dataMatch?: string | null;
+  timeMatch?: string | null;
 };
 
 export type TeamInfoDto = {
   nameTeam?: string;
   NameTeam?: string;
-
   trainerFirstName?: string;
   TrainerFirstName?: string;
   trainerLastName?: string;
   TrainerLastName?: string;
+  trainerPhoto?: string;
+  TrainerPhoto?: string;
   trainerPhotp?: string;
   TrainerPhotp?: string;
   trainerLogin?: string;
   TrainerLogin?: string;
-
   photoTeam?: string;
   PhotoTeam?: string;
+  teamPhoto?: string;
+  TeamPhoto?: string;
   typeSport?: string;
   TypeSport?: string;
-
   athletes?: AthleteTeamInfo[];
   Athletes?: AthleteTeamInfo[];
-
   organizations?: OrganizationTeamInfo[];
   Organizations?: OrganizationTeamInfo[];
-
   athletesCount?: number;
   AthletesCount?: number;
-
   matches?: TeamMatchInfo[];
   Matches?: TeamMatchInfo[];
-
   stats?: {
     totalMatches: number;
     finishedMatches: number;

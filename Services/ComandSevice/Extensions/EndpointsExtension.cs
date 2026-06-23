@@ -9,6 +9,7 @@ namespace Extensions
             app.CreateCommandEndpoint();
             app.GetInfoTeam();
             app.TrainerEndpoint();
+            
         }
     }
 }

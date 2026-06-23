@@ -1,31 +1,59 @@
-export function getAccessToken(): string {
-  const raw =
-    localStorage.getItem("accessToken") ||
-    localStorage.getItem("token") ||
-    localStorage.getItem("jwt") ||
-    localStorage.getItem("authToken") ||
-    "";
+export type UserRole = "Guest" | "Athlete" | "Trainer" | "Judge" | "Organization";
 
-  return raw
-    .replace(/^Bearer\s+/i, "")
-    .replace(/^"(.+)"$/, "$1")
-    .trim();
+export function cleanStorage(value: string | null): string {
+  return (value || "").replace(/^"(.+)"$/, "$1").trim();
+}
+
+export function getAccessToken(): string {
+  return (
+    cleanStorage(localStorage.getItem("accessToken")) ||
+    cleanStorage(localStorage.getItem("token")) ||
+    cleanStorage(localStorage.getItem("jwt")) ||
+    cleanStorage(localStorage.getItem("authToken"))
+  ).replace(/^Bearer\s+/i, "");
 }
 
 export function getCurrentLogin(): string {
   return (
-    localStorage.getItem("login") ||
-    localStorage.getItem("userLogin") ||
-    localStorage.getItem("organizationLogin") ||
-    localStorage.getItem("loginOrganization") ||
-    ""
-  ).replace(/^"(.+)"$/, "$1");
+    cleanStorage(localStorage.getItem("login")) ||
+    cleanStorage(localStorage.getItem("userLogin")) ||
+    cleanStorage(localStorage.getItem("organizationLogin")) ||
+    cleanStorage(localStorage.getItem("loginOrganization"))
+  );
+}
+
+export function getCurrentRole(): UserRole {
+  const raw = (
+    cleanStorage(localStorage.getItem("userRole")) ||
+    cleanStorage(localStorage.getItem("role")) ||
+    cleanStorage(localStorage.getItem("Role"))
+  ).toLowerCase();
+
+  if (raw.includes("organization") || raw.includes("орган")) return "Organization";
+  if (raw.includes("trainer") || raw.includes("трен")) return "Trainer";
+  if (raw.includes("judge") || raw.includes("суд")) return "Judge";
+  if (raw.includes("athlete") || raw.includes("спорт")) return "Athlete";
+
+  return getAccessToken() ? "Athlete" : "Guest";
 }
 
 export function authHeaders(): HeadersInit {
   const token = getAccessToken();
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
 
-  if (!token) return {};
-
-  return { Authorization: `Bearer ${token}` };
+export function clearAuthStorage(): void {
+  [
+    "accessToken",
+    "token",
+    "jwt",
+    "authToken",
+    "userRole",
+    "role",
+    "Role",
+    "login",
+    "userLogin",
+    "organizationLogin",
+    "loginOrganization",
+  ].forEach(key => localStorage.removeItem(key));
 }

@@ -9,11 +9,7 @@ namespace DB.SportHive.Domain
         public string LoginTrainer { get; set; } = null!;
         public string TypeSport { get; set; } = null!;
         public IFormFile? Photo { get; set; }
-
-        // IMPORTANT:
-        // Needed for automatic link Team -> Organization during create-team.
         public string? LoginOrganization { get; set; }
-
         public string? AthletsJson { get; set; }
 
         public List<TeamAthleteDto> Athlets
