@@ -2,36 +2,41 @@
   position: fixed;
   inset: 0;
   z-index: 9999;
-  background: rgba(0,0,0,.45);
+  background: rgba(0, 0, 0, .46);
   display: grid;
   place-items: center;
-  padding: 20px;
+  padding: 22px;
 }
 
 .mgmt-modal {
-  width: min(560px, 100%);
-  max-height: calc(100vh - 40px);
+  width: min(620px, 100%);
+  max-height: calc(100vh - 44px);
   overflow: auto;
+  position: relative;
   border: 2px solid #111;
   background: #fff;
-  padding: 22px;
-  box-shadow: 8px 8px 0 rgba(0,0,0,.22);
-  position: relative;
+  padding: 24px;
+  box-shadow: 8px 8px 0 rgba(0, 0, 0, .24);
+  color: #111;
   font-family: "Montserrat", Arial, sans-serif;
 }
 
 .mgmt-modal h2 {
-  margin: 0 0 18px;
+  margin: 0 46px 18px 0;
+  font-size: 25px;
+  font-weight: 950;
   text-transform: uppercase;
 }
 
 .mgmt-modal h3 {
-  margin: 18px 0 12px;
+  margin: 20px 0 12px;
+  font-size: 19px;
+  font-weight: 950;
 }
 
 .mgmt-modal label {
   display: grid;
-  gap: 6px;
+  gap: 7px;
   margin-bottom: 12px;
   font-weight: 900;
 }
@@ -40,14 +45,17 @@
 .mgmt-modal select {
   height: 44px;
   border: 2px solid #111;
-  padding: 0 10px;
+  background: #fff;
+  padding: 0 12px;
   font-weight: 800;
+  font-size: 15px;
 }
 
 .mgmt-actions {
   display: flex;
-  flex-wrap: wrap;
   gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 12px;
 }
 
 .mgmt-actions button,
@@ -56,21 +64,59 @@
   background: #111;
   color: #fff;
   padding: 10px 14px;
-  font-weight: 900;
+  min-height: 42px;
+  font-weight: 950;
   cursor: pointer;
 }
 
-.mgmt-actions button.danger {
+.mgmt-actions .danger {
   background: #fff;
-  color: #dc2626;
-  border-color: #dc2626;
+  color: #b91c1c;
+  border-color: #b91c1c;
 }
 
 .mgmt-close {
   position: absolute;
-  top: 10px;
-  right: 10px;
-  width: 38px;
-  height: 38px;
+  right: 12px;
+  top: 12px;
+  width: 36px;
+  height: 36px;
+  min-height: 36px;
   padding: 0;
+}
+
+.org-manage-buttons,
+.team-manage-buttons,
+.member-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.manage-small-btn,
+.remove-small-btn {
+  border: 1px solid #111;
+  background: #fff;
+  color: #111;
+  min-height: 32px;
+  padding: 6px 10px;
+  font-weight: 900;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.manage-small-btn:hover {
+  background: #111;
+  color: #fff;
+}
+
+.remove-small-btn {
+  border-color: #b91c1c;
+  color: #b91c1c;
+}
+
+.remove-small-btn:hover {
+  background: #b91c1c;
+  color: #fff;
 }

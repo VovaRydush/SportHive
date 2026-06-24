@@ -17,6 +17,11 @@ import {
   formatFinishedCounter,
   normalizeEventForUi,
 } from "../api/tournamentResultUtils";
+import {
+  openOrganizationRosterEditor,
+  openTeamEditor,
+  removeOrganizationMember,
+} from "./OrganizationManagementPanels";
 import "./organizationProfile.css";
 
 type AnyObj = Record<string, any>;
@@ -30,11 +35,7 @@ export class OrganizationProfile {
 
   constructor(containerId: string = "app") {
     const element = document.getElementById(containerId);
-
-    if (!element) {
-      throw new Error(`Element with id '${containerId}' not found`);
-    }
-
+    if (!element) throw new Error(`Element with id '${containerId}' not found`);
     this.container = element;
   }
 
@@ -63,16 +64,10 @@ export class OrganizationProfile {
 
       this.data = profile;
       this.catalogEvents = (events || []).map(event => normalizeEventForUi(event as AnyObj));
-
       this.renderPage();
     } catch (error) {
       notify.show(error instanceof Error ? error.message : "Не вдалося завантажити організацію", "error");
-
-      this.container.innerHTML = `
-        <section class="organization-profile">
-          <div class="empty-state">Не вдалося завантажити організацію</div>
-        </section>
-      `;
+      this.container.innerHTML = `<section class="organization-profile"><div class="empty-state">Не вдалося завантажити організацію</div></section>`;
     }
   }
 
@@ -80,9 +75,7 @@ export class OrganizationProfile {
     if (!this.data) return;
 
     const org = this.data.organization;
-    const athleteCount = Object.values(this.data.athletesBySport || {})
-      .reduce((sum, arr) => sum + arr.length, 0);
-
+    const athleteCount = Object.values(this.data.athletesBySport || {}).reduce((sum, arr) => sum + arr.length, 0);
     const events = this.resolveOrganizationEvents();
 
     this.container.innerHTML = `
@@ -113,34 +106,21 @@ export class OrganizationProfile {
 
             <div class="org-actions">
               <button id="create-team-btn" class="employee-btn" type="button">+ Створити команду</button>
+              <button id="manage-org-roster-btn" class="employee-btn" type="button">Керувати складом</button>
             </div>
           </div>
         </header>
 
         <section class="org-stats">
-          <div class="org-stat-card">
-            <b>${this.data.teams.length}</b>
-            <span>Команди</span>
-          </div>
-          <div class="org-stat-card">
-            <b>${this.data.judges.length}</b>
-            <span>Судді</span>
-          </div>
-          <div class="org-stat-card">
-            <b>${this.data.trainers.length}</b>
-            <span>Тренери</span>
-          </div>
-          <div class="org-stat-card">
-            <b>${athleteCount}</b>
-            <span>Спортсмени</span>
-          </div>
+          <div class="org-stat-card"><b>${this.data.teams.length}</b><span>Команди</span></div>
+          <div class="org-stat-card"><b>${this.data.judges.length}</b><span>Судді</span></div>
+          <div class="org-stat-card"><b>${this.data.trainers.length}</b><span>Тренери</span></div>
+          <div class="org-stat-card"><b>${athleteCount}</b><span>Спортсмени</span></div>
         </section>
 
         <section class="employee-manager">
-          <h2 class="employee-title">Додати учасника в організацію</h2>
-          <p class="employee-subtitle">
-            Запрошення прийде користувачу на пошту. Після прийняття він зʼявиться у складі організації.
-          </p>
+          <h2 class="employee-title">Додати учасника через запрошення</h2>
+          <p class="employee-subtitle">Запрошення прийде користувачу на пошту. Для прямого додавання/видалення натисни “Керувати складом”.</p>
 
           <div class="employee-form">
             <div class="employee-field">
@@ -202,8 +182,11 @@ export class OrganizationProfile {
   }
 
   private bind() {
-    document.getElementById("create-team-btn")?.addEventListener("click", () => {
-      new CreateTeamModal("app").show();
+    document.getElementById("create-team-btn")?.addEventListener("click", () => new CreateTeamModal("app").show());
+
+    document.getElementById("manage-org-roster-btn")?.addEventListener("click", () => {
+      const login = this.data?.organization.login || organizationApi.getLogin();
+      openOrganizationRosterEditor(login, () => this.load());
     });
 
     this.container.querySelectorAll<HTMLElement>("[data-team-name]").forEach(button => {
@@ -213,14 +196,41 @@ export class OrganizationProfile {
       });
     });
 
+    this.container.querySelectorAll<HTMLElement>("[data-edit-team]").forEach(button => {
+      button.addEventListener("click", event => {
+        event.stopPropagation();
+        const teamName = button.dataset.editTeam || "";
+        const team = this.data?.teams.find(x => x.teamName === teamName);
+
+        if (!team) return;
+
+        openTeamEditor({
+          teamName: team.teamName,
+          typeSport: team.typeSport,
+          loginTrainer: team.loginTrainer,
+        }, () => this.load());
+      });
+    });
+
     this.container.querySelectorAll<HTMLElement>("[data-profile-login]").forEach(button => {
       button.addEventListener("click", () => {
         const login = button.dataset.profileLogin;
         const role = button.dataset.profileRole as "Athlete" | "Trainer" | "Judge";
 
-        if (login && role) {
-          new UserProfilePage("app", login, role).render();
-        }
+        if (login && role) new UserProfilePage("app", login, role).render();
+      });
+    });
+
+    this.container.querySelectorAll<HTMLElement>("[data-remove-member]").forEach(button => {
+      button.addEventListener("click", event => {
+        event.stopPropagation();
+        const login = button.dataset.removeMember || "";
+        const role = button.dataset.removeRole || "";
+        const orgLogin = this.data?.organization.login || organizationApi.getLogin();
+
+        if (!login || !role) return;
+
+        removeOrganizationMember(orgLogin, role, login, () => this.load());
       });
     });
 
@@ -230,9 +240,7 @@ export class OrganizationProfile {
     role?.addEventListener("change", () => {
       this.selectedUser = null;
       this.renderSelectedUser();
-
       if (search) search.value = "";
-
       this.hideResults();
     });
 
@@ -312,9 +320,7 @@ export class OrganizationProfile {
 
     try {
       await organizationApi.sendInvitation(this.selectedUser.login, this.selectedUser.role);
-
       notify.show("Запрошення надіслано на пошту", "success");
-
       this.selectedUser = null;
       this.renderSelectedUser();
       await this.load();
@@ -325,7 +331,6 @@ export class OrganizationProfile {
 
   private renderSelectedUser() {
     const root = document.getElementById("selected-invite-user");
-
     if (!root) return;
 
     if (!this.selectedUser) {
@@ -349,17 +354,13 @@ export class OrganizationProfile {
 
   private hideResults() {
     const root = document.getElementById("invite-results");
-
     if (!root) return;
-
     root.hidden = true;
     root.innerHTML = "";
   }
 
   private renderTeams(teams: OrgTeam[]) {
-    if (!teams.length) {
-      return `<div class="empty-state">Команд поки немає</div>`;
-    }
+    if (!teams.length) return `<div class="empty-state">Команд поки немає</div>`;
 
     return `
       <div class="teams-grid">
@@ -377,6 +378,10 @@ export class OrganizationProfile {
                 <span class="team-link">Переглянути команду →</span>
               </div>
             </button>
+
+            <div class="team-manage-buttons">
+              <button class="manage-small-btn" type="button" data-edit-team="${this.escapeAttr(team.teamName)}">Редагувати команду</button>
+            </div>
           </article>
         `).join("")}
       </div>
@@ -384,28 +389,32 @@ export class OrganizationProfile {
   }
 
   private renderMembers(items: OrgMember[], role: "Trainer" | "Judge", empty: string) {
-    if (!items.length) {
-      return `<div class="empty-state">${this.escapeHtml(empty)}</div>`;
-    }
+    if (!items.length) return `<div class="empty-state">${this.escapeHtml(empty)}</div>`;
 
     return `
       <div class="staff-list">
         ${items.map(member => `
-          <button class="staff-card" type="button" data-profile-login="${this.escapeAttr(member.login)}" data-profile-role="${role}">
-            <div class="staff-avatar">
-              ${member.profilePhoto
-                ? `<img src="${this.escapeAttr(member.profilePhoto)}" alt="${this.escapeAttr(member.fullName || member.login)}" />`
-                : this.escapeHtml((member.fullName || member.login)[0] || "?")
-              }
+          <div class="staff-card">
+            <button class="staff-main-button" type="button" data-profile-login="${this.escapeAttr(member.login)}" data-profile-role="${role}">
+              <div class="staff-avatar">
+                ${member.profilePhoto
+                  ? `<img src="${this.escapeAttr(member.profilePhoto)}" alt="${this.escapeAttr(member.fullName || member.login)}" />`
+                  : this.escapeHtml((member.fullName || member.login)[0] || "?")
+                }
+              </div>
+              <div>
+                <h3 class="staff-name">${this.escapeHtml(member.fullName || member.login)}</h3>
+                <p class="staff-category">${this.escapeHtml(member.login)}</p>
+                ${member.mail ? `<p class="staff-sport">${this.escapeHtml(member.mail)}</p>` : ""}
+                ${member.typeSport ? `<p class="staff-sport">${this.escapeHtml(member.typeSport)}</p>` : ""}
+                <span class="staff-link">Переглянути профіль →</span>
+              </div>
+            </button>
+
+            <div class="member-actions">
+              <button class="remove-small-btn" type="button" data-remove-member="${this.escapeAttr(member.login)}" data-remove-role="${role}">Видалити</button>
             </div>
-            <div>
-              <h3 class="staff-name">${this.escapeHtml(member.fullName || member.login)}</h3>
-              <p class="staff-category">${this.escapeHtml(member.login)}</p>
-              ${member.mail ? `<p class="staff-sport">${this.escapeHtml(member.mail)}</p>` : ""}
-              ${member.typeSport ? `<p class="staff-sport">${this.escapeHtml(member.typeSport)}</p>` : ""}
-              <span class="staff-link">Переглянути профіль →</span>
-            </div>
-          </button>
+          </div>
         `).join("")}
       </div>
     `;
@@ -415,9 +424,7 @@ export class OrganizationProfile {
     const groups = this.data?.athletesBySport || {};
     const sports = Object.keys(groups).sort();
 
-    if (!sports.length) {
-      return `<div class="empty-state">Атлетів поки немає</div>`;
-    }
+    if (!sports.length) return `<div class="empty-state">Атлетів поки немає</div>`;
 
     return `
       <div class="athlete-sport-groups">
@@ -426,20 +433,26 @@ export class OrganizationProfile {
             <h3>${this.escapeHtml(sport)} <span>${groups[sport].length}</span></h3>
             <div class="staff-list">
               ${groups[sport].map(athlete => `
-                <button class="staff-card" type="button" data-profile-login="${this.escapeAttr(athlete.login)}" data-profile-role="Athlete">
-                  <div class="staff-avatar">
-                    ${athlete.profilePhoto
-                      ? `<img src="${this.escapeAttr(athlete.profilePhoto)}" alt="${this.escapeAttr(athlete.fullName || athlete.login)}" />`
-                      : this.escapeHtml((athlete.fullName || athlete.login)[0] || "?")
-                    }
+                <div class="staff-card">
+                  <button class="staff-main-button" type="button" data-profile-login="${this.escapeAttr(athlete.login)}" data-profile-role="Athlete">
+                    <div class="staff-avatar">
+                      ${athlete.profilePhoto
+                        ? `<img src="${this.escapeAttr(athlete.profilePhoto)}" alt="${this.escapeAttr(athlete.fullName || athlete.login)}" />`
+                        : this.escapeHtml((athlete.fullName || athlete.login)[0] || "?")
+                      }
+                    </div>
+                    <div>
+                      <h3 class="staff-name">${this.escapeHtml(athlete.fullName || athlete.login)}</h3>
+                      <p class="staff-category">${this.escapeHtml(athlete.login)}</p>
+                      ${athlete.mail ? `<p class="staff-sport">${this.escapeHtml(athlete.mail)}</p>` : ""}
+                      <span class="staff-link">Переглянути профіль →</span>
+                    </div>
+                  </button>
+
+                  <div class="member-actions">
+                    <button class="remove-small-btn" type="button" data-remove-member="${this.escapeAttr(athlete.login)}" data-remove-role="Athlete">Видалити</button>
                   </div>
-                  <div>
-                    <h3 class="staff-name">${this.escapeHtml(athlete.fullName || athlete.login)}</h3>
-                    <p class="staff-category">${this.escapeHtml(athlete.login)}</p>
-                    ${athlete.mail ? `<p class="staff-sport">${this.escapeHtml(athlete.mail)}</p>` : ""}
-                    <span class="staff-link">Переглянути профіль →</span>
-                  </div>
-                </button>
+                </div>
               `).join("")}
             </div>
           </section>
@@ -454,13 +467,8 @@ export class OrganizationProfile {
 
     for (const event of this.catalogEvents) {
       const canManage = Boolean(event.canManageEvent || event.accessLevel === "Manage");
-      const matchesRecent = recentEvents.some(recent =>
-        this.eventKey(recent) === this.eventKey(event) || this.sameEventNameDate(recent, event)
-      );
-
-      if (canManage || matchesRecent) {
-        byKey.set(this.eventKey(event), normalizeEventForUi(event));
-      }
+      const matchesRecent = recentEvents.some(recent => this.eventKey(recent) === this.eventKey(event) || this.sameEventNameDate(recent, event));
+      if (canManage || matchesRecent) byKey.set(this.eventKey(event), normalizeEventForUi(event));
     }
 
     for (const recent of recentEvents) {
@@ -469,17 +477,12 @@ export class OrganizationProfile {
     }
 
     return Array.from(byKey.values())
-      .sort((a, b) =>
-        new Date(b.dataStart || b.DataStart || 0).getTime() -
-        new Date(a.dataStart || a.DataStart || 0).getTime()
-      )
+      .sort((a, b) => new Date(b.dataStart || b.DataStart || 0).getTime() - new Date(a.dataStart || a.DataStart || 0).getTime())
       .slice(0, 8);
   }
 
   private renderEvents(events: AnyObj[]) {
-    if (!events.length) {
-      return `<div class="empty-state">Подій поки немає</div>`;
-    }
+    if (!events.length) return `<div class="empty-state">Подій поки немає</div>`;
 
     return `
       <div class="events-timeline">
@@ -511,9 +514,7 @@ export class OrganizationProfile {
   }
 
   private renderInvitations(invitations: OrgInvite[]) {
-    if (!invitations.length) {
-      return `<div class="empty-state">Запрошень поки немає</div>`;
-    }
+    if (!invitations.length) return `<div class="empty-state">Запрошень поки немає</div>`;
 
     return `
       <div class="invitation-list">
@@ -530,9 +531,7 @@ export class OrganizationProfile {
 
   private eventKey(event: AnyObj) {
     const id = event.idEvent || event.IdEvent;
-
     if (id) return `id:${id}`;
-
     return `${String(event.nameEvent || event.NameEvent || "").toLowerCase()}|${this.formatDate(event.dataStart || event.DataStart)}`;
   }
 
@@ -540,19 +539,12 @@ export class OrganizationProfile {
     const firstName = String(first.nameEvent || first.NameEvent || "").trim().toLowerCase();
     const secondName = String(second.nameEvent || second.NameEvent || "").trim().toLowerCase();
 
-    return Boolean(
-      firstName &&
-      secondName &&
-      firstName === secondName &&
-      this.formatDate(first.dataStart || first.DataStart) === this.formatDate(second.dataStart || second.DataStart)
-    );
+    return Boolean(firstName && secondName && firstName === secondName && this.formatDate(first.dataStart || first.DataStart) === this.formatDate(second.dataStart || second.DataStart));
   }
 
   private formatDate(value: unknown) {
     if (!value) return "-";
-
     const date = new Date(String(value));
-
     return Number.isNaN(date.getTime()) ? "-" : date.toLocaleDateString("uk-UA");
   }
 
@@ -566,7 +558,6 @@ export class OrganizationProfile {
     if (value.includes("chess") || value.includes("шах")) return "♟️";
     if (value.includes("box") || value.includes("бокс")) return "🥊";
     if (value.includes("hockey") || value.includes("хок")) return "🏒";
-
     return "🏆";
   }
 

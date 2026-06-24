@@ -49,10 +49,8 @@ export class TournamentsPage {
         <header class="score-header">
           <div>
             <span class="score-kicker">SportHive · Match Center</span>
-            <h1>Турніри</h1>
-            <p>Переглядай заходи, матчі, статуси, таблиці та сітки в одному місці.</p>
           </div>
-          <button id="score-refresh-top" class="score-btn score-btn-dark" type="button">Оновити</button>
+          
         </header>
 
         <div id="sports-strip" class="sports-strip"></div>
