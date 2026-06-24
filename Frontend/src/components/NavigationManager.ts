@@ -7,7 +7,15 @@ import { CreateTeamModal } from "./CreateTeam";
 import { TournamentsPage } from "./TournamentsPage";
 import { StatisticsDashboard } from "./StatisticsDashboard";
 import { UserProfilePage } from "./UserProfile";
-import type { UserRole } from "../api/authToken";
+import { getAccessToken, getCurrentLogin, getCurrentRole, clearAuthStorage, type UserRole } from "../api/authToken";
+import {
+  applyI18n,
+  bindLanguageSwitcher,
+  initI18n,
+  renderLanguageSwitcher,
+  t,
+} from "../i18n/i18n";
+import "../i18n/i18n.css";
 
 export class NavigationManager {
   private navElement: HTMLElement | null;
@@ -17,10 +25,12 @@ export class NavigationManager {
   }
 
   public init() {
+    initI18n();
+
     if (!this.navElement) return;
 
-    const token = localStorage.getItem("accessToken");
-    const role = this.currentRole();
+    const token = getAccessToken();
+    const role = getCurrentRole();
 
     if (!token) {
       this.renderGuestNav();
@@ -29,99 +39,99 @@ export class NavigationManager {
     }
 
     new HomePage("app").render();
-  }
-
-  private currentRole(): UserRole {
-    const raw = localStorage.getItem("userRole") || localStorage.getItem("role") || "Athlete";
-    const role = String(raw).trim();
-
-    if (role === "Organization") return "Organization";
-    if (role === "Trainer") return "Trainer";
-    if (role === "Judge") return "Judge";
-    return "Athlete";
-  }
-
-  private currentLogin() {
-    return localStorage.getItem("login") || localStorage.getItem("userLogin") || "";
+    applyI18n(document.body);
   }
 
   private renderGuestNav() {
     this.navElement!.innerHTML = `
-      <button class="nav-btn" id="tournaments-btn">Турніри</button>
-      <button class="nav-btn" id="statistics-btn">Статистика</button>
-      <button class="nav-btn" id="login-btn">Увійти</button>
-      <button class="nav-btn" id="register-btn">Зареєструватись</button>
+      <button class="nav-btn" id="tournaments-btn">${t("Турніри")}</button>
+      <button class="nav-btn" id="statistics-btn">${t("Статистика")}</button>
+      <button class="nav-btn" id="login-btn">${t("Увійти")}</button>
+      <button class="nav-btn" id="register-btn">${t("Зареєструватись")}</button>
+      ${renderLanguageSwitcher()}
     `;
 
-    document.getElementById("homePagest")?.addEventListener("click", () => new HomePage("app").render());
-    document.getElementById("tournaments-btn")?.addEventListener("click", () => new TournamentsPage("app").render());
-    document.getElementById("statistics-btn")?.addEventListener("click", () => new StatisticsDashboard("app", "global").render());
+    this.bindCommonNav();
     document.getElementById("login-btn")?.addEventListener("click", () => new LoginModal().show());
     document.getElementById("register-btn")?.addEventListener("click", () => new RegistrationModal());
+    bindLanguageSwitcher(() => applyI18n(document.body));
   }
 
   private renderUserNav(role: UserRole) {
     let content = `
-      <button class="nav-btn" id="tournaments-btn">Турніри</button>
-      <button class="nav-btn" id="statistics-btn">Статистика</button>
+      <button class="nav-btn" id="tournaments-btn">${t("Турніри")}</button>
+      <button class="nav-btn" id="statistics-btn">${t("Статистика")}</button>
     `;
 
     if (role === "Organization") {
       content += `
-        <button class="nav-btn" id="org-statistics-btn">Статистика організації</button>
-        <button class="nav-btn" id="event-btn">Створити захід</button>
-        <button class="nav-btn" id="profil-btn">Профіль Організації</button>
+        <button class="nav-btn" id="org-statistics-btn">${t("Статистика організації")}</button>
+        <button class="nav-btn" id="event-btn">${t("Створити захід")}</button>
+        <button class="nav-btn" id="profil-btn">${t("Профіль Організації")}</button>
       `;
     } else if (role === "Trainer") {
       content += `
-        <button class="nav-btn" id="member-org-statistics-btn">Статистика моїх організацій</button>
-        <button class="nav-btn" id="team-btn">Створити команду</button>
-        <button class="nav-btn" id="profile-btn">Мій профіль</button>
+        <button class="nav-btn" id="member-org-statistics-btn">${t("Статистика моїх організацій")}</button>
+        <button class="nav-btn" id="team-btn">${t("Створити команду")}</button>
+        <button class="nav-btn" id="profile-btn">${t("Мій профіль")}</button>
       `;
     } else {
       content += `
-        <button class="nav-btn" id="member-org-statistics-btn">Статистика моїх організацій</button>
-        <button class="nav-btn" id="profile-btn">Мій профіль</button>
+        <button class="nav-btn" id="member-org-statistics-btn">${t("Статистика моїх організацій")}</button>
+        <button class="nav-btn" id="profile-btn">${t("Мій профіль")}</button>
       `;
     }
 
     this.navElement!.innerHTML = `
       ${content}
-      <button class="nav-btn" id="logout-btn">Вийти</button>
+      <button class="nav-btn" id="logout-btn">${t("Вийти")}</button>
+      ${renderLanguageSwitcher()}
     `;
 
-    const login = this.currentLogin();
+    this.bindCommonNav();
 
-    document.getElementById("homePagest")?.addEventListener("click", () => new HomePage("app").render());
-    document.getElementById("tournaments-btn")?.addEventListener("click", () => new TournamentsPage("app").render());
-    document.getElementById("statistics-btn")?.addEventListener("click", () => new StatisticsDashboard("app", "global").render());
-    document.getElementById("org-statistics-btn")?.addEventListener("click", () => new StatisticsDashboard("app", "organization", login).render());
-    document.getElementById("member-org-statistics-btn")?.addEventListener("click", () => new StatisticsDashboard("app", "member").render());
+    const login = getCurrentLogin();
+
+    document.getElementById("org-statistics-btn")?.addEventListener("click", () => {
+      new StatisticsDashboard("app", "organization", login).render();
+    });
+
+    document.getElementById("member-org-statistics-btn")?.addEventListener("click", () => {
+      new StatisticsDashboard("app", "member").render();
+    });
+
     document.getElementById("team-btn")?.addEventListener("click", () => new CreateTeamModal().show());
 
     document.getElementById("profile-btn")?.addEventListener("click", () => {
-      const actualLogin = this.currentLogin();
+      const currentLogin = getCurrentLogin();
 
-      if (!actualLogin) {
-        alert("Не знайдено login. Перелогінься.");
+      if (!currentLogin) {
+        alert(t("Не знайдено login. Перелогінься."));
         return;
       }
 
-      new UserProfilePage("app", actualLogin, role).render();
+      new UserProfilePage("app", currentLogin, role).render();
     });
 
-    document.getElementById("profil-btn")?.addEventListener("click", () => new OrganizationProfile("app").render());
-    document.getElementById("event-btn")?.addEventListener("click", () => new CreateEventPage("app").render());
+    document.getElementById("profil-btn")?.addEventListener("click", () => {
+      new OrganizationProfile("app").render();
+    });
+
+    document.getElementById("event-btn")?.addEventListener("click", () => {
+      new CreateEventPage("app").render();
+    });
 
     document.getElementById("logout-btn")?.addEventListener("click", () => {
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("token");
-      localStorage.removeItem("jwt");
-      localStorage.removeItem("userRole");
-      localStorage.removeItem("role");
-      localStorage.removeItem("login");
-      localStorage.removeItem("userLogin");
+      clearAuthStorage();
       location.reload();
     });
+
+    bindLanguageSwitcher(() => applyI18n(document.body));
+  }
+
+  private bindCommonNav() {
+    document.getElementById("homePagest")?.addEventListener("click", () => new HomePage("app").render());
+    document.getElementById("tournaments-btn")?.addEventListener("click", () => new TournamentsPage("app").render());
+    document.getElementById("statistics-btn")?.addEventListener("click", () => new StatisticsDashboard("app", "global").render());
   }
 }

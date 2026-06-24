@@ -1,0 +1,50 @@
+.lang-switcher {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 8px;
+  border: 2px solid #111;
+  background: #fff;
+  padding: 4px;
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, .16);
+}
+
+.lang-btn {
+  border: 0;
+  background: transparent;
+  color: #111;
+  min-width: 42px;
+  min-height: 34px;
+  padding: 0 9px;
+  cursor: pointer;
+  font-weight: 950;
+  font-family: "Montserrat", Arial, sans-serif;
+  letter-spacing: .04em;
+}
+
+.lang-btn.active {
+  background: #111;
+  color: #fff;
+}
+
+.lang-btn:hover {
+  background: #111;
+  color: #fff;
+}
+
+[data-lang="en"] .nav-btn {
+  letter-spacing: .02em;
+}
+
+[data-lang="en"] .score-header h1,
+[data-lang="en"] .org-title,
+[data-lang="en"] .team-info h1,
+[data-lang="en"] .profile-main-info h1 {
+  letter-spacing: -.035em;
+}
+
+@media (max-width: 900px) {
+  .lang-switcher {
+    margin-left: 0;
+  }
+}
