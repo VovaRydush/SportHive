@@ -18,8 +18,9 @@ import {
   normalizeMatchForUi,
   type UiStandingRow,
 } from "../api/tournamentResultUtils";
+import { buildTournamentHomeLeaders, type HomeLeaderRow } from "../api/tournamentHomeLeaders";
 import "./tournamentsPage.css";
-import "./tournamentsPageStats.css";
+import "./tournamentsHomeLeaders.css";
 
 type CatalogEvent = Record<string, any>;
 type CatalogMatch = Record<string, any>;
@@ -54,7 +55,6 @@ export class TournamentsPage {
           <button id="score-refresh-top" class="score-btn score-btn-dark" type="button">Оновити</button>
         </header>
 
-        <div id="tournament-stat-band" class="tournament-stat-band"></div>
         <div id="sports-strip" class="sports-strip"></div>
 
         <div class="score-toolbar">
@@ -66,6 +66,8 @@ export class TournamentsPage {
           </div>
           <input id="event-search" class="score-search" placeholder="Пошук заходу, команди, спортсмена..." />
         </div>
+
+        <div id="tournament-home-leaders" class="tournament-home-leaders"></div>
 
         <div class="score-layout">
           <aside class="score-sidebar">
@@ -172,47 +174,71 @@ export class TournamentsPage {
   }
 
   private renderAll() {
-    this.renderTournamentStatBand();
     this.renderSportsStrip();
+    this.renderHomeLeaders();
     this.renderSportsList();
     this.renderSummary();
     this.renderFeed();
   }
 
-  private renderTournamentStatBand() {
-    const root = document.getElementById("tournament-stat-band");
+  private renderHomeLeaders() {
+    const root = document.getElementById("tournament-home-leaders");
     if (!root) return;
 
-    const filtered = this.filteredEvents();
-    const allStats = filtered.map(calculateEventStats);
-    const matches = allStats.reduce((sum, x) => sum + x.totalMatches, 0);
-    const finished = allStats.reduce((sum, x) => sum + x.finishedMatches, 0);
-    const live = allStats.reduce((sum, x) => sum + x.liveMatches, 0);
-    const sports = new Set(filtered.map(x => x.typeSport).filter(Boolean)).size;
-    const completion = matches ? Math.round((finished / matches) * 100) : 0;
+    const events = this.filteredEvents();
+    const leaders = buildTournamentHomeLeaders(events);
+    const titleSport = this.selectedSport === "all" ? "усіх видах спорту" : this.selectedSport;
+
+    if (!leaders.teams.length && !leaders.athletes.length && !leaders.judges.length) {
+      root.innerHTML = "";
+      return;
+    }
 
     root.innerHTML = `
-      <button id="open-global-statistics" class="tournament-stat-card" type="button">
-        <b>${completion}%</b>
-        <span>Завершення матчів</span>
-      </button>
-      <button id="open-global-statistics-2" class="tournament-stat-card" type="button">
-        <b>${sports}</b>
-        <span>Видів спорту</span>
-      </button>
-      <button id="open-global-statistics-3" class="tournament-stat-card live" type="button">
-        <b>${live}</b>
-        <span>Live зараз</span>
-      </button>
-      <button id="open-global-statistics-4" class="tournament-stat-card" type="button">
-        <b>Analytics</b>
-        <span>Відкрити повну статистику</span>
-      </button>
+      <section class="home-leaders-soft">
+        <header>
+          <div>
+            <span>Аналітика сезону</span>
+            <b>Топ лідерів по ${this.escapeHtml(titleSport)}</b>
+          </div>
+          <button id="open-statistics-from-leaders" type="button">Вся статистика</button>
+        </header>
+
+        <div class="home-leaders-grid">
+          ${this.renderLeaderMiniList("Команди", leaders.teams)}
+          ${this.renderLeaderMiniList("Спортсмени", leaders.athletes)}
+          ${this.renderLeaderMiniList("Судді", leaders.judges)}
+        </div>
+      </section>
     `;
 
-    root.querySelectorAll("button").forEach(button => {
-      button.addEventListener("click", () => new StatisticsDashboard("app", "global").render());
+    document.getElementById("open-statistics-from-leaders")?.addEventListener("click", () => {
+      new StatisticsDashboard("app", "global").render();
     });
+  }
+
+  private renderLeaderMiniList(title: string, rows: HomeLeaderRow[]) {
+    if (!rows.length) {
+      return `
+        <div class="home-leader-column muted">
+          <strong>${this.escapeHtml(title)}</strong>
+          <small>Недостатньо завершених матчів</small>
+        </div>
+      `;
+    }
+
+    return `
+      <div class="home-leader-column">
+        <strong>${this.escapeHtml(title)}</strong>
+        ${rows.slice(0, 3).map((row, index) => `
+          <div class="home-leader-row">
+            <span>${index + 1}</span>
+            <b>${this.escapeHtml(row.name)}</b>
+            <small>${row.points} оч. · ${row.wins}W · ${row.played}M</small>
+          </div>
+        `).join("")}
+      </div>
+    `;
   }
 
   private getSports() {

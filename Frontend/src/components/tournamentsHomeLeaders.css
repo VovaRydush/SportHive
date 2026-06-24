@@ -1,0 +1,123 @@
+.tournament-home-leaders {
+  margin: 10px 0 16px;
+}
+
+.home-leaders-soft {
+  border: 1px solid rgba(17, 17, 17, .18);
+  background: rgba(255, 255, 255, .72);
+  padding: 12px 14px;
+  box-shadow: none;
+}
+
+.home-leaders-soft header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 10px;
+}
+
+.home-leaders-soft header span {
+  display: block;
+  color: #667085;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+
+.home-leaders-soft header b {
+  display: block;
+  color: #111;
+  font-size: 15px;
+  font-weight: 950;
+}
+
+.home-leaders-soft header button {
+  border: 1px solid #111;
+  background: transparent;
+  color: #111;
+  font-weight: 900;
+  font-size: 12px;
+  padding: 7px 10px;
+  cursor: pointer;
+}
+
+.home-leaders-soft header button:hover {
+  background: #111;
+  color: #fff;
+}
+
+.home-leaders-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.home-leader-column {
+  border-left: 3px solid rgba(17, 17, 17, .20);
+  padding-left: 10px;
+  min-width: 0;
+}
+
+.home-leader-column > strong {
+  display: block;
+  margin-bottom: 7px;
+  font-size: 13px;
+  text-transform: uppercase;
+  color: #667085;
+}
+
+.home-leader-column.muted small {
+  color: #98a2b3;
+  font-weight: 800;
+}
+
+.home-leader-row {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  min-height: 27px;
+  border-top: 1px solid rgba(17, 17, 17, .08);
+}
+
+.home-leader-row:first-of-type {
+  border-top: 0;
+}
+
+.home-leader-row span {
+  color: #98a2b3;
+  font-weight: 950;
+  font-size: 12px;
+}
+
+.home-leader-row b {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #111;
+  font-size: 13px;
+}
+
+.home-leader-row small {
+  color: #667085;
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+  .home-leaders-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .home-leader-row {
+    grid-template-columns: 24px minmax(0, 1fr);
+  }
+
+  .home-leader-row small {
+    grid-column: 2;
+  }
+}
