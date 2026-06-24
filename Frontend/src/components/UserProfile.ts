@@ -1,9 +1,10 @@
-import { resolvePhotoUrl, initials } from "../api/media";
+import { photoOrInitialsHtml, resolvePhotoUrl, escapeHtml, escapeAttr } from "../api/media";
 import { userProfileApi, type ProfileMatch, type ProfileTeam, type UserProfileData } from "../api/userProfileApi";
 import type { UserRole } from "../api/authToken";
 import { extractScore, formatMatchDateTime, getEffectiveMatchStatus, statusUa } from "../api/matchStatus";
 import { TeamPageLook } from "./TeamPage";
 import "./userProfile.css";
+import "./photoUi.css";
 
 export class UserProfilePage {
   private container: HTMLElement;
@@ -39,12 +40,11 @@ export class UserProfilePage {
     } catch (error) {
       this.container.innerHTML = `
         <section class="user-profile-page">
-          <button id="profile-back" class="profile-btn secondary" type="button">← Назад</button>
-          <div class="profile-empty">
-            ${this.escape(error instanceof Error ? error.message : "Не вдалося завантажити профіль")}
-          </div>
+          <button id="profile-back" class="profile-back">← Назад</button>
+          <div class="profile-error">${escapeHtml(error instanceof Error ? error.message : "Не вдалося завантажити профіль")}</div>
         </section>
       `;
+
       document.getElementById("profile-back")?.addEventListener("click", () => window.history.back());
     }
   }
@@ -64,26 +64,24 @@ export class UserProfilePage {
 
     this.container.innerHTML = `
       <section class="user-profile-page">
-        <div class="profile-top-actions">
-          <button id="profile-back" class="profile-btn secondary" type="button">← Назад</button>
-          ${this.selfMode ? `<span class="profile-own-badge">Мій профіль</span>` : ""}
-        </div>
+        <button id="profile-back" class="profile-back">← Назад</button>
 
         <header class="profile-hero">
-          <div class="profile-avatar">
-            ${image ? `<img src="${this.attr(image)}" alt="${this.attr(data.fullName)}" />` : `<span>${this.escape(initials(data.fullName || data.login))}</span>`}
-            <b>${this.roleLabel(data.role)}</b>
+          <div class="profile-avatar-wrap">
+            ${photoOrInitialsHtml(image, data.fullName || data.login, "profile-avatar", "auth")}
+            <span class="profile-role-badge">${this.roleLabel(data.role)}</span>
           </div>
 
-          <div class="profile-main">
+          <div class="profile-main-info">
             <span class="profile-kicker">SportHive · ${this.roleLabel(data.role)}</span>
-            <h1>${this.escape(data.fullName || data.login)}</h1>
+            <h1>${escapeHtml(data.fullName || data.login)}</h1>
+
             <div class="profile-meta">
-              <span>Логін: ${this.escape(data.login)}</span>
-              ${data.mail ? `<span>Email: ${this.escape(data.mail)}</span>` : ""}
-              ${data.typeSport ? `<span>Спорт: ${this.escape(data.typeSport)}</span>` : ""}
-              ${data.dataBirth ? `<span>Дата народження: ${this.date(data.dataBirth)}</span>` : ""}
-              ${data.age ? `<span>Вік: ${data.age}</span>` : ""}
+              <span>Логін: <b>${escapeHtml(data.login)}</b></span>
+              ${data.mail ? `<span>Email: <b>${escapeHtml(data.mail)}</b></span>` : ""}
+              ${data.typeSport ? `<span>Спорт: <b>${escapeHtml(data.typeSport)}</b></span>` : ""}
+              ${data.dataBirth ? `<span>Дата народження: <b>${this.date(data.dataBirth)}</b></span>` : ""}
+              ${data.age ? `<span>Вік: <b>${data.age}</b></span>` : ""}
             </div>
           </div>
         </header>
@@ -128,7 +126,7 @@ export class UserProfilePage {
 
     document.getElementById("profile-back")?.addEventListener("click", () => window.history.back());
 
-    this.container.querySelectorAll<HTMLButtonElement>("[data-team]").forEach(button => {
+    this.container.querySelectorAll<HTMLElement>("[data-team]").forEach(button => {
       button.addEventListener("click", () => {
         const team = button.dataset.team;
         if (team) new TeamPageLook("app", team).render();
@@ -162,6 +160,7 @@ export class UserProfilePage {
 
     if (status === "Finished") return 2;
     if (status === "Live") return 1;
+
     return 0;
   }
 
@@ -178,7 +177,9 @@ export class UserProfilePage {
       const second = String(match.secondSide || "");
       const isFirst = first === login || first === fullName;
 
-      if ((isFirst && parts[0] > parts[1]) || (!isFirst && second.length > 0 && parts[1] > parts[0])) wins++;
+      if ((isFirst && parts[0] > parts[1]) || (!isFirst && second.length > 0 && parts[1] > parts[0])) {
+        wins++;
+      }
     }
 
     return wins;
@@ -187,15 +188,20 @@ export class UserProfilePage {
   private renderTeams(teams: ProfileTeam[]) {
     const list = Array.isArray(teams) ? teams : [];
 
-    if (!list.length) return `<div class="profile-empty">Команд поки немає</div>`;
+    if (!list.length) {
+      return `<div class="profile-empty">Команд поки немає</div>`;
+    }
 
     return `
       <div class="profile-list">
         ${list.map(team => `
-          <button class="profile-list-item clickable" type="button" data-team="${this.attr(team.teamName)}">
-            <b>${this.escape(team.teamName)}</b>
-            <span>${this.escape(team.typeSport || "-")}</span>
-            <small>Тренер: ${this.escape(team.loginTrainer || "-")} · Спортсменів: ${team.athletesCount ?? 0}</small>
+          <button class="profile-list-item clickable photo-card-row" type="button" data-team="${escapeAttr(team.teamName)}">
+            ${photoOrInitialsHtml(team.photoTeam, team.teamName, "list-photo", "command")}
+            <div>
+              <b>${escapeHtml(team.teamName)}</b>
+              <span>${escapeHtml(team.typeSport || "-")}</span>
+              <small>Тренер: ${escapeHtml(team.loginTrainer || "-")} · Спортсменів: ${team.athletesCount ?? 0}</small>
+            </div>
           </button>
         `).join("")}
       </div>
@@ -205,15 +211,20 @@ export class UserProfilePage {
   private renderOrganizations() {
     const list = this.data?.organizations || [];
 
-    if (!list.length) return `<div class="profile-empty">Організацій поки немає</div>`;
+    if (!list.length) {
+      return `<div class="profile-empty">Організацій поки немає</div>`;
+    }
 
     return `
       <div class="profile-list">
         ${list.map(org => `
-          <article class="profile-list-item">
-            <b>${this.escape(org.nameOrganization || org.loginOrganization)}</b>
-            <span>${this.escape(org.loginOrganization)}</span>
-            <small>${this.escape(org.country || "")}</small>
+          <article class="profile-list-item photo-card-row">
+            ${photoOrInitialsHtml(org.profilePhoto, org.nameOrganization || org.loginOrganization, "list-photo", "auth")}
+            <div>
+              <b>${escapeHtml(org.nameOrganization || org.loginOrganization)}</b>
+              <span>${escapeHtml(org.loginOrganization)}</span>
+              <small>${escapeHtml(org.country || "")}</small>
+            </div>
           </article>
         `).join("")}
       </div>
@@ -223,7 +234,9 @@ export class UserProfilePage {
   private renderMatches(matches: ProfileMatch[]) {
     const list = Array.isArray(matches) ? matches : [];
 
-    if (!list.length) return `<div class="profile-empty">Матчів поки немає</div>`;
+    if (!list.length) {
+      return `<div class="profile-empty">Матчів поки немає</div>`;
+    }
 
     return `
       <div class="profile-match-list">
@@ -232,18 +245,13 @@ export class UserProfilePage {
           const score = extractScore(match) || match.score || "vs";
 
           return `
-            <article class="profile-match">
-              <div class="match-row">
-                <span>${this.escape(match.nameEvent || "Матч")}</span>
-                <strong class="status ${status.toLowerCase()}">${statusUa(status)}</strong>
+            <article class="profile-match-card">
+              <div>
+                <b>${escapeHtml(match.nameEvent || "Матч")}</b>
+                <span>${statusUa(status)}</span>
               </div>
-              <b>${this.escape(match.firstSide || "-")} vs ${this.escape(match.secondSide || "-")}</b>
-              <small>
-                ${formatMatchDateTime(match)}
-                · Score: ${this.escape(score)}
-                · R${match.tour || "-"}
-                ${match.group ? ` · Group ${match.group}` : ""}
-              </small>
+              <p>${escapeHtml(match.firstSide || "-")} vs ${escapeHtml(match.secondSide || "-")}</p>
+              <small>${formatMatchDateTime(match)} · Score: ${escapeHtml(score)} · R${match.tour || "-"}${match.group ? ` · Group ${match.group}` : ""}</small>
             </article>
           `;
         }).join("")}
@@ -255,25 +263,14 @@ export class UserProfilePage {
     if (role === "Organization") return "Організація";
     if (role === "Trainer") return "Тренер";
     if (role === "Judge") return "Суддя";
+
     return "Спортсмен";
   }
 
   private date(value: string) {
     const date = new Date(value);
+
     return Number.isNaN(date.getTime()) ? "-" : date.toLocaleDateString("uk-UA");
-  }
-
-  private escape(value: unknown) {
-    return String(value ?? "")
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#039;");
-  }
-
-  private attr(value: unknown) {
-    return this.escape(value).replace(/`/g, "&#096;");
   }
 }
 

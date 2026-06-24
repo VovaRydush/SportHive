@@ -22,7 +22,9 @@ import {
   openTeamEditor,
   removeOrganizationMember,
 } from "./OrganizationManagementPanels";
+import { photoOrInitialsHtml, escapeHtml, escapeAttr } from "../api/media";
 import "./organizationProfile.css";
+import "./photoUi.css";
 
 type AnyObj = Record<string, any>;
 
@@ -82,26 +84,23 @@ export class OrganizationProfile {
       <section class="organization-profile">
         <header class="org-header">
           <div class="org-logo-container">
-            ${org.profilePhoto
-              ? `<img class="org-logo" src="${this.escapeAttr(org.profilePhoto)}" alt="${this.escapeAttr(org.nameOrganization)}" />`
-              : `<div class="org-logo org-logo-placeholder">SportHive</div>`
-            }
-            <span class="org-type-badge">${this.escapeHtml(org.typeOrganization || "Організація")}</span>
+            ${photoOrInitialsHtml(org.profilePhoto, org.nameOrganization || org.login, "org-logo", "auth")}
+            <span class="org-type-badge">${escapeHtml(org.typeOrganization || "Організація")}</span>
           </div>
 
           <div class="org-main-info">
             <span class="org-label">SportHive · Організація</span>
-            <h1 class="org-title">${this.escapeHtml(org.nameOrganization || "Моя організація")}</h1>
+            <h1 class="org-title">${escapeHtml(org.nameOrganization || "Моя організація")}</h1>
 
             <div class="org-meta">
-              <span>Логін: <b>${this.escapeHtml(org.login || "-")}</b></span>
-              <span>Країна: <b>${this.escapeHtml(org.country || "-")}</b></span>
-              <span>Тип: <b>${this.escapeHtml(org.typeOrganization || "-")}</b></span>
+              <span>Логін: <b>${escapeHtml(org.login || "-")}</b></span>
+              <span>Країна: <b>${escapeHtml(org.country || "-")}</b></span>
+              <span>Тип: <b>${escapeHtml(org.typeOrganization || "-")}</b></span>
             </div>
 
             <div class="org-description-block">
               <h3>Про організацію</h3>
-              <p class="org-description">${this.escapeHtml(org.description || "Опис організації поки не заповнений.")}</p>
+              <p class="org-description">${escapeHtml(org.description || "Опис організації поки не заповнений.")}</p>
             </div>
 
             <div class="org-actions">
@@ -278,17 +277,12 @@ export class OrganizationProfile {
       }
 
       root.innerHTML = users.map(user => `
-        <button class="employee-result-card invite-result" type="button" data-login="${this.escapeAttr(user.login)}">
-          <div class="employee-result-avatar">
-            ${user.profilePhoto
-              ? `<img src="${this.escapeAttr(user.profilePhoto)}" alt="${this.escapeAttr(user.fullName || user.login)}" />`
-              : this.escapeHtml((user.fullName || user.login)[0] || "?")
-            }
-          </div>
+        <button class="employee-result-card invite-result" type="button" data-login="${escapeAttr(user.login)}">
+          ${photoOrInitialsHtml(user.profilePhoto, user.fullName || user.login, "employee-result-avatar", "auth")}
           <div class="employee-result-info">
-            <h3>${this.escapeHtml(user.fullName || user.login)}</h3>
-            <p>${this.escapeHtml(user.mail || "")}</p>
-            <p>${this.escapeHtml(user.role)}${user.typeSport ? ` · ${this.escapeHtml(user.typeSport)}` : ""}</p>
+            <h3>${escapeHtml(user.fullName || user.login)}</h3>
+            <p>${escapeHtml(user.mail || "")}</p>
+            <p>${escapeHtml(user.role)}${user.typeSport ? ` · ${escapeHtml(user.typeSport)}` : ""}</p>
           </div>
           <span class="employee-add-btn">Обрати</span>
         </button>
@@ -306,7 +300,7 @@ export class OrganizationProfile {
         });
       });
     } catch (error) {
-      root.innerHTML = `<div class="empty-state">${this.escapeHtml(error instanceof Error ? error.message : "Помилка пошуку")}</div>`;
+      root.innerHTML = `<div class="empty-state">${escapeHtml(error instanceof Error ? error.message : "Помилка пошуку")}</div>`;
     }
   }
 
@@ -341,8 +335,8 @@ export class OrganizationProfile {
 
     root.classList.remove("muted");
     root.innerHTML = `
-      <b>${this.escapeHtml(this.selectedUser.fullName || this.selectedUser.login)}</b>
-      <span>${this.escapeHtml(this.selectedUser.role)} · ${this.escapeHtml(this.selectedUser.mail || this.selectedUser.login)}</span>
+      <b>${escapeHtml(this.selectedUser.fullName || this.selectedUser.login)}</b>
+      <span>${escapeHtml(this.selectedUser.role)} · ${escapeHtml(this.selectedUser.mail || this.selectedUser.login)}</span>
       <button id="clear-selected-user" type="button">×</button>
     `;
 
@@ -366,21 +360,23 @@ export class OrganizationProfile {
       <div class="teams-grid">
         ${teams.map(team => `
           <article class="team-card">
-            <button class="team-card-button" type="button" data-team-name="${this.escapeAttr(team.teamName)}">
+            <button class="team-card-button" type="button" data-team-name="${escapeAttr(team.teamName)}">
               <header class="team-header">
-                <span class="team-sport-icon">${this.sportIcon(team.typeSport)}</span>
-                <h3 class="team-name">${this.escapeHtml(team.teamName)}</h3>
+                ${photoOrInitialsHtml(team.teamPhoto, team.teamName, "list-photo", "command")}
+                <div>
+                  <h3 class="team-name">${escapeHtml(team.teamName)}</h3>
+                  <span>${escapeHtml(team.typeSport || "-")}</span>
+                </div>
               </header>
               <div class="team-details">
-                <p><b>Вид спорту:</b> ${this.escapeHtml(team.typeSport || "-")}</p>
-                <p><b>Тренер:</b> ${this.escapeHtml(team.loginTrainer || "-")}</p>
+                <p><b>Тренер:</b> ${escapeHtml(team.loginTrainer || "-")}</p>
                 <p><b>Спортсменів:</b> ${team.athletesCount}</p>
                 <span class="team-link">Переглянути команду →</span>
               </div>
             </button>
 
             <div class="team-manage-buttons">
-              <button class="manage-small-btn" type="button" data-edit-team="${this.escapeAttr(team.teamName)}">Редагувати команду</button>
+              <button class="manage-small-btn" type="button" data-edit-team="${escapeAttr(team.teamName)}">Редагувати команду</button>
             </div>
           </article>
         `).join("")}
@@ -389,30 +385,25 @@ export class OrganizationProfile {
   }
 
   private renderMembers(items: OrgMember[], role: "Trainer" | "Judge", empty: string) {
-    if (!items.length) return `<div class="empty-state">${this.escapeHtml(empty)}</div>`;
+    if (!items.length) return `<div class="empty-state">${escapeHtml(empty)}</div>`;
 
     return `
       <div class="staff-list">
         ${items.map(member => `
           <div class="staff-card">
-            <button class="staff-main-button" type="button" data-profile-login="${this.escapeAttr(member.login)}" data-profile-role="${role}">
-              <div class="staff-avatar">
-                ${member.profilePhoto
-                  ? `<img src="${this.escapeAttr(member.profilePhoto)}" alt="${this.escapeAttr(member.fullName || member.login)}" />`
-                  : this.escapeHtml((member.fullName || member.login)[0] || "?")
-                }
-              </div>
+            <button class="staff-main-button" type="button" data-profile-login="${escapeAttr(member.login)}" data-profile-role="${role}">
+              ${photoOrInitialsHtml(member.profilePhoto, member.fullName || member.login, "staff-avatar", "auth")}
               <div>
-                <h3 class="staff-name">${this.escapeHtml(member.fullName || member.login)}</h3>
-                <p class="staff-category">${this.escapeHtml(member.login)}</p>
-                ${member.mail ? `<p class="staff-sport">${this.escapeHtml(member.mail)}</p>` : ""}
-                ${member.typeSport ? `<p class="staff-sport">${this.escapeHtml(member.typeSport)}</p>` : ""}
+                <h3 class="staff-name">${escapeHtml(member.fullName || member.login)}</h3>
+                <p class="staff-category">${escapeHtml(member.login)}</p>
+                ${member.mail ? `<p class="staff-sport">${escapeHtml(member.mail)}</p>` : ""}
+                ${member.typeSport ? `<p class="staff-sport">${escapeHtml(member.typeSport)}</p>` : ""}
                 <span class="staff-link">Переглянути профіль →</span>
               </div>
             </button>
 
             <div class="member-actions">
-              <button class="remove-small-btn" type="button" data-remove-member="${this.escapeAttr(member.login)}" data-remove-role="${role}">Видалити</button>
+              <button class="remove-small-btn" type="button" data-remove-member="${escapeAttr(member.login)}" data-remove-role="${role}">Видалити</button>
             </div>
           </div>
         `).join("")}
@@ -430,27 +421,22 @@ export class OrganizationProfile {
       <div class="athlete-sport-groups">
         ${sports.map(sport => `
           <section class="athlete-sport-group">
-            <h3>${this.escapeHtml(sport)} <span>${groups[sport].length}</span></h3>
+            <h3>${escapeHtml(sport)} <span>${groups[sport].length}</span></h3>
             <div class="staff-list">
               ${groups[sport].map(athlete => `
                 <div class="staff-card">
-                  <button class="staff-main-button" type="button" data-profile-login="${this.escapeAttr(athlete.login)}" data-profile-role="Athlete">
-                    <div class="staff-avatar">
-                      ${athlete.profilePhoto
-                        ? `<img src="${this.escapeAttr(athlete.profilePhoto)}" alt="${this.escapeAttr(athlete.fullName || athlete.login)}" />`
-                        : this.escapeHtml((athlete.fullName || athlete.login)[0] || "?")
-                      }
-                    </div>
+                  <button class="staff-main-button" type="button" data-profile-login="${escapeAttr(athlete.login)}" data-profile-role="Athlete">
+                    ${photoOrInitialsHtml(athlete.profilePhoto, athlete.fullName || athlete.login, "staff-avatar", "auth")}
                     <div>
-                      <h3 class="staff-name">${this.escapeHtml(athlete.fullName || athlete.login)}</h3>
-                      <p class="staff-category">${this.escapeHtml(athlete.login)}</p>
-                      ${athlete.mail ? `<p class="staff-sport">${this.escapeHtml(athlete.mail)}</p>` : ""}
+                      <h3 class="staff-name">${escapeHtml(athlete.fullName || athlete.login)}</h3>
+                      <p class="staff-category">${escapeHtml(athlete.login)}</p>
+                      ${athlete.mail ? `<p class="staff-sport">${escapeHtml(athlete.mail)}</p>` : ""}
                       <span class="staff-link">Переглянути профіль →</span>
                     </div>
                   </button>
 
                   <div class="member-actions">
-                    <button class="remove-small-btn" type="button" data-remove-member="${this.escapeAttr(athlete.login)}" data-remove-role="Athlete">Видалити</button>
+                    <button class="remove-small-btn" type="button" data-remove-member="${escapeAttr(athlete.login)}" data-remove-role="Athlete">Видалити</button>
                   </div>
                 </div>
               `).join("")}
@@ -468,6 +454,7 @@ export class OrganizationProfile {
     for (const event of this.catalogEvents) {
       const canManage = Boolean(event.canManageEvent || event.accessLevel === "Manage");
       const matchesRecent = recentEvents.some(recent => this.eventKey(recent) === this.eventKey(event) || this.sameEventNameDate(recent, event));
+
       if (canManage || matchesRecent) byKey.set(this.eventKey(event), normalizeEventForUi(event));
     }
 
@@ -497,13 +484,16 @@ export class OrganizationProfile {
           return `
             <article class="event-item">
               <div class="event-date">${date}</div>
-              <div class="event-content">
-                <h3 class="event-title">${this.escapeHtml(name)}</h3>
-                <p class="event-description">${this.escapeHtml(sport)} · ${this.escapeHtml(system)}</p>
-                <div class="event-meta">
-                  <span>${stats.totalMatches} матчів</span>
-                  <span>${formatFinishedCounter(event)} завершено</span>
-                  <span>${stats.liveMatches} live</span>
+              <div class="event-content photo-card-row">
+                ${photoOrInitialsHtml(event.eventPhoto || event.EventPhoto, name, "event-photo", "event")}
+                <div>
+                  <h3 class="event-title">${escapeHtml(name)}</h3>
+                  <p class="event-description">${escapeHtml(sport)} · ${escapeHtml(system)}</p>
+                  <div class="event-meta">
+                    <span>${stats.totalMatches} матчів</span>
+                    <span>${formatFinishedCounter(event)} завершено</span>
+                    <span>${stats.liveMatches} live</span>
+                  </div>
                 </div>
               </div>
             </article>
@@ -519,10 +509,10 @@ export class OrganizationProfile {
     return `
       <div class="invitation-list">
         ${invitations.map(invitation => `
-          <article class="invitation-card ${this.escapeAttr(invitation.status.toLowerCase())}">
-            <h3>${this.escapeHtml(invitation.targetLogin)}</h3>
-            <p>${this.escapeHtml(invitation.targetRole)} · ${this.escapeHtml(invitation.targetEmail)}</p>
-            <span>${this.escapeHtml(invitation.status)} · ${this.formatDate(invitation.createdAt)}</span>
+          <article class="invitation-card">
+            <h3>${escapeHtml(invitation.targetLogin)}</h3>
+            <p>${escapeHtml(invitation.targetRole)} · ${escapeHtml(invitation.targetEmail)}</p>
+            <span>${escapeHtml(invitation.status)} · ${this.formatDate(invitation.createdAt)}</span>
           </article>
         `).join("")}
       </div>
@@ -532,6 +522,7 @@ export class OrganizationProfile {
   private eventKey(event: AnyObj) {
     const id = event.idEvent || event.IdEvent;
     if (id) return `id:${id}`;
+
     return `${String(event.nameEvent || event.NameEvent || "").toLowerCase()}|${this.formatDate(event.dataStart || event.DataStart)}`;
   }
 
@@ -545,33 +536,8 @@ export class OrganizationProfile {
   private formatDate(value: unknown) {
     if (!value) return "-";
     const date = new Date(String(value));
+
     return Number.isNaN(date.getTime()) ? "-" : date.toLocaleDateString("uk-UA");
-  }
-
-  private sportIcon(sport?: string | null) {
-    const value = String(sport || "").toLowerCase();
-
-    if (value.includes("football") || value.includes("фут")) return "⚽";
-    if (value.includes("basket") || value.includes("бас")) return "🏀";
-    if (value.includes("tennis") || value.includes("тен")) return "🎾";
-    if (value.includes("volley") || value.includes("вол")) return "🏐";
-    if (value.includes("chess") || value.includes("шах")) return "♟️";
-    if (value.includes("box") || value.includes("бокс")) return "🥊";
-    if (value.includes("hockey") || value.includes("хок")) return "🏒";
-    return "🏆";
-  }
-
-  private escapeHtml(value: unknown) {
-    return String(value ?? "")
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#039;");
-  }
-
-  private escapeAttr(value: unknown) {
-    return this.escapeHtml(value).replace(/`/g, "&#096;");
   }
 }
 

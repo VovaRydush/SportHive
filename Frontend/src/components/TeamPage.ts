@@ -1,5 +1,6 @@
 import { commandApi } from "../api/commandApi";
 import type { AthleteTeamInfo, TeamInfoDto, TeamMatchInfo } from "../api/commandTypes";
+import { photoOrInitialsHtml, resolvePhotoUrl, escapeHtml, escapeAttr } from "../api/media";
 import { UserProfilePage } from "./UserProfile";
 import {
   openTeamEditor,
@@ -7,6 +8,7 @@ import {
 } from "./OrganizationManagementPanels";
 import "./teamPage.css";
 import "./managementPanel.css";
+import "./photoUi.css";
 
 export class TeamPageLook {
   private container: HTMLElement;
@@ -16,9 +18,7 @@ export class TeamPageLook {
   constructor(containerId: string, nameTeam: string) {
     const element = document.getElementById(containerId);
 
-    if (!element) {
-      throw new Error(`Element with id '${containerId}' not found`);
-    }
+    if (!element) throw new Error(`Element with id '${containerId}' not found`);
 
     this.container = element;
     this.teamName = nameTeam;
@@ -38,7 +38,7 @@ export class TeamPageLook {
       this.container.innerHTML = `
         <section class="team-page">
           <button id="team-back" class="team-back">← Назад</button>
-          <div class="team-error">${this.escapeHtml(error instanceof Error ? error.message : "Не вдалося завантажити команду")}</div>
+          <div class="team-error">${escapeHtml(error instanceof Error ? error.message : "Не вдалося завантажити команду")}</div>
         </section>
       `;
 
@@ -58,28 +58,29 @@ export class TeamPageLook {
       this.pick(team, ["trainerLastName", "TrainerLastName"]),
     ].filter(Boolean).join(" ") || trainerLogin || "-";
 
+    const teamPhoto = this.pick(team, ["photoTeam", "PhotoTeam", "teamPhoto", "TeamPhoto"]);
+    const trainerPhoto = this.pick(team, ["trainerPhoto", "TrainerPhoto", "trainerPhotp", "TrainerPhotp"]);
     const athletes = this.array(team.athletes ?? team.Athletes);
-    const orgs = this.array(team.organizations ?? team.Organizations);
+    const organizations = this.array(team.organizations ?? team.Organizations);
     const matches = this.array(team.matches ?? team.Matches);
     const stats = team.stats ?? this.buildStats(matches, name);
+    const image = resolvePhotoUrl(teamPhoto, "command");
 
     this.container.innerHTML = `
       <section class="team-page">
         <button id="team-back" class="team-back">← Назад</button>
 
         <header class="team-hero">
-          <div class="team-photo">
-            ${this.pick(team, ["photoTeam", "PhotoTeam"])
-              ? `<img src="${this.escapeAttr(this.pick(team, ["photoTeam", "PhotoTeam"]))}" alt="${this.escapeAttr(name)}" />`
-              : `<span>${this.escapeHtml(name[0] || "T")}</span>`
-            }
-            <small>КОМАНДА</small>
-          </div>
+          ${photoOrInitialsHtml(image, name, "team-photo", "command")}
 
           <div class="team-info">
             <span class="team-kicker">SportHive · команда</span>
-            <h1>${this.escapeHtml(name)}</h1>
-            <p>${this.escapeHtml(sport || "-")} · Тренер: ${this.escapeHtml(trainerName)} · Спортсменів: ${athletes.length}</p>
+            <h1>${escapeHtml(name)}</h1>
+
+            <div class="photo-card-row team-trainer-row">
+              ${photoOrInitialsHtml(trainerPhoto, trainerName, "list-photo", "auth")}
+              <p>${escapeHtml(sport || "-")} · Тренер: ${escapeHtml(trainerName)} · Спортсменів: ${athletes.length}</p>
+            </div>
 
             <div class="team-manage-buttons">
               <button id="edit-team-btn" class="manage-small-btn" type="button">Редагувати команду</button>
@@ -102,7 +103,7 @@ export class TeamPageLook {
 
           <div class="team-panel">
             <h2>Організації</h2>
-            ${this.renderOrganizations(orgs)}
+            ${this.renderOrganizations(organizations)}
           </div>
         </section>
 
@@ -123,23 +124,21 @@ export class TeamPageLook {
       }, () => this.render());
     });
 
-    this.container.querySelectorAll<HTMLElement>("[data-user-login]").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const login = btn.dataset.userLogin || "";
-        const role = (btn.dataset.userRole || "Athlete") as "Athlete" | "Trainer" | "Judge";
+    this.container.querySelectorAll<HTMLElement>("[data-user-login]").forEach(button => {
+      button.addEventListener("click", () => {
+        const login = button.dataset.userLogin || "";
+        const role = (button.dataset.userRole || "Athlete") as "Athlete" | "Trainer" | "Judge";
 
         if (login) new UserProfilePage("app", login, role).render();
       });
     });
 
-    this.container.querySelectorAll<HTMLElement>("[data-remove-team-athlete]").forEach(btn => {
-      btn.addEventListener("click", event => {
+    this.container.querySelectorAll<HTMLElement>("[data-remove-team-athlete]").forEach(button => {
+      button.addEventListener("click", event => {
         event.stopPropagation();
-        const login = btn.dataset.removeTeamAthlete || "";
+        const login = button.dataset.removeTeamAthlete || "";
 
-        if (login) {
-          removeTeamAthlete(name, login, () => this.render());
-        }
+        if (login) removeTeamAthlete(name, login, () => this.render());
       });
     });
   }
@@ -151,22 +150,26 @@ export class TeamPageLook {
 
     return `
       <div class="team-list">
-        ${athletes.map(a => {
-          const login = this.pick(a, ["login", "Login"]);
-          const fullName = this.pick(a, ["fullName", "FullName"]) ||
-            [this.pick(a, ["firsName", "FirsName"]), this.pick(a, ["lastName", "LastName"])].filter(Boolean).join(" ") ||
+        ${athletes.map(athlete => {
+          const login = this.pick(athlete, ["login", "Login"]);
+          const fullName = this.pick(athlete, ["fullName", "FullName"]) ||
+            [this.pick(athlete, ["firsName", "FirsName"]), this.pick(athlete, ["lastName", "LastName"])].filter(Boolean).join(" ") ||
             login;
+          const photo = this.pick(athlete, ["profilePhoto", "ProfilePhoto", "photo", "Photo"]);
 
           return `
             <article class="team-list-item">
-              <button class="team-athlete-main" type="button" data-user-login="${this.escapeAttr(login)}" data-user-role="Athlete">
-                <b>${this.escapeHtml(fullName || login)}</b>
-                <span>${this.escapeHtml(login)}</span>
-                <small>${this.escapeHtml(this.pick(a, ["athleteStatus", "AthleteStatus"]) || "Active")}</small>
+              <button class="team-athlete-main photo-card-row" type="button" data-user-login="${escapeAttr(login)}" data-user-role="Athlete">
+                ${photoOrInitialsHtml(photo, fullName || login, "team-member-avatar", "auth")}
+                <div>
+                  <b>${escapeHtml(fullName || login)}</b>
+                  <span>${escapeHtml(login)}</span>
+                  <small>${escapeHtml(this.pick(athlete, ["athleteStatus", "AthleteStatus"]) || "Active")}</small>
+                </div>
               </button>
 
               <div class="member-actions">
-                <button class="remove-small-btn" type="button" data-remove-team-athlete="${this.escapeAttr(login)}">Видалити</button>
+                <button class="remove-small-btn" type="button" data-remove-team-athlete="${escapeAttr(login)}">Видалити</button>
               </div>
             </article>
           `;
@@ -175,20 +178,29 @@ export class TeamPageLook {
     `;
   }
 
-  private renderOrganizations(orgs: any[]) {
-    if (!orgs.length) {
+  private renderOrganizations(organizations: any[]) {
+    if (!organizations.length) {
       return `<div class="team-empty">Організацій поки немає</div>`;
     }
 
     return `
       <div class="team-list">
-        ${orgs.map(org => `
-          <article class="team-list-item">
-            <b>${this.escapeHtml(this.pick(org, ["nameOrganization", "NameOrganization"]) || this.pick(org, ["loginOrganization", "LoginOrganization"]))}</b>
-            <span>${this.escapeHtml(this.pick(org, ["loginOrganization", "LoginOrganization"]))}</span>
-            <small>${this.escapeHtml(this.pick(org, ["country", "Country"]) || "")}</small>
-          </article>
-        `).join("")}
+        ${organizations.map(org => {
+          const name = this.pick(org, ["nameOrganization", "NameOrganization"]) || this.pick(org, ["loginOrganization", "LoginOrganization"]);
+          const login = this.pick(org, ["loginOrganization", "LoginOrganization"]);
+          const photo = this.pick(org, ["profilePhoto", "ProfilePhoto", "photo", "Photo"]);
+
+          return `
+            <article class="team-list-item photo-card-row">
+              ${photoOrInitialsHtml(photo, name || login, "list-photo", "auth")}
+              <div>
+                <b>${escapeHtml(name)}</b>
+                <span>${escapeHtml(login)}</span>
+                <small>${escapeHtml(this.pick(org, ["country", "Country"]) || "")}</small>
+              </div>
+            </article>
+          `;
+        }).join("")}
       </div>
     `;
   }
@@ -200,11 +212,11 @@ export class TeamPageLook {
 
     return `
       <div class="team-match-list">
-        ${matches.map(m => `
+        ${matches.map(match => `
           <article class="team-match-card">
-            <b>${this.escapeHtml(m.nameEvent || "Матч")}</b>
-            <span>${this.escapeHtml(m.firstTeam || "-")} vs ${this.escapeHtml(m.secondTeam || "-")}</span>
-            <small>${m.dataMatch ? this.date(m.dataMatch) : "-"} · ${this.escapeHtml(m.score || "score -")} · ${this.status(m.statusMatch)} · R${m.tour ?? "-"}</small>
+            <b>${escapeHtml(match.nameEvent || "Матч")}</b>
+            <span>${escapeHtml(match.firstTeam || "-")} vs ${escapeHtml(match.secondTeam || "-")}</span>
+            <small>${match.dataMatch ? this.date(match.dataMatch) : "-"} · ${escapeHtml(match.score || "score -")} · ${this.status(match.statusMatch)} · R${match.tour ?? "-"}</small>
           </article>
         `).join("")}
       </div>
@@ -217,29 +229,23 @@ export class TeamPageLook {
     let draws = 0;
     let finishedMatches = 0;
 
-    for (const m of matches) {
-      if (m.statusMatch !== 2) continue;
+    for (const match of matches) {
+      if (match.statusMatch !== 2) continue;
 
       finishedMatches++;
 
-      const parts = String(m.score || "").split(":").map(x => Number(x));
+      const parts = String(match.score || "").split(":").map(item => Number(item));
 
       if (parts.length !== 2 || parts.some(Number.isNaN)) continue;
 
-      const isFirst = m.firstTeam === teamName;
+      const isFirst = match.firstTeam === teamName;
 
       if (parts[0] === parts[1]) draws++;
       else if ((isFirst && parts[0] > parts[1]) || (!isFirst && parts[1] > parts[0])) wins++;
       else losses++;
     }
 
-    return {
-      totalMatches: matches.length,
-      finishedMatches,
-      wins,
-      losses,
-      draws,
-    };
+    return { totalMatches: matches.length, finishedMatches, wins, losses, draws };
   }
 
   private pick(obj: any, keys: string[]) {
@@ -261,6 +267,7 @@ export class TeamPageLook {
   private status(status?: number) {
     if (status === 2) return "Finished";
     if (status === 1) return "Live";
+
     return "Upcoming";
   }
 
@@ -268,18 +275,5 @@ export class TeamPageLook {
     const date = new Date(value);
 
     return Number.isNaN(date.getTime()) ? "-" : date.toLocaleDateString("uk-UA");
-  }
-
-  private escapeHtml(value: unknown) {
-    return String(value ?? "")
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#039;");
-  }
-
-  private escapeAttr(value: unknown) {
-    return this.escapeHtml(value).replace(/`/g, "&#096;");
   }
 }

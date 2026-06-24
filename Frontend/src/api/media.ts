@@ -9,7 +9,7 @@ const baseByOwner: Record<MediaOwner, string> = {
 };
 
 export function isProbablyBase64(value: string): boolean {
-  const text = value.trim();
+  const text = String(value || "").trim();
 
   if (text.length < 80) return false;
   if (text.includes("/") || text.includes("\\") || text.includes(".")) return false;
@@ -20,7 +20,7 @@ export function isProbablyBase64(value: string): boolean {
 export function resolvePhotoUrl(value?: string | null, owner: MediaOwner = "auth"): string {
   const raw = String(value || "").trim();
 
-  if (!raw) return "";
+  if (!raw || raw === "null" || raw === "undefined") return "";
 
   if (
     raw.startsWith("http://") ||
@@ -35,10 +35,23 @@ export function resolvePhotoUrl(value?: string | null, owner: MediaOwner = "auth
     return `data:image/jpeg;base64,${raw}`;
   }
 
-  const normalized = raw.replace(/\\/g, "/");
+  const normalized = raw
+    .replace(/\\/g, "/")
+    .replace(/^~\//, "/")
+    .replace(/^wwwroot\//i, "/")
+    .replace(/^public\//i, "/");
 
   if (normalized.startsWith("/")) {
     return `${baseByOwner[owner]}${normalized}`;
+  }
+
+  if (
+    normalized.startsWith("uploads/") ||
+    normalized.startsWith("images/") ||
+    normalized.startsWith("img/") ||
+    normalized.startsWith("photos/")
+  ) {
+    return `${baseByOwner[owner]}/${normalized}`;
   }
 
   return `${baseByOwner[owner]}/photo?path=${encodeURIComponent(normalized)}`;
@@ -56,4 +69,55 @@ export function initials(value?: string | null): string {
   }
 
   return text[0].toUpperCase();
+}
+
+export function pickFirstPhoto(source: any, keys: string[], fallbackOwner: MediaOwner = "auth") {
+  for (const key of keys) {
+    const value = source?.[key];
+
+    if (value !== undefined && value !== null && String(value).trim() !== "") {
+      return resolvePhotoUrl(String(value), fallbackOwner);
+    }
+  }
+
+  return "";
+}
+
+export function escapeAttr(value: unknown) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+export function escapeHtml(value: unknown) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+export function photoOrInitialsHtml(
+  photo: string | null | undefined,
+  title: string,
+  className = "sh-photo",
+  owner: MediaOwner = "auth"
+) {
+  const url = resolvePhotoUrl(photo, owner);
+  const alt = escapeAttr(title || "photo");
+  const letters = escapeHtml(initials(title));
+
+  if (!url) {
+    return `<div class="${className} sh-photo-fallback">${letters}</div>`;
+  }
+
+  return `
+    <div class="${className}">
+      <img src="${escapeAttr(url)}" alt="${alt}" loading="lazy" onerror="this.closest('.${className}')?.classList.add('sh-photo-broken'); this.remove();" />
+      <span class="sh-photo-fallback-text">${letters}</span>
+    </div>
+  `;
 }

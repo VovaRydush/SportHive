@@ -1,7 +1,6 @@
 import { eventCatalogApi } from "../api/eventCatalogApi";
 import { NotificationKarina } from "./Notification";
 import { SportLiveMatchPanel } from "./SportLiveMatchPanel";
-import { StatisticsDashboard } from "./StatisticsDashboard";
 import {
   canEnterMatchData,
   extractScore,
@@ -18,19 +17,19 @@ import {
   normalizeMatchForUi,
   type UiStandingRow,
 } from "../api/tournamentResultUtils";
-import { buildTournamentHomeLeaders, type HomeLeaderRow } from "../api/tournamentHomeLeaders";
+import { photoOrInitialsHtml, escapeHtml, escapeAttr } from "../api/media";
 import "./tournamentsPage.css";
-import "./tournamentsHomeLeaders.css";
+import "./photoUi.css";
 
-type CatalogEvent = Record<string, any>;
-type CatalogMatch = Record<string, any>;
+type AnyEvent = Record<string, any>;
+type AnyMatch = Record<string, any>;
 type StatusFilter = "all" | "Live" | "Finished" | "Upcoming";
 type DetailTab = "matches" | "table" | "bracket";
 
 export class TournamentsPage {
   private container: HTMLElement;
-  private events: CatalogEvent[] = [];
-  private selectedEvent?: CatalogEvent;
+  private events: AnyEvent[] = [];
+  private selectedEvent?: AnyEvent;
   private selectedSport = "all";
   private statusFilter: StatusFilter = "all";
   private selectedSystem = "all";
@@ -49,8 +48,10 @@ export class TournamentsPage {
         <header class="score-header">
           <div>
             <span class="score-kicker">SportHive · Match Center</span>
+            <h1>Турніри</h1>
+            <p>Переглядай заходи, матчі, статуси, таблиці та сітки в одному місці.</p>
           </div>
-          
+          <button id="score-refresh-top" class="score-btn score-btn-dark" type="button">Оновити</button>
         </header>
 
         <div id="sports-strip" class="sports-strip"></div>
@@ -64,8 +65,6 @@ export class TournamentsPage {
           </div>
           <input id="event-search" class="score-search" placeholder="Пошук заходу, команди, спортсмена..." />
         </div>
-
-        <div id="tournament-home-leaders" class="tournament-home-leaders"></div>
 
         <div class="score-layout">
           <aside class="score-sidebar">
@@ -149,11 +148,11 @@ export class TournamentsPage {
     try {
       const previousId = this.selectedEvent?.idEvent;
       const events = await eventCatalogApi.getEvents({});
-      this.events = (events || []).map(event => this.normalizeEvent(event as CatalogEvent));
+      this.events = (events || []).map(event => normalizeEventForUi(event as AnyEvent));
 
       if (keepSelected && previousId) {
         const stillExists = this.events.find(event => Number(event.idEvent) === Number(previousId));
-        if (stillExists) this.selectedEvent = this.normalizeEvent(await eventCatalogApi.getEvent(previousId) as CatalogEvent);
+        if (stillExists) this.selectedEvent = normalizeEventForUi(await eventCatalogApi.getEvent(previousId) as AnyEvent);
       }
 
       this.renderAll();
@@ -162,81 +161,16 @@ export class TournamentsPage {
     } catch (error) {
       const message = error instanceof Error ? error.message : "Не вдалося завантажити турніри";
       const root = document.getElementById("events-feed");
-      if (root) root.innerHTML = `<div class="error-card">${this.escapeHtml(message)}</div>`;
+      if (root) root.innerHTML = `<div class="error-card">${escapeHtml(message)}</div>`;
       new NotificationKarina().show(message, "error");
     }
   }
 
-  private normalizeEvent(event: CatalogEvent): CatalogEvent {
-    return normalizeEventForUi(event);
-  }
-
   private renderAll() {
     this.renderSportsStrip();
-    this.renderHomeLeaders();
     this.renderSportsList();
     this.renderSummary();
     this.renderFeed();
-  }
-
-  private renderHomeLeaders() {
-    const root = document.getElementById("tournament-home-leaders");
-    if (!root) return;
-
-    const events = this.filteredEvents();
-    const leaders = buildTournamentHomeLeaders(events);
-    const titleSport = this.selectedSport === "all" ? "усіх видах спорту" : this.selectedSport;
-
-    if (!leaders.teams.length && !leaders.athletes.length && !leaders.judges.length) {
-      root.innerHTML = "";
-      return;
-    }
-
-    root.innerHTML = `
-      <section class="home-leaders-soft">
-        <header>
-          <div>
-            <span>Аналітика сезону</span>
-            <b>Топ лідерів по ${this.escapeHtml(titleSport)}</b>
-          </div>
-          <button id="open-statistics-from-leaders" type="button">Вся статистика</button>
-        </header>
-
-        <div class="home-leaders-grid">
-          ${this.renderLeaderMiniList("Команди", leaders.teams)}
-          ${this.renderLeaderMiniList("Спортсмени", leaders.athletes)}
-          ${this.renderLeaderMiniList("Судді", leaders.judges)}
-        </div>
-      </section>
-    `;
-
-    document.getElementById("open-statistics-from-leaders")?.addEventListener("click", () => {
-      new StatisticsDashboard("app", "global").render();
-    });
-  }
-
-  private renderLeaderMiniList(title: string, rows: HomeLeaderRow[]) {
-    if (!rows.length) {
-      return `
-        <div class="home-leader-column muted">
-          <strong>${this.escapeHtml(title)}</strong>
-          <small>Недостатньо завершених матчів</small>
-        </div>
-      `;
-    }
-
-    return `
-      <div class="home-leader-column">
-        <strong>${this.escapeHtml(title)}</strong>
-        ${rows.slice(0, 3).map((row, index) => `
-          <div class="home-leader-row">
-            <span>${index + 1}</span>
-            <b>${this.escapeHtml(row.name)}</b>
-            <small>${row.points} оч. · ${row.wins}W · ${row.played}M</small>
-          </div>
-        `).join("")}
-      </div>
-    `;
   }
 
   private getSports() {
@@ -259,8 +193,8 @@ export class TournamentsPage {
     root.innerHTML = `
       <button class="sport-chip ${this.selectedSport === "all" ? "active" : ""}" data-sport="all" type="button">🏆 Усі</button>
       ${sports.map(([sport]) => `
-        <button class="sport-chip ${this.selectedSport === sport ? "active" : ""}" data-sport="${this.escapeAttr(sport)}" type="button">
-          ${this.sportIcon(sport)} ${this.escapeHtml(sport)}
+        <button class="sport-chip ${this.selectedSport === sport ? "active" : ""}" data-sport="${escapeAttr(sport)}" type="button">
+          ${this.sportIcon(sport)} ${escapeHtml(sport)}
         </button>
       `).join("")}
     `;
@@ -285,8 +219,8 @@ export class TournamentsPage {
         <strong>${this.events.length}</strong>
       </button>
       ${sports.map(([sport, count]) => `
-        <button class="sidebar-item ${this.selectedSport === sport ? "active" : ""}" data-sport="${this.escapeAttr(sport)}" type="button">
-          <span>${this.sportIcon(sport)} ${this.escapeHtml(sport)}</span>
+        <button class="sidebar-item ${this.selectedSport === sport ? "active" : ""}" data-sport="${escapeAttr(sport)}" type="button">
+          <span>${this.sportIcon(sport)} ${escapeHtml(sport)}</span>
           <strong>${count}</strong>
         </button>
       `).join("")}
@@ -307,9 +241,7 @@ export class TournamentsPage {
       if (this.selectedSystem !== "all" && event.system !== this.selectedSystem) return false;
 
       if (this.searchText) {
-        const matches = event.matches
-          ?.map((match: CatalogMatch) => `${match.firstParticipant} ${match.secondParticipant} ${match.score || ""} ${match.winner || ""}`)
-          .join(" ") || "";
+        const matches = event.matches?.map((m: AnyMatch) => `${m.firstParticipant} ${m.secondParticipant} ${m.score || ""} ${m.winner || ""}`).join(" ") || "";
         const text = `${event.nameEvent} ${event.description || ""} ${event.typeSport} ${event.system} ${matches}`.toLowerCase();
         if (!text.includes(this.searchText)) return false;
       }
@@ -357,8 +289,8 @@ export class TournamentsPage {
       <section class="competition-card">
         <header class="competition-header">
           <div>
-            <span class="competition-country">${this.sportIcon(sport)} ${this.escapeHtml(sport)}</span>
-            <h2>${this.escapeHtml(sport)}</h2>
+            <span class="competition-country">${this.sportIcon(sport)} ${escapeHtml(sport)}</span>
+            <h2>${escapeHtml(sport)}</h2>
           </div>
           <span class="competition-count">${sportEvents.reduce((sum, event) => sum + calculateEventStats(event).totalMatches, 0)} матчів</span>
         </header>
@@ -366,61 +298,53 @@ export class TournamentsPage {
       </section>
     `).join("");
 
-    root.querySelectorAll<HTMLElement>(".event-main-line").forEach(button => {
-      button.addEventListener("click", () => this.openEvent(Number(button.dataset.id)));
-    });
+    root.querySelectorAll<HTMLElement>(".event-main-line").forEach(button => button.addEventListener("click", () => this.openEvent(Number(button.dataset.id))));
 
     root.querySelectorAll<HTMLElement>(".match-teams, .match-action").forEach(button => {
       button.addEventListener("click", event => {
         event.stopPropagation();
         const id = Number(button.dataset.id);
         const type = button.dataset.type || "team";
-        if (!id) return;
-        this.openLiveMatch(type, id);
+        if (id) this.openLiveMatch(type, id);
       });
     });
 
-    root.querySelectorAll<HTMLElement>(".show-all-matches").forEach(button => {
-      button.addEventListener("click", event => {
-        event.stopPropagation();
-        this.openEvent(Number(button.dataset.id));
-      });
-    });
+    root.querySelectorAll<HTMLElement>(".show-all-matches").forEach(button => button.addEventListener("click", event => {
+      event.stopPropagation();
+      this.openEvent(Number(button.dataset.id));
+    }));
   }
 
-  private renderEventBlock(event: CatalogEvent) {
-    const eventUi = this.normalizeEvent(event);
-    const stats = calculateEventStats(eventUi);
-    const matches = this.pickVisibleMatches(eventUi.matches || []);
-    const selectedClass = Number(this.selectedEvent?.idEvent) === Number(eventUi.idEvent) ? "selected" : "";
+  private renderEventBlock(eventInput: AnyEvent) {
+    const event = normalizeEventForUi(eventInput);
+    const stats = calculateEventStats(event);
+    const matches = this.pickVisibleMatches(event.matches || []);
+    const selectedClass = Number(this.selectedEvent?.idEvent) === Number(event.idEvent) ? "selected" : "";
 
     return `
       <article class="event-block ${selectedClass}">
-        <button class="event-main-line" data-id="${eventUi.idEvent}" type="button">
+        <button class="event-main-line photo-card-row" data-id="${event.idEvent}" type="button">
+          ${photoOrInitialsHtml(event.eventPhoto || event.EventPhoto, event.nameEvent, "event-photo", "event")}
           <span class="event-name-line">
             <span class="event-status ${String(stats.status).toLowerCase()}">${statusLabel(stats.status)}</span>
-            <strong>${this.escapeHtml(eventUi.nameEvent)}</strong>
+            <strong>${escapeHtml(event.nameEvent)}</strong>
           </span>
           <span class="event-right">
-            <span>${this.escapeHtml(eventUi.system || "-")}</span>
+            <span>${escapeHtml(event.system || "-")}</span>
             <b>${stats.finishedMatches}/${stats.totalMatches}</b>
           </span>
         </button>
 
         <div class="event-match-preview">
-          ${matches.length ? matches.map(match => this.renderMatchLine(match)).join("") : `
-            <div class="match-line disabled">Матчів поки немає</div>
-          `}
+          ${matches.length ? matches.map(m => this.renderMatchLine(m)).join("") : `<div class="match-line disabled">Матчів поки немає</div>`}
         </div>
 
-        ${(eventUi.matches?.length || 0) > matches.length ? `
-          <button class="show-all-matches" data-id="${eventUi.idEvent}" type="button">Показати всі матчі (${eventUi.matches.length})</button>
-        ` : ""}
+        ${(event.matches?.length || 0) > matches.length ? `<button class="show-all-matches" data-id="${event.idEvent}" type="button">Показати всі матчі (${event.matches.length})</button>` : ""}
       </article>
     `;
   }
 
-  private renderMatchLine(matchInput: CatalogMatch) {
+  private renderMatchLine(matchInput: AnyMatch) {
     const match = normalizeMatchForUi(matchInput);
     const status = getEffectiveMatchStatus(match);
     const score = extractScore(match) || match.score || "";
@@ -430,30 +354,28 @@ export class TournamentsPage {
 
     return `
       <div class="match-line ${status.toLowerCase()}">
-        <button class="match-teams" data-type="${this.escapeAttr(match.matchType)}" data-id="${match.matchId}" type="button">
-          <span class="match-time ${status.toLowerCase()}">${formatMatchTime(match)}</span>
-          <span class="team-name first">${this.escapeHtml(match.firstParticipant || "-")}</span>
-          <span class="match-score first-score">${this.escapeHtml(firstScore)}</span>
-          <span class="team-name second">${this.escapeHtml(match.secondParticipant || "-")}</span>
-          <span class="match-score second-score">${this.escapeHtml(secondScore)}</span>
+        <button class="match-teams match-photo-row" data-type="${escapeAttr(match.matchType)}" data-id="${match.matchId}" type="button">
+          ${photoOrInitialsHtml(this.matchFirstPhoto(match), match.firstParticipant || "-", "match-avatar", this.matchPhotoOwner(match))}
+          <span class="team-name first">${formatMatchTime(match)} · ${escapeHtml(match.firstParticipant || "-")}</span>
+          <span class="match-score first-score">${escapeHtml(firstScore)}</span>
+          ${photoOrInitialsHtml(this.matchSecondPhoto(match), match.secondParticipant || "-", "match-avatar", this.matchPhotoOwner(match))}
+          <span class="team-name second">${escapeHtml(match.secondParticipant || "-")} <b>${escapeHtml(secondScore)}</b></span>
         </button>
-        <button class="match-action" data-type="${this.escapeAttr(match.matchType)}" data-id="${match.matchId}" type="button">${actionText}</button>
+        <button class="match-action" data-type="${escapeAttr(match.matchType)}" data-id="${match.matchId}" type="button">${actionText}</button>
       </div>
     `;
   }
 
-  private pickVisibleMatches(matches: CatalogMatch[]) {
-    const sorted = matches.map(normalizeMatchForUi).sort((a, b) => {
-      const rank = (status: string) => status === "Live" ? 0 : status === "Upcoming" ? 1 : 2;
+  private pickVisibleMatches(matches: AnyMatch[]) {
+    return matches.map(normalizeMatchForUi).sort((a, b) => {
+      const rank = (s: string) => s === "Live" ? 0 : s === "Upcoming" ? 1 : 2;
       return rank(a.status) - rank(b.status) || Number(a.tour || 0) - Number(b.tour || 0) || Number(a.matchId || 0) - Number(b.matchId || 0);
-    });
-
-    return sorted.slice(0, 5);
+    }).slice(0, 5);
   }
 
   private async openEvent(idEvent: number) {
     try {
-      this.selectedEvent = this.normalizeEvent(await eventCatalogApi.getEvent(idEvent) as CatalogEvent);
+      this.selectedEvent = normalizeEventForUi(await eventCatalogApi.getEvent(idEvent) as AnyEvent);
       this.activeTab = "matches";
       this.renderDetail(this.selectedEvent);
       this.renderFeed();
@@ -462,8 +384,8 @@ export class TournamentsPage {
     }
   }
 
-  private renderDetail(eventInput: CatalogEvent) {
-    const event = this.normalizeEvent(eventInput);
+  private renderDetail(eventInput: AnyEvent) {
+    const event = normalizeEventForUi(eventInput);
     const stats = calculateEventStats(event);
     const root = document.getElementById("event-detail");
     if (!root) return;
@@ -471,12 +393,13 @@ export class TournamentsPage {
     root.innerHTML = `
       <section class="detail-card">
         <div class="detail-hero">
+          ${photoOrInitialsHtml(event.eventPhoto || event.EventPhoto, event.nameEvent, "event-photo", "event")}
           <span class="event-status ${String(stats.status).toLowerCase()}">${statusLabel(stats.status)}</span>
-          <h2>${this.escapeHtml(event.nameEvent)}</h2>
-          <p>${this.escapeHtml(event.description || "Опис відсутній")}</p>
+          <h2>${escapeHtml(event.nameEvent)}</h2>
+          <p>${escapeHtml(event.description || "Опис відсутній")}</p>
           <div class="detail-meta">
-            <span>${this.sportIcon(event.typeSport)} ${this.escapeHtml(event.typeSport || "-")}</span>
-            <span>${this.escapeHtml(event.system || "-")}</span>
+            <span>${this.sportIcon(event.typeSport)} ${escapeHtml(event.typeSport || "-")}</span>
+            <span>${escapeHtml(event.system || "-")}</span>
             <span>${this.formatDate(event.dataStart)}</span>
           </div>
         </div>
@@ -491,30 +414,25 @@ export class TournamentsPage {
       </section>
     `;
 
-    root.querySelectorAll<HTMLElement>(".detail-tab").forEach(button => {
-      button.addEventListener("click", () => {
-        this.activeTab = (button.dataset.tab as DetailTab) || "matches";
-        this.renderDetail(event);
-      });
-    });
+    root.querySelectorAll<HTMLElement>(".detail-tab").forEach(button => button.addEventListener("click", () => {
+      this.activeTab = (button.dataset.tab as DetailTab) || "matches";
+      this.renderDetail(event);
+    }));
 
-    root.querySelectorAll<HTMLElement>(".match-action, .bracket-match").forEach(button => {
-      button.addEventListener("click", () => {
-        const id = Number(button.dataset.id);
-        const type = button.dataset.type || "team";
-        if (!id) return;
-        this.openLiveMatch(type, id);
-      });
-    });
+    root.querySelectorAll<HTMLElement>(".match-action, .bracket-match").forEach(button => button.addEventListener("click", () => {
+      const id = Number(button.dataset.id);
+      const type = button.dataset.type || "team";
+      if (id) this.openLiveMatch(type, id);
+    }));
   }
 
-  private renderDetailContent(event: CatalogEvent) {
+  private renderDetailContent(event: AnyEvent) {
     if (this.activeTab === "table") return this.renderStanding(event);
     if (this.activeTab === "bracket") return this.renderBracket(event);
     return this.renderAllMatches(event.matches || []);
   }
 
-  private renderAllMatches(matchesInput: CatalogMatch[]) {
+  private renderAllMatches(matchesInput: AnyMatch[]) {
     const matches = (matchesInput || []).map(normalizeMatchForUi);
     if (!matches.length) return `<div class="empty-state compact">Матчів поки немає</div>`;
 
@@ -522,7 +440,7 @@ export class TournamentsPage {
 
     return Array.from(byRound.entries()).map(([round, roundMatches]) => `
       <section class="detail-round">
-        <h3>${this.escapeHtml(round)}</h3>
+        <h3>${escapeHtml(round)}</h3>
         <div class="detail-match-list">
           ${roundMatches.map(match => {
             const score = extractScore(match) || match.score || "vs";
@@ -530,18 +448,18 @@ export class TournamentsPage {
 
             return `
               <article class="detail-match-row ${status.toLowerCase()}">
-                <div>
-                  <span class="match-round">${this.escapeHtml(match.matchType || "match")}${match.group ? ` · Group ${match.group}` : ""}</span>
-                  <h4>${this.escapeHtml(match.firstParticipant || "-")} — ${this.escapeHtml(match.secondParticipant || "-")}</h4>
-                  <p>${formatMatchDateTime(match)} · Суддя: ${this.escapeHtml(match.loginJudge || "-")}</p>
-                  <small>${readinessLabel(match)}</small>
+                <div class="match-photo-row">
+                  ${photoOrInitialsHtml(this.matchFirstPhoto(match), match.firstParticipant || "-", "match-avatar", this.matchPhotoOwner(match))}
+                  <h4>${escapeHtml(match.firstParticipant || "-")}</h4>
+                  <b>${escapeHtml(score)}</b>
+                  ${photoOrInitialsHtml(this.matchSecondPhoto(match), match.secondParticipant || "-", "match-avatar", this.matchPhotoOwner(match))}
+                  <h4>${escapeHtml(match.secondParticipant || "-")}</h4>
                 </div>
-                <div class="detail-score">
-                  <b>${this.escapeHtml(score)}</b>
-                  <button class="match-action" data-type="${this.escapeAttr(match.matchType)}" data-id="${match.matchId}" type="button">
-                    ${canEnterMatchData(match) ? "Внести" : "Перегляд"}
-                  </button>
-                </div>
+                <p>${formatMatchDateTime(match)} · Суддя: ${escapeHtml(match.loginJudge || "-")}</p>
+                <small>${readinessLabel(match)}</small>
+                <button class="match-action" data-type="${escapeAttr(match.matchType)}" data-id="${match.matchId}" type="button">
+                  ${canEnterMatchData(match) ? "Внести" : "Перегляд"}
+                </button>
               </article>
             `;
           }).join("")}
@@ -550,14 +468,12 @@ export class TournamentsPage {
     `).join("");
   }
 
-  private renderStanding(event: CatalogEvent) {
+  private renderStanding(event: AnyEvent) {
     const backendRows = Array.isArray(event.standings) ? event.standings : [];
     const computedRows = buildStandingsFromMatches(event.matches || []);
     const rows = computedRows.length ? computedRows : backendRows;
 
-    if (!rows.length) {
-      return `<div class="empty-state compact">Таблиця зʼявиться після завершення хоча б одного матчу з рахунком або переможцем</div>`;
-    }
+    if (!rows.length) return `<div class="empty-state compact">Таблиця зʼявиться після завершення хоча б одного матчу з рахунком або переможцем</div>`;
 
     const sorted = rows.slice().sort((a: UiStandingRow, b: UiStandingRow) =>
       Number(a.group || 0) - Number(b.group || 0) ||
@@ -570,16 +486,12 @@ export class TournamentsPage {
     return `
       <div class="standing-table-wrap">
         <table class="score-table">
-          <thead>
-            <tr>
-              <th>#</th><th>Учасник</th><th>PL</th><th>W</th><th>D</th><th>L</th><th>SF</th><th>SA</th><th>+/-</th><th>P</th>
-            </tr>
-          </thead>
+          <thead><tr><th>#</th><th>Учасник</th><th>PL</th><th>W</th><th>D</th><th>L</th><th>SF</th><th>SA</th><th>+/-</th><th>P</th></tr></thead>
           <tbody>
             ${sorted.map((row: UiStandingRow, index: number) => `
               <tr>
                 <td>${index + 1}</td>
-                <td class="participant-cell">${this.escapeHtml(row.participant || "-")}</td>
+                <td class="participant-cell">${escapeHtml(row.participant || "-")}</td>
                 <td>${row.played || 0}</td>
                 <td>${row.wins || 0}</td>
                 <td>${row.draws || 0}</td>
@@ -596,25 +508,26 @@ export class TournamentsPage {
     `;
   }
 
-  private renderBracket(event: CatalogEvent) {
+  private renderBracket(event: AnyEvent) {
     if (!event.bracket?.length) return `<div class="empty-state compact">Сітка ще не сформована</div>`;
 
     return `
       <div class="compact-bracket">
-        ${event.bracket.map((round: CatalogEvent) => `
+        ${event.bracket.map((round: AnyEvent) => `
           <section class="round-card">
             <header>
               <b>Round ${round.tour}</b>
               <span>${round.group ? `Group ${round.group}` : round.bracketCode || ""}</span>
             </header>
-            ${(round.matches || []).map((matchInput: CatalogMatch) => {
+            ${(round.matches || []).map((matchInput: AnyMatch) => {
               const match = normalizeMatchForUi(matchInput);
               const score = extractScore(match) || match.score || "vs";
+
               return `
-                <button class="bracket-match" data-type="${this.escapeAttr(match.matchType)}" data-id="${match.matchId}" type="button">
-                  <span>${this.escapeHtml(match.firstParticipant || "-")}</span>
-                  <b>${this.escapeHtml(score)}</b>
-                  <span>${this.escapeHtml(match.secondParticipant || "-")}</span>
+                <button class="bracket-match" data-type="${escapeAttr(match.matchType)}" data-id="${match.matchId}" type="button">
+                  <span>${escapeHtml(match.firstParticipant || "-")}</span>
+                  <b>${escapeHtml(score)}</b>
+                  <span>${escapeHtml(match.secondParticipant || "-")}</span>
                 </button>
               `;
             }).join("")}
@@ -624,8 +537,8 @@ export class TournamentsPage {
     `;
   }
 
-  private groupMatchesByRound(matches: CatalogMatch[]) {
-    const map = new Map<string, CatalogMatch[]>();
+  private groupMatchesByRound(matches: AnyMatch[]) {
+    const map = new Map<string, AnyMatch[]>();
 
     matches
       .slice()
@@ -640,8 +553,8 @@ export class TournamentsPage {
     return map;
   }
 
-  private groupBySport(events: CatalogEvent[]) {
-    const map = new Map<string, CatalogEvent[]>();
+  private groupBySport(events: AnyEvent[]) {
+    const map = new Map<string, AnyEvent[]>();
 
     events.forEach(event => {
       const sport = event.typeSport || "Інше";
@@ -660,6 +573,18 @@ export class TournamentsPage {
     return parts[index] || "-";
   }
 
+  private matchFirstPhoto(match: AnyMatch) {
+    return match.firstPhoto || match.firstProfilePhoto || match.firstParticipantPhoto || match.firstTeamPhoto || match.photoFirst || match.FirstPhoto || "";
+  }
+
+  private matchSecondPhoto(match: AnyMatch) {
+    return match.secondPhoto || match.secondProfilePhoto || match.secondParticipantPhoto || match.secondTeamPhoto || match.photoSecond || match.SecondPhoto || "";
+  }
+
+  private matchPhotoOwner(match: AnyMatch) {
+    return String(match.matchType || "").toLowerCase() === "team" ? "command" : "auth";
+  }
+
   private sportIcon(sport: string) {
     const key = (sport || "").toLowerCase();
     if (key.includes("football") || key.includes("фут")) return "⚽";
@@ -668,9 +593,7 @@ export class TournamentsPage {
     if (key.includes("volley") || key.includes("вол")) return "🏐";
     if (key.includes("box") || key.includes("бокс")) return "🥊";
     if (key.includes("chess") || key.includes("шах")) return "♟️";
-    if (key.includes("wrest")) return "🤼";
-    if (key.includes("swim")) return "🏊";
-    if (key.includes("athletics")) return "🏃";
+    if (key.includes("hockey") || key.includes("хок")) return "🏒";
     return "🏆";
   }
 
@@ -683,18 +606,5 @@ export class TournamentsPage {
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) return "-";
     return date.toLocaleDateString("uk-UA", { day: "2-digit", month: "2-digit", year: "numeric" });
-  }
-
-  private escapeHtml(value: unknown) {
-    return String(value ?? "")
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#039;");
-  }
-
-  private escapeAttr(value: unknown) {
-    return this.escapeHtml(value).replace(/`/g, "&#096;");
   }
 }
