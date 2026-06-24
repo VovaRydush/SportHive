@@ -37,7 +37,7 @@ export class TeamPageLook {
     } catch (error) {
       this.container.innerHTML = `
         <section class="team-page">
-          <button id="team-back" class="team-back">← Назад</button>
+          
           <div class="team-error">${escapeHtml(error instanceof Error ? error.message : "Не вдалося завантажити команду")}</div>
         </section>
       `;
@@ -68,7 +68,7 @@ export class TeamPageLook {
 
     this.container.innerHTML = `
       <section class="team-page">
-        <button id="team-back" class="team-back">← Назад</button>
+        
 
         <header class="team-hero">
           ${photoOrInitialsHtml(image, name, "team-photo", "command")}

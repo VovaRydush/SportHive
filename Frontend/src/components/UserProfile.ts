@@ -40,7 +40,7 @@ export class UserProfilePage {
     } catch (error) {
       this.container.innerHTML = `
         <section class="user-profile-page">
-          <button id="profile-back" class="profile-back">← Назад</button>
+          
           <div class="profile-error">${escapeHtml(error instanceof Error ? error.message : "Не вдалося завантажити профіль")}</div>
         </section>
       `;
@@ -64,7 +64,7 @@ export class UserProfilePage {
 
     this.container.innerHTML = `
       <section class="user-profile-page">
-        <button id="profile-back" class="profile-back">← Назад</button>
+        
 
         <header class="profile-hero">
           <div class="profile-avatar-wrap">

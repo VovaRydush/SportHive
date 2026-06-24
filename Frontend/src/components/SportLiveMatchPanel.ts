@@ -96,7 +96,6 @@ export class SportLiveMatchPanel {
 
     this.container.innerHTML = `
       <section class="sport-live-panel">
-        <button id="back-to-tournaments-btn" class="secondary-btn back-btn" type="button">← Назад до турнірів</button>
 
         <header class="sport-live-header">
           <div>
